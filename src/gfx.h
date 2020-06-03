@@ -41,6 +41,7 @@ typedef void (APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsi
 typedef void (APIENTRYP PFNGLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
 typedef void (APIENTRYP PFNGLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void (APIENTRYP PFNGLGETINTEGERVPROC)(GLenum pname, GLint * params);
+typedef GLubyte* (APIENTRYP PFNGLGETSTRINGPROC)(GLenum name);
 
 typedef GLuint(APIENTRYP PFNGLCREATESHADERPROC) (GLenum type);
 typedef void (APIENTRYP PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
@@ -74,41 +75,35 @@ extern "C" {
 #endif
 
   typedef struct  {
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-    PFNGLCLEARPROC glClear;
-    PFNGLVIEWPORTPROC glViewport;
-    PFNGLDRAWARRAYSPROC glDrawArrays;
-    PFNGLCLEARCOLORPROC glClearColor;
-    PFNGLGETINTEGERVPROC glGetIntegerv;
+    PFNGLCLEARPROC clear;
+    PFNGLVIEWPORTPROC viewport;
+    PFNGLDRAWARRAYSPROC drawArrays;
+    PFNGLCLEARCOLORPROC clearColor;
+    PFNGLGETINTEGERVPROC getIntegerv;
+    PFNGLGETSTRINGPROC getString;
 
-    PFNGLCREATESHADERPROC glCreateShader;
-    PFNGLSHADERSOURCEPROC glShaderSource;
-    PFNGLCOMPILESHADERPROC glCompileShader;
-    PFNGLGETSHADERIVPROC glGetShaderiv;
-    PFNGLATTACHSHADERPROC glAttachShader;
-    PFNGLCREATEPROGRAMPROC glCreateProgram;
-    PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
-    PFNGLLINKPROGRAMPROC glLinkProgram;
-    PFNGLVALIDATEPROGRAMPROC glValidateProgram;
-    PFNGLGETPROGRAMIVPROC glGetProgramiv;
-    PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
-    PFNGLDELETESHADERPROC glDeleteShader;
-    PFNGLUSEPROGRAMPROC glUseProgram;
-    PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-    PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-    PFNGLGENBUFFERSPROC glGenBuffers;
-    PFNGLBINDBUFFERPROC glBindBuffer;
-    PFNGLBUFFERDATAPROC glBufferData;
-    PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-    PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
-    PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-    PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-    // --------------------------------------------------------------------------------
-
+    PFNGLCREATESHADERPROC createShader;
+    PFNGLSHADERSOURCEPROC shaderSource;
+    PFNGLCOMPILESHADERPROC compileShader;
+    PFNGLGETSHADERIVPROC getShaderiv;
+    PFNGLATTACHSHADERPROC attachShader;
+    PFNGLCREATEPROGRAMPROC createProgram;
+    PFNGLGETSHADERINFOLOGPROC getShaderInfoLog;
+    PFNGLLINKPROGRAMPROC linkProgram;
+    PFNGLVALIDATEPROGRAMPROC validateProgram;
+    PFNGLGETPROGRAMIVPROC getProgramiv;
+    PFNGLGETPROGRAMINFOLOGPROC getProgramInfoLog;
+    PFNGLDELETESHADERPROC deleteShader;
+    PFNGLUSEPROGRAMPROC useProgram;
+    PFNGLGENVERTEXARRAYSPROC genVertexArrays;
+    PFNGLBINDVERTEXARRAYPROC bindVertexArray;
+    PFNGLGENBUFFERSPROC genBuffers;
+    PFNGLBINDBUFFERPROC bindBuffer;
+    PFNGLBUFFERDATAPROC bufferData;
+    PFNGLENABLEVERTEXATTRIBARRAYPROC enableVertexAttribArray;
+    PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
+    PFNGLVERTEXATTRIBPOINTERPROC vertexAttribPointer;
+    PFNGLDELETEVERTEXARRAYSPROC deleteVertexArrays;
   } Gfx;
 
 #ifdef __cplusplus
