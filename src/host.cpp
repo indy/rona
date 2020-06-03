@@ -3,24 +3,19 @@
 #define FPL_NO_AUDIO
 #include <final_platform_layer.h>
 
-#include <GL/gl.h>
-
 #include <sys/mman.h>
 
 #include <stdbool.h>
 #define CR_HOST CR_UNSAFE // try to best manage static states
 #include "cr.h"
 
+#include "gfx.h"
 #include "host_data.h"
 
 const char *plugin = CR_DEPLOY_PATH "/" CR_PLUGIN(CR_NAME);
 const char *tmp = "/tmp/";
 
 static HostData data;
-
-// --------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------
 
 #if defined(FPL_PLATFORM_WINDOWS)
 static void *GLProcAddress(const char *name) {
@@ -40,7 +35,7 @@ static void *GLProcAddress(const char *name) {
 }
 #endif
 
-static void LoadGLExtensions(HostData *hd) {
+static void LoadGLExtensions(Gfx *hd) {
   hd->glClear = (PFNGLCLEARPROC)GLProcAddress("glClear");
   hd->glViewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
   hd->glDrawArrays = (PFNGLDRAWARRAYSPROC)GLProcAddress("glDrawArrays");
@@ -71,9 +66,6 @@ static void LoadGLExtensions(HostData *hd) {
   hd->glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)GLProcAddress("glVertexAttribPointer");
   hd->glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)GLProcAddress("glDeleteVertexArrays");
 }
-// --------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------
-// --------------------------------------------------------------------------------
 
 void display_cr_failure(cr_plugin* ctx) {
   switch(ctx->failure) {
@@ -169,14 +161,14 @@ int main(int argc, char **args) {
 
 	if (fplPlatformInit(fplInitFlags_Video, &settings)) {
 
-    const char *version = (const char *)glGetString(GL_VERSION);
-    const char *vendor = (const char *)glGetString(GL_VENDOR);
-    const char *renderer = (const char *)glGetString(GL_RENDERER);
-    fplConsoleFormatOut("OpenGL version: %s\n", version);
-    fplConsoleFormatOut("OpenGL vendor: %s\n", vendor);
-    fplConsoleFormatOut("OpenGL renderer: %s\n", renderer);
+    // const char *version = (const char *)glGetString(GL_VERSION);
+    // const char *vendor = (const char *)glGetString(GL_VENDOR);
+    // const char *renderer = (const char *)glGetString(GL_RENDERER);
+    // fplConsoleFormatOut("OpenGL version: %s\n", version);
+    // fplConsoleFormatOut("OpenGL vendor: %s\n", vendor);
+    // fplConsoleFormatOut("OpenGL renderer: %s\n", renderer);
 
-    LoadGLExtensions(&data);
+    LoadGLExtensions(&(data.gl));
 
 		// Event/Main loop
 		while (fplWindowUpdate() && !data.quit_game) {

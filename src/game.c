@@ -5,13 +5,11 @@
 
 #include <GL/gl.h>
 
-#include <math.h>
-#include "linmath.h"
-
+#include "gfx.h"
 #include "host_data.h"
 #include "game.h"
 
-static GLuint CreateShaderType(HostData *hd, GLenum type, const char *source) {
+static GLuint CreateShaderType(Gfx *hd, GLenum type, const char *source) {
     GLuint shaderId = hd->glCreateShader(type);
 
     hd->glShaderSource(shaderId, 1, &source, NULL);
@@ -37,7 +35,7 @@ static GLuint CreateShaderType(HostData *hd, GLenum type, const char *source) {
     return(shaderId);
 }
 
-static GLuint CreateShaderProgram(HostData *hd, const char *name, const char *vertexSource, const char *fragmentSource) {
+static GLuint CreateShaderProgram(Gfx *hd, const char *name, const char *vertexSource, const char *fragmentSource) {
     GLuint programId = hd->glCreateProgram();
 
     GLuint vertexShader = CreateShaderType(hd, GL_VERTEX_SHADER, vertexSource);
@@ -72,17 +70,20 @@ static GLuint CreateShaderProgram(HostData *hd, const char *name, const char *ve
 }
 
 void game_init(HostData* hd) {
+  Gfx *gl = &(hd->gl);
+
+
   printf("game_init\n");
-    hd->glGenVertexArrays(1, &hd->vertexArrayID);
-    hd->glBindVertexArray(hd->vertexArrayID);
+    gl->glGenVertexArrays(1, &hd->vertexArrayID);
+    gl->glBindVertexArray(hd->vertexArrayID);
 
     // const char *glslVersion = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
     // fplConsoleFormatOut("OpenGL GLSL Version %s:\n", glslVersion);
 
     int profileMask;
     int contextFlags;
-    hd->glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
-    hd->glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
+    gl->glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+    gl->glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
     // fplConsoleFormatOut("OpenGL supported profiles:\n");
     // fplConsoleFormatOut("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
     // fplConsoleFormatOut("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
@@ -109,7 +110,7 @@ void game_init(HostData* hd) {
         "}\n"
     };
 
-    GLuint shaderProgram = CreateShaderProgram(hd, "Test", vertexSource, fragmentSource);
+    GLuint shaderProgram = CreateShaderProgram(&(hd->gl), "Test", vertexSource, fragmentSource);
 
     float vertices[] = {
         0.0f, 0.5f,
@@ -117,30 +118,34 @@ void game_init(HostData* hd) {
         0.5f, -0.5f
     };
     GLuint buffer;
-    hd->glGenBuffers(1, &buffer);
-    hd->glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    hd->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    hd->glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl->glGenBuffers(1, &buffer);
+    gl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    gl->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    gl->glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    hd->glUseProgram(shaderProgram);
+    gl->glUseProgram(shaderProgram);
 
-    hd->glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    hd->glEnableVertexAttribArray(0);
-    hd->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
+    gl->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    gl->glEnableVertexAttribArray(0);
+    gl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
 
-    hd->glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
+    gl->glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 }
 
 void game_shutdown(HostData* hd) {
-  hd->glDisableVertexAttribArray(0);
-  hd->glBindBuffer(GL_ARRAY_BUFFER, 0);
+  Gfx *gl = &(hd->gl);
 
-  hd->glBindVertexArray(0);
-  hd->glDeleteVertexArrays(1, &hd->vertexArrayID);
+  gl->glDisableVertexAttribArray(0);
+  gl->glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  gl->glBindVertexArray(0);
+  gl->glDeleteVertexArrays(1, &hd->vertexArrayID);
 }
 
 void game_tick(HostData* hd) {
-  hd->glViewport(0, 0, hd->window_width, hd->window_height);
-  hd->glClear(GL_COLOR_BUFFER_BIT);
-  hd->glDrawArrays(GL_TRIANGLES, 0, 3);
+  Gfx *gl = &(hd->gl);
+
+  gl->glViewport(0, 0, hd->window_width, hd->window_height);
+  gl->glClear(GL_COLOR_BUFFER_BIT);
+  gl->glDrawArrays(GL_TRIANGLES, 0, 3);
 }

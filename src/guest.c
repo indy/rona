@@ -5,7 +5,7 @@
 #include "cr.h"
 
 #include <GL/gl.h>
-
+#include "gfx.h"
 #include "host_data.h"
 
 #include "game.h"
