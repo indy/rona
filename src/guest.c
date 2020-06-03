@@ -4,9 +4,7 @@
 #include <assert.h>
 #include "cr.h"
 
-#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glext.h>
 
 #include "host_data.h"
 

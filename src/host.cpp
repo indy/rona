@@ -1,9 +1,9 @@
 #define FPL_IMPLEMENTATION
+#define FPL_NO_VIDEO_SOFTWARE
+#define FPL_NO_AUDIO
 #include <final_platform_layer.h>
 
-#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glext.h>
 
 #include <sys/mman.h>
 
@@ -17,6 +17,63 @@ const char *plugin = CR_DEPLOY_PATH "/" CR_PLUGIN(CR_NAME);
 const char *tmp = "/tmp/";
 
 static HostData data;
+
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+
+#if defined(FPL_PLATFORM_WINDOWS)
+static void *GLProcAddress(const char *name) {
+    fpl__VideoState *videoState = (fpl__VideoState *)fpl__global__AppState->video.mem;
+    fplAssert(videoState != NULL);
+    fplAssert(videoState->win32.opengl.api.wglGetProcAddress != NULL);
+    void *result = videoState->win32.opengl.api.wglGetProcAddress(name);
+    return(result);
+}
+#else
+static void *GLProcAddress(const char *name) {
+    fpl__VideoState *videoState = (fpl__VideoState *)fpl__global__AppState->video.mem;
+    fplAssert(videoState != NULL);
+    fplAssert(videoState->x11.opengl.api.glXGetProcAddress != NULL);
+    void *result = videoState->x11.opengl.api.glXGetProcAddress((const GLubyte *)name);
+    return(result);
+}
+#endif
+
+static void LoadGLExtensions(HostData *hd) {
+  hd->glClear = (PFNGLCLEARPROC)GLProcAddress("glClear");
+  hd->glViewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
+  hd->glDrawArrays = (PFNGLDRAWARRAYSPROC)GLProcAddress("glDrawArrays");
+  hd->glClearColor = (PFNGLCLEARCOLORPROC)GLProcAddress("glClearColor");
+  hd->glGetIntegerv = (PFNGLGETINTEGERVPROC)GLProcAddress("glGetIntegerv");
+
+  hd->glCreateShader = (PFNGLCREATESHADERPROC)GLProcAddress("glCreateShader");
+  hd->glShaderSource = (PFNGLSHADERSOURCEPROC)GLProcAddress("glShaderSource");
+  hd->glCompileShader = (PFNGLCOMPILESHADERPROC)GLProcAddress("glCompileShader");
+  hd->glGetShaderiv = (PFNGLGETSHADERIVPROC)GLProcAddress("glGetShaderiv");
+  hd->glAttachShader = (PFNGLATTACHSHADERPROC)GLProcAddress("glAttachShader");
+  hd->glCreateProgram = (PFNGLCREATEPROGRAMPROC)GLProcAddress("glCreateProgram");
+  hd->glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)GLProcAddress("glGetShaderInfoLog");
+  hd->glLinkProgram = (PFNGLLINKPROGRAMPROC)GLProcAddress("glLinkProgram");
+  hd->glValidateProgram = (PFNGLVALIDATEPROGRAMPROC)GLProcAddress("glValidateProgram");
+  hd->glGetProgramiv = (PFNGLGETPROGRAMIVPROC)GLProcAddress("glGetProgramiv");
+  hd->glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)GLProcAddress("glGetProgramInfoLog");
+  hd->glDeleteShader = (PFNGLDELETESHADERPROC)GLProcAddress("glDeleteShader");
+  hd->glUseProgram = (PFNGLUSEPROGRAMPROC)GLProcAddress("glUseProgram");
+
+  hd->glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)GLProcAddress("glGenVertexArrays");
+  hd->glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)GLProcAddress("glBindVertexArray");
+  hd->glGenBuffers = (PFNGLGENBUFFERSPROC)GLProcAddress("glGenBuffers");
+  hd->glBindBuffer = (PFNGLBINDBUFFERPROC)GLProcAddress("glBindBuffer");
+  hd->glBufferData = (PFNGLBUFFERDATAPROC)GLProcAddress("glBufferData");
+  hd->glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GLProcAddress("glEnableVertexAttribArray");
+  hd->glDisableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GLProcAddress("glDisableVertexAttribArray");
+  hd->glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)GLProcAddress("glVertexAttribPointer");
+  hd->glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)GLProcAddress("glDeleteVertexArrays");
+}
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 void display_cr_failure(cr_plugin* ctx) {
   switch(ctx->failure) {
@@ -98,7 +155,7 @@ int main(int argc, char **args) {
 
   // Create default settings
 	fplSettings settings = fplMakeDefaultSettings();
-  fplCopyString("cg2", settings.window.title, fplArrayCount(settings.window.title));
+  fplCopyString("rona", settings.window.title, fplArrayCount(settings.window.title));
 
 	// Overwrite the video driver
 	settings.video.driver = fplVideoDriverType_OpenGL;
@@ -107,8 +164,19 @@ int main(int argc, char **args) {
 	settings.video.graphics.opengl.compabilityFlags = fplOpenGLCompabilityFlags_Core;
 	settings.video.graphics.opengl.majorVersion = 3;
 	settings.video.graphics.opengl.minorVersion = 3;
+  settings.video.graphics.opengl.multiSamplingCount = 4;
+
 
 	if (fplPlatformInit(fplInitFlags_Video, &settings)) {
+
+    const char *version = (const char *)glGetString(GL_VERSION);
+    const char *vendor = (const char *)glGetString(GL_VENDOR);
+    const char *renderer = (const char *)glGetString(GL_RENDERER);
+    fplConsoleFormatOut("OpenGL version: %s\n", version);
+    fplConsoleFormatOut("OpenGL vendor: %s\n", vendor);
+    fplConsoleFormatOut("OpenGL renderer: %s\n", renderer);
+
+    LoadGLExtensions(&data);
 
 		// Event/Main loop
 		while (fplWindowUpdate() && !data.quit_game) {
@@ -118,9 +186,16 @@ int main(int argc, char **args) {
 				/// ...
 			}
 
-			// your code goes here
-      glClearColor(1.0, 0.0, 0.0, 1.0);
-      glClear(GL_COLOR_BUFFER_BIT);
+      fplWindowSize windowArea;
+      fplGetWindowSize(&windowArea);
+
+      data.window_width = windowArea.width;
+      data.window_height = windowArea.height;
+
+
+        // // your code goes here
+      // glClearColor(1.0, 0.0, 0.0, 1.0);
+      // glClear(GL_COLOR_BUFFER_BIT);
 
       cr_plugin_update(ctx);
       if (ctx.failure != CR_NONE) {

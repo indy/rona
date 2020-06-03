@@ -3,9 +3,7 @@
 
 #include "stdio.h"
 
-#define GL_GLEXT_PROTOTYPES
 #include <GL/gl.h>
-#include <GL/glext.h>
 
 #include <math.h>
 #include "linmath.h"
@@ -13,100 +11,136 @@
 #include "host_data.h"
 #include "game.h"
 
-typedef struct Vertex
-{
-    vec2 pos;
-    vec3 col;
-} Vertex;
+static GLuint CreateShaderType(HostData *hd, GLenum type, const char *source) {
+    GLuint shaderId = hd->glCreateShader(type);
 
-static const Vertex vertices[3] =
-{
-    { { -0.6f, -0.4f }, { 1.f, 0.f, 0.f } },
-    { {  0.6f, -0.4f }, { 0.f, 1.f, 0.f } },
-    { {   0.f,  0.6f }, { 0.f, 0.f, 1.f } }
-};
+    hd->glShaderSource(shaderId, 1, &source, NULL);
+    hd->glCompileShader(shaderId);
 
-static const char* vertex_shader_text =
-"#version 330\n"
-"uniform mat4 MVP;\n"
-"in vec3 vCol;\n"
-"in vec2 vPos;\n"
-"out vec3 color;\n"
-"void main()\n"
-"{\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
+    char info[1024 * 10];
+    int i = 0;
+    for (i = 0; i < 1024 * 10; i++) {
+      info[i] = 0;
+    }
 
-static const char* fragment_shader_text =
-"#version 330\n"
-"in vec3 color;\n"
-"out vec4 fragment;\n"
-"void main()\n"
-"{\n"
-"    fragment = vec4(color, 1.0);\n"
-"}\n";
+    GLint compileResult;
+    hd->glGetShaderiv(shaderId, GL_COMPILE_STATUS, &compileResult);
+    if(!compileResult) {
+        GLint infoLen;
+        hd->glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLen);
+        // fplAssert(infoLen <= fplArrayCount(info));
+        hd->glGetShaderInfoLog(shaderId, infoLen, &infoLen, info);
+        // fplConsoleFormatError("Failed compiling %s shader!\n", (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+        // fplConsoleFormatError("%s\n", info);
+    }
 
+    return(shaderId);
+}
+
+static GLuint CreateShaderProgram(HostData *hd, const char *name, const char *vertexSource, const char *fragmentSource) {
+    GLuint programId = hd->glCreateProgram();
+
+    GLuint vertexShader = CreateShaderType(hd, GL_VERTEX_SHADER, vertexSource);
+    GLuint fragmentShader = CreateShaderType(hd, GL_FRAGMENT_SHADER, fragmentSource);
+
+    hd->glAttachShader(programId, vertexShader);
+    hd->glAttachShader(programId, fragmentShader);
+    hd->glLinkProgram(programId);
+    hd->glValidateProgram(programId);
+
+    char info[1024 * 10];
+    int i = 0;
+    for (i = 0; i < 1024 * 10; i++) {
+      info[i] = 0;
+    }
+
+    GLint linkResult;
+    hd->glGetProgramiv(programId, GL_LINK_STATUS, &linkResult);
+    if(!linkResult) {
+        GLint infoLen;
+        hd->glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
+        // fplAssert(infoLen <= fplArrayCount(info));
+        hd->glGetProgramInfoLog(programId, infoLen, &infoLen, info);
+        // fplConsoleFormatError("Failed linking '%s' shader!\n", name);
+        // fplConsoleFormatError("%s\n", info);
+    }
+
+    hd->glDeleteShader(fragmentShader);
+    hd->glDeleteShader(vertexShader);
+
+    return(programId);
+}
 
 void game_init(HostData* hd) {
   printf("game_init\n");
+    hd->glGenVertexArrays(1, &hd->vertexArrayID);
+    hd->glBindVertexArray(hd->vertexArrayID);
 
+    // const char *glslVersion = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
+    // fplConsoleFormatOut("OpenGL GLSL Version %s:\n", glslVersion);
 
-    GLuint vertex_buffer;
-    glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    int profileMask;
+    int contextFlags;
+    hd->glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+    hd->glGetIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
+    // fplConsoleFormatOut("OpenGL supported profiles:\n");
+    // fplConsoleFormatOut("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
+    // fplConsoleFormatOut("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
 
-    const GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
+    // fplConsoleOut("Running modern opengl\n");
 
-    const GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
+    const char vertexSource[] = {
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) in vec4 inPosition;\n"
+        "\n"
+        "void main() {\n"
+        "\tgl_Position = inPosition;\n"
+        "}\n"
+    };
 
-    hd->program = glCreateProgram();
-    glAttachShader(hd->program, vertex_shader);
-    glAttachShader(hd->program, fragment_shader);
-    glLinkProgram(hd->program);
+    const char fragmentSource[] = {
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) out vec4 outColor;\n"
+        "\n"
+        "void main() {\n"
+        "\toutColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "}\n"
+    };
 
-    hd-> mvp_location = glGetUniformLocation(hd->program, "MVP");
-    const GLint vpos_location = glGetAttribLocation(hd->program, "vPos");
-    const GLint vcol_location = glGetAttribLocation(hd->program, "vCol");
+    GLuint shaderProgram = CreateShaderProgram(hd, "Test", vertexSource, fragmentSource);
 
+    float vertices[] = {
+        0.0f, 0.5f,
+        -0.5f, -0.5f,
+        0.5f, -0.5f
+    };
+    GLuint buffer;
+    hd->glGenBuffers(1, &buffer);
+    hd->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    hd->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    hd->glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glGenVertexArrays(1, &hd->vertex_array);
-    glBindVertexArray(hd->vertex_array);
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (void*) 0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (void*) sizeof(vec2));
+    hd->glUseProgram(shaderProgram);
 
+    hd->glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    hd->glEnableVertexAttribArray(0);
+    hd->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
+
+    hd->glClearColor(0.39f, 0.58f, 0.93f, 1.0f);
 }
 
 void game_shutdown(HostData* hd) {
+  hd->glDisableVertexAttribArray(0);
+  hd->glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  hd->glBindVertexArray(0);
+  hd->glDeleteVertexArrays(1, &hd->vertexArrayID);
 }
 
 void game_tick(HostData* hd) {
-  // hd->quit_game = true;
-
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  float ratio = 1.3f;
-
-  mat4x4 m, p, mvp;
-  mat4x4_identity(m);
-  mat4x4_rotate_Z(m, m, 0.0f);  // get time
-  mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
-  mat4x4_mul(mvp, p, m);
-
-
-  glUseProgram(hd->program);
-  glUniformMatrix4fv(hd->mvp_location, 1, GL_FALSE, (const GLfloat*) &mvp);
-  glBindVertexArray(hd->vertex_array);
-  glDrawArrays(GL_TRIANGLES, 0, 3);
-
+  hd->glViewport(0, 0, hd->window_width, hd->window_height);
+  hd->glClear(GL_COLOR_BUFFER_BIT);
+  hd->glDrawArrays(GL_TRIANGLES, 0, 3);
 }
