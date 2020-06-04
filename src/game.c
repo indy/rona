@@ -26,7 +26,7 @@ static GLuint CreateShaderType(Gfx *gl, GLenum type, const char *source) {
   if(!compileResult) {
     GLint infoLen;
     gl->getShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLen);
-    RONA_ASSERT(infoLen <= fplArrayCount(info));
+    // RONA_ASSERT(infoLen <= fplArrayCount(info));
     gl->getShaderInfoLog(shaderId, infoLen, &infoLen, info);
     RONA_ERROR("Failed compiling %s shader!\n", (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
     RONA_ERROR("%s\n", info);
@@ -57,7 +57,7 @@ static GLuint CreateShaderProgram(Gfx *gl, const char *name, const char *vertexS
   if(!linkResult) {
     GLint infoLen;
     gl->getProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
-    RONA_ASSERT(infoLen <= fplArrayCount(info));
+    // RONA_ASSERT(infoLen <= fplArrayCount(info));
     gl->getProgramInfoLog(programId, infoLen, &infoLen, info);
     RONA_ERROR("Failed linking '%s' shader!\n", name);
     RONA_ERROR("%s\n", info);
@@ -69,12 +69,10 @@ static GLuint CreateShaderProgram(Gfx *gl, const char *name, const char *vertexS
   return(programId);
 }
 
-void game_init(GameState* game_state) {
+// one time init at startup
+void game_startup(GameState* game_state) {
   Gfx *gl = &(game_state->gl);
-
-  printf("game_init\n");
-  gl->genVertexArrays(1, &game_state->vertexArrayID);
-  gl->bindVertexArray(game_state->vertexArrayID);
+  printf("game_startup\n");
 
   const char *glslVersion = (const char *)glGetString(GL_SHADING_LANGUAGE_VERSION);
   RONA_INFO("OpenGL GLSL Version %s:\n", glslVersion);
@@ -88,6 +86,17 @@ void game_init(GameState* game_state) {
   RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
 
   RONA_OUT("Running modern opengl\n");
+}
+
+void game_shutdown(GameState* game_state) {
+}
+
+// changes have been made to the game client and it has now been automatically loaded
+void game_load(GameState* game_state) {
+  Gfx *gl = &(game_state->gl);
+
+  gl->genVertexArrays(1, &game_state->vertexArrayID);
+  gl->bindVertexArray(game_state->vertexArrayID);
 
   const char vertexSource[] = {
     "#version 330 core\n"
@@ -105,7 +114,7 @@ void game_init(GameState* game_state) {
     "layout(location = 0) out vec4 outColor;\n"
     "\n"
     "void main() {\n"
-    "\toutColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "\toutColor = vec4(0.3, 1.0, 0.0, 1.0);\n"
     "}\n"
   };
 
@@ -131,7 +140,8 @@ void game_init(GameState* game_state) {
   gl->clearColor(0.39f, 0.58f, 0.93f, 1.0f);
 }
 
-void game_shutdown(GameState* game_state) {
+// changes have been made to the game client, this old version will be unloaded
+void game_unload(GameState* game_state) {
   Gfx *gl = &(game_state->gl);
 
   gl->disableVertexAttribArray(0);
@@ -141,7 +151,7 @@ void game_shutdown(GameState* game_state) {
   gl->deleteVertexArrays(1, &game_state->vertexArrayID);
 }
 
-void game_tick(GameState* game_state) {
+void game_step(GameState* game_state) {
   Gfx *gl = &(game_state->gl);
 
   gl->viewport(0, 0, game_state->window_width, game_state->window_height);

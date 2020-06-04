@@ -1,18 +1,21 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#include <final_platform_layer.h>
-
 #ifdef _DEBUG
-#define RONA_ASSERT(exp) fplAssert(exp)
+#define RONA_ASSERT(exp)        \
+  if(!(exp)) { \
+    fprintf(stderr, "ASSERT FAILURE: %s (%s:%d)\n", __func__, __FILE__, __LINE__); \
+    fflush(stderr); \
+    *(int *)0 = 0; \
+  }
 #else
-#define RONA_ASSERT(exp)
+#define RONA_ASSERT(exp) {}
 #endif
 
-#define RONA_ERROR fplConsoleFormatError
-#define RONA_INFO fplConsoleFormatOut
+#define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
+#define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
+#define RONA_OUT(f_) fprintf(stdout, (f_))
 
-#define RONA_OUT fplConsoleOut
 
 
 #endif
