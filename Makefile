@@ -1,6 +1,6 @@
 CC=gcc
 
-INCLUDE_FLAGS=-Ithird_party
+INCLUDE_FLAGS=-Iext
 
 GUEST_NAME=guest
 GUEST_CFLAGS=-std=c99 -fPIC -g -O0 -D _DEBUG -D FPL_DEBUG
