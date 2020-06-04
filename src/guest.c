@@ -4,8 +4,7 @@
 #include <assert.h>
 #include "cr.h"
 
-#include <GL/gl.h>
-#include "gfx.h"
+#include "rona_gl.h"
 #include "game_state.h"
 #include "game.h"
 
@@ -41,11 +40,11 @@ CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation) {
       game_startup(g_game_state);
       g_game_state->game_initialised = true;
     }
-    game_load(g_game_state);
+    game_lib_load(g_game_state);
     return 0;
   case CR_UNLOAD:
     fprintf(stdout, "UNLOAD (version: %d)\n", ctx->version);
-    game_unload(g_game_state);
+    game_lib_unload(g_game_state);
     return 0;
   case CR_CLOSE:
     fprintf(stdout, "CLOSE\n");

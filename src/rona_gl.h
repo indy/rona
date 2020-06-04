@@ -1,5 +1,5 @@
-#ifndef GFX_H
-#define GFX_H
+#ifndef RONA_GL_H
+#define RONA_GL_H
 
 #include <GL/gl.h>
 
@@ -104,10 +104,10 @@ extern "C" {
     PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
     PFNGLVERTEXATTRIBPOINTERPROC vertexAttribPointer;
     PFNGLDELETEVERTEXARRAYSPROC deleteVertexArrays;
-  } Gfx;
+  } RonaGl;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif
+#endif /* RONA_GL */
