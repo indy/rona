@@ -3,15 +3,15 @@
 #define FPL_NO_AUDIO
 #include <final_platform_layer.h>
 
-#include "platform.h"
+#include "../platform.h"
 #include <sys/mman.h>
 
 #include <stdbool.h>
 #define CR_HOST CR_UNSAFE // try to best manage static states
 #include "cr.h"
 
-#include "rona_gl.h"
-#include "game_state.h"
+#include "../rona_gl.h"
+#include "../game_state.h"
 
 const char *plugin = CR_DEPLOY_PATH "/" CR_PLUGIN(CR_NAME);
 const char *tmp = "/tmp/";
