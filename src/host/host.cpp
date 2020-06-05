@@ -3,15 +3,14 @@
 #define FPL_NO_AUDIO
 #include <final_platform_layer.h>
 
-#include "../platform.h"
 #include <sys/mman.h>
 
-#include <stdbool.h>
 #define CR_HOST CR_UNSAFE // try to best manage static states
 #include "cr.h"
 
-#include "../rona_gl.h"
-#include "../game_state.h"
+typedef unsigned long long u64; // copied from rona.h
+
+#include "../platform.h"
 
 const char *plugin = CR_DEPLOY_PATH "/" CR_PLUGIN(CR_NAME);
 const char *tmp = "/tmp/";
@@ -179,7 +178,7 @@ int main(int argc, char **args) {
     while (fplWindowUpdate() && !game_state.quit_game) {
       game_state.window_resized = false;
 
-      uint64_t time = fplGetTimeInMilliseconds();
+      u64 time = fplGetTimeInMilliseconds();
       game_state.time_delta = time - game_state.time_last_frame;
       game_state.time_last_frame = time;
 

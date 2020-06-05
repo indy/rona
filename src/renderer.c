@@ -1,15 +1,13 @@
-#include <stdbool.h>
 #include "stdio.h"
 
+#include "rona.h"
 #include "platform.h"
-#include "rona_gl.h"
-#include "game_state.h"
-#include "render.h"
+#include "renderer.h"
 
 static GLuint CreateShaderType(RonaGl *gl, GLenum type, const char *source);
 static GLuint CreateShaderProgram(RonaGl *gl, const char *name, const char *vertexSource, const char *fragmentSource);
 
-void render_startup(GameState *game_state) {
+void renderer_startup(GameState *game_state) {
   RonaGl *gl = &(game_state->gl);
 
   const char *version = (const char *)game_state->gl.getString(GL_VERSION);
@@ -33,10 +31,10 @@ void render_startup(GameState *game_state) {
   RONA_OUT("Running modern opengl\n");
 }
 
-void render_shutdown(GameState *game_state) {
+void renderer_shutdown(GameState *game_state) {
 }
 
-void render_lib_load(GameState *game_state) {
+void renderer_lib_load(GameState *game_state) {
   RonaGl *gl = &(game_state->gl);
 
   gl->genVertexArrays(1, &game_state->vertex_array_id);
@@ -84,7 +82,7 @@ void render_lib_load(GameState *game_state) {
   gl->clearColor(0.39f, 0.58f, 0.93f, 1.0f);
 }
 
-void render_lib_unload(GameState *game_state) {
+void renderer_lib_unload(GameState *game_state) {
   RonaGl *gl = &(game_state->gl);
 
   gl->disableVertexAttribArray(0);
@@ -94,7 +92,7 @@ void render_lib_unload(GameState *game_state) {
   gl->deleteVertexArrays(1, &game_state->vertex_array_id);
 }
 
-void render_step(GameState *game_state) {
+void renderer_step(GameState *game_state) {
   RonaGl *gl = &(game_state->gl);
 
   gl->viewport(0, 0, game_state->window_width, game_state->window_height);
