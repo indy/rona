@@ -18,6 +18,8 @@ HOST_OUT=./target/host
 
 TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
+TEST_LIBS=-lm
+
 
 guest: $(GUEST_OUT)
 host: $(HOST_OUT)
@@ -31,7 +33,7 @@ $(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
 	$(CC) -o $(HOST_OUT) ./target/host.o -s -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
 $(TEST_OUT): $(TEST_SRC) $(GUEST_SRC) $(GUEST_HEADERS) Makefile
-	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(GUEST_SRC)
+	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(GUEST_SRC) $(TEST_LIBS)
 	$(TEST_OUT)
 
 .PHONY: clean

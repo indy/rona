@@ -62,7 +62,7 @@ void renderer_lib_load(GameState *game_state) {
 
   GLuint shaderProgram = CreateShaderProgram(&(game_state->gl), "Test", vertexSource, fragmentSource);
 
-  float vertices[] = {
+  f32 vertices[] = {
     0.0f, 0.5f,
     -0.5f, -0.5f,
     0.5f, -0.5f

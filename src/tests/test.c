@@ -3,12 +3,15 @@
 
 static MunitResult
 test_rona_types(const MunitParameter params[], void* user_data) {
+  munit_assert(sizeof(f32) == 4);
+  munit_assert(sizeof(f64) == 8);
   munit_assert(sizeof(u8) == 1);
   munit_assert(sizeof(u16) == 2);
   munit_assert(sizeof(i16) == 2);
   munit_assert(sizeof(u32) == 4);
   munit_assert(sizeof(i32) == 4);
   munit_assert(sizeof(u64) == 8);
+
   return MUNIT_OK;
 }
 
