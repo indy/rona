@@ -1,6 +1,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#define RONA_MALLOC malloc
+#define RONA_FREE free
+
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                \
   if(!(exp)) {                                                          \

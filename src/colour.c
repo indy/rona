@@ -1,11 +1,12 @@
 #include "rona.h"
 #include "colour.h"
 
-#include <stdlib.h>
+#include "stdio.h"
+#include "platform.h"
+
 // float.h for FLT_MAX
 #include <float.h>
 #include <math.h>
-
 
 /*
   Note: All colour conversion code assumes that colour64 RGB is in linear space
@@ -66,6 +67,12 @@ f64 gamma_correction(f64 a) {
     return a * 12.92;
   }
 }
+
+void colour_from(colour* out, colourFormat out_format, colourFormat in_format, f32 e0, f32 e1, f32 e2, f32 alpha) {
+  colour in_col = { in_format, { e0, e1, e2, alpha } };
+  colour_clone_as(out, &in_col, out_format);
+}
+
 
 void colour_set(colour* out, colourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
   out->format     = format;
@@ -430,11 +437,10 @@ colour64* rgb_from_hsv(colour64* col) {
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-typedef struct Bounds_tag Bounds;
-struct Bounds_tag {
+typedef struct {
   f64 a;
   f64 b;
-};
+} Bounds;
 
 void get_bounds(f64 l, Bounds bounds[6]) {
   f64 tl   = l + 16.0;
@@ -706,7 +712,7 @@ colour* colour_clone_as(colour* out, colour* in, colourFormat new_format) {
       rgb_from_hsl(&c64);
       break;
     default:
-      // SEN_ERROR("unknown colour format %d", new_format);
+      RONA_ERROR("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -725,7 +731,7 @@ colour* colour_clone_as(colour* out, colour* in, colourFormat new_format) {
       rgb_from_xyz(xyz_from_hsluv(&c64));
       break;
     default:
-      // SEN_ERROR("unknown colour format %d", new_format);
+      RONA_ERROR("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -744,7 +750,7 @@ colour* colour_clone_as(colour* out, colour* in, colourFormat new_format) {
       rgb_from_hsv(&c64);
       break;
     default:
-      // SEN_ERROR("unknown colour format %d", new_format);
+      RONA_ERROR("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -763,7 +769,7 @@ colour* colour_clone_as(colour* out, colour* in, colourFormat new_format) {
       rgb_from_xyz(xyz_from_lab(&c64));
       break;
     default:
-      // SEN_ERROR("unknown colour format %d", new_format);
+      RONA_ERROR("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -782,12 +788,12 @@ colour* colour_clone_as(colour* out, colour* in, colourFormat new_format) {
       lab_from_xyz(xyz_from_rgb(&c64));
       break;
     default:
-      // SEN_ERROR("unknown colour format %d", new_format);
+      RONA_ERROR("unknown colour format %d", new_format);
       break;
     }
     break;
   default:
-    // SEN_ERROR("unknown colour format %d", in->format);
+    RONA_ERROR("unknown colour format %d", in->format);
     break;
   }
 

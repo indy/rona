@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COLOUR_H
+#define COLOUR_H
 
 // |--------+-----------+-------------+-------------|
 // | format | element 0 | element 1   | element 2   |
@@ -9,12 +10,24 @@
 // | LAB    | L 0..100  | A -128..128 | B -128..128 |
 // |--------+-----------+-------------+-------------|
 
-typedef enum { RGB, HSL, HSLuv, LAB, HSV, XYZ } colourFormat;
+typedef enum {
+  RGB,
+  HSL,
+  HSLuv,
+  LAB,
+  HSV,
+  XYZ
+} colourFormat;
 
 typedef struct {
   colourFormat format;
-  f32         element[4];
+  f32          element[4];
 } colour;
 
 void colour_set(colour* out, colourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
+void colour_from(colour* out, colourFormat out_format, colourFormat in_format, f32 e0, f32 e1, f32 e2, f32 alpha);
+
 colour* colour_clone_as(colour* out, colour* in, colourFormat new_format);
+
+
+#endif /* COLOUR_H */

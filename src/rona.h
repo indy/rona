@@ -33,12 +33,6 @@ typedef struct vec4 {
       f32 z;
       f32 w;
     };
-    struct {
-      f32 r;
-      f32 g;
-      f32 b;
-      f32 a;
-    };
     f32 v[4];
   };
 } vec4;

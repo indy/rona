@@ -20,12 +20,19 @@ TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
 TEST_LIBS=-lm
 
+SHADERS_OUT=./target/shader.vs.c ./target/shader.fs.c
 
 guest: $(GUEST_OUT)
 host: $(HOST_OUT)
 test: $(TEST_OUT)
+shaders: $(SHADERS_OUT)
 
-$(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile
+./target/shader.vs.c: src/shaders/shader.vs
+	xxd -i $< > $@
+./target/shader.fs.c: src/shaders/shader.fs
+	xxd -i $< > $@
+
+$(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile $(SHADERS_OUT)
 	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) $(GUEST_SRC) -o $(GUEST_OUT) $(GUEST_LDFLAGS)
 
 $(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
