@@ -4,7 +4,9 @@
 #define true	1
 #define false	0
 
+#ifndef __cplusplus
 typedef _Bool bool;
+#endif
 typedef float f32;
 typedef double f64;
 typedef unsigned char u8;
@@ -14,7 +16,7 @@ typedef unsigned int u32;
 typedef signed int i32;
 typedef unsigned long long u64;
 
-typedef struct vec3 {
+typedef struct Vec3 {
   union {
     struct {
       f32 x;
@@ -23,9 +25,9 @@ typedef struct vec3 {
     };
     f32 v[3];
   };
-} vec3;
+} Vec3;
 
-typedef struct vec4 {
+typedef struct Vec4 {
   union {
     struct {
       f32 x;
@@ -35,7 +37,7 @@ typedef struct vec4 {
     };
     f32 v[4];
   };
-} vec4;
+} Vec4;
 
 /*
 column major
@@ -58,7 +60,7 @@ unreal is row major
 unity is colum major
 */
 
-typedef struct mat4 {
+typedef struct Mat4 {
   union {
 		struct {
 			f32 m11;
@@ -80,9 +82,39 @@ typedef struct mat4 {
 		};
 		f32 v[16];
 	};
-} mat4;
+} Mat4;
 
-void vec3_set(vec3* v, f32 x, f32 y, f32 z);
+void vec3_set(Vec3* v, f32 x, f32 y, f32 z);
+
+typedef struct {
+  void *base;
+  u64 size;
+  u64 used;
+} MemoryArena;
+
+typedef struct {
+  i32 x;
+  i32 y;
+} Tile;
+
+typedef enum {
+  EntityType_Hero
+} EntityType;
+
+typedef struct Entity {
+  EntityType entity_type;
+
+  Tile pos;
+
+} Entity;
+
+typedef struct {
+  i32 width;
+  i32 height;
+
+  MemoryArena mem;
+  Entity* pEntities;
+} Level;
 
 
 #endif /* RONA_H */

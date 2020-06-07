@@ -1,8 +1,9 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-#define RONA_MALLOC malloc
-#define RONA_FREE free
+// use memory arenas instead of malloc/free
+// #define RONA_MALLOC malloc
+// #define RONA_FREE free
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                \
@@ -18,7 +19,6 @@
 #define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
 #define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
 #define RONA_OUT(f_) fprintf(stdout, (f_))
-
 
 typedef unsigned int	GLenum;
 typedef unsigned char	GLboolean;
@@ -708,9 +708,9 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC) (GLuint index, GLint size,
 typedef void (APIENTRYP PFNGLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint *arrays);
 
 typedef enum RonaButtonState {
-  ButtonState_Release = 0,
-  ButtonState_Press = 1,
-  ButtonState_Repeat = 2,
+  ButtonState_Up = 0,
+  ButtonState_Down = 1,
+  ButtonState_Repeat = 2,       // this doesn't work when polling X11 from final_platform_layer
 } RonaButtonState;
 
 typedef enum RonaKey {
@@ -803,16 +803,13 @@ extern "C" {
   } RonaGl;
 
   typedef struct {
-    RonaButtonState key[NumRonaKeys];
+    int idx;
+    RonaButtonState key[2][NumRonaKeys];
   } RonaInput;
-
 
   typedef struct  {
     bool game_initialised;
     bool quit_game;
-
-    int screen_width;
-    int screen_height;
 
     bool window_resized;
     int window_width;
@@ -822,11 +819,14 @@ extern "C" {
     u64 time_last_frame;
     u64 time_delta;
 
-    u64 mem_size;
-    void *mem_base;
+    MemoryArena storage_permanent;
+    MemoryArena storage_transient;
 
-    GLuint vertex_array_id;
+    GLuint vao;
 
+    Level *pLevel;
+
+    // RonaSys* == game agnostic layer of systems
     RonaGl gl;
     RonaInput input;
   } GameState;

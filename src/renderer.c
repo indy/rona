@@ -1,14 +1,14 @@
 #include "string.h"
-#include "stdlib.h"
 #include "stdio.h"
 
 #include "rona.h"
 #include "platform.h"
 #include "renderer.h"
 #include "colour.h"
+#include "memory_arena.h"
 
 static GLuint CreateShaderType(RonaGl *gl, GLenum type, const char *source);
-static GLuint CreateShaderProgram(RonaGl *gl, const char *name, const char *vertexSource, const char *fragmentSource);
+static GLuint CreateShaderProgram(RonaGl *gl, const char *vertexSource, const char *fragmentSource);
 
 /*
   This is a convoluted way of including text files into c source code
@@ -19,53 +19,47 @@ static GLuint CreateShaderProgram(RonaGl *gl, const char *name, const char *vert
 
   The benefit of all this is that hot reloading works on shaders
 */
-#define SHADER_AS_STRING(NAME, SHADER)                                       \
-  char *NAME = RONA_MALLOC(sizeof(char) * (src_shaders_##SHADER##_len + 1)); \
+#define SHADER_AS_STRING(ARENA, NAME, SHADER)                            \
+  char *NAME = (char *)memory_arena_push(ARENA, (src_shaders_##SHADER##_len + 1)); \
   memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);            \
   NAME[src_shaders_##SHADER##_len] = 0;
 
 void renderer_lib_load(GameState *game_state) {
   RonaGl *gl = &(game_state->gl);
 
-  gl->genVertexArrays(1, &game_state->vertex_array_id);
-  gl->bindVertexArray(game_state->vertex_array_id);
+  gl->genVertexArrays(1, &game_state->vao); // Vertex Array Object
+  gl->bindVertexArray(game_state->vao);
 
   #include "../target/shader.vs.c"
-  SHADER_AS_STRING(vertexSource, shader_vs);
+  SHADER_AS_STRING(&game_state->storage_transient, vertexSource, shader_vs);
 
   #include "../target/shader.fs.c"
-  SHADER_AS_STRING(fragmentSource, shader_fs);
+  SHADER_AS_STRING(&game_state->storage_transient, fragmentSource, shader_fs);
 
-  GLuint shaderProgram = CreateShaderProgram(&(game_state->gl), "Test", vertexSource, fragmentSource);
-
-  RONA_FREE(vertexSource);
-  RONA_FREE(fragmentSource);
+  GLuint shaderProgram = CreateShaderProgram(&(game_state->gl), vertexSource, fragmentSource);
 
   f32 vertices[] = {
     0.0f, 0.5f,
     -0.5f, -0.5f,
     0.5f, -0.5f
   };
+  // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
+  //
   GLuint buffer;
   gl->genBuffers(1, &buffer);
   gl->bindBuffer(GL_ARRAY_BUFFER, buffer);
-  gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
+  gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // the data is set only once and used many times.
+  //  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   gl->useProgram(shaderProgram);
 
-  gl->bindBuffer(GL_ARRAY_BUFFER, buffer);
+  //  gl->bindBuffer(GL_ARRAY_BUFFER, buffer);
   gl->enableVertexAttribArray(0);
   gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
 
 
-  colour bg;
-  colour_from(&bg, RGB, HSLuv, 250.0f, 90.0f, 60.0f, 1.0f);
-
-  colour fg;
-  colour_from(&fg, RGB, HSLuv, 120.0f, 90.0f, 60.0f, 1.0f);
-
-  RONA_INFO("fg is %.2f, %.2f, %.2f, %.2f\n", fg.element[0], fg.element[1], fg.element[2], fg.element[3]);
+  Colour bg;
+  colour_from(&bg, ColourFormat_sRGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 1.0f);
 
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], bg.element[3]);
 }
@@ -77,7 +71,7 @@ void renderer_lib_unload(GameState *game_state) {
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   gl->bindVertexArray(0);
-  gl->deleteVertexArrays(1, &game_state->vertex_array_id);
+  gl->deleteVertexArrays(1, &game_state->vao);
 }
 
 void renderer_step(GameState *game_state) {
@@ -85,6 +79,8 @@ void renderer_step(GameState *game_state) {
 
   gl->viewport(0, 0, game_state->window_width, game_state->window_height);
   gl->clear(GL_COLOR_BUFFER_BIT);
+
+  gl->bindVertexArray(game_state->vao);
   gl->drawArrays(GL_TRIANGLES, 0, 3);
 }
 
@@ -141,7 +137,7 @@ static GLuint CreateShaderType(RonaGl *gl, GLenum type, const char *source) {
   return(shaderId);
 }
 
-static GLuint CreateShaderProgram(RonaGl *gl, const char *name, const char *vertexSource, const char *fragmentSource) {
+static GLuint CreateShaderProgram(RonaGl *gl, const char *vertexSource, const char *fragmentSource) {
   GLuint programId = gl->createProgram();
 
   GLuint vertexShader = CreateShaderType(gl, GL_VERTEX_SHADER, vertexSource);
@@ -165,7 +161,6 @@ static GLuint CreateShaderProgram(RonaGl *gl, const char *name, const char *vert
     gl->getProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
     // RONA_ASSERT(infoLen <= fplArrayCount(info));
     gl->getProgramInfoLog(programId, infoLen, &infoLen, info);
-    RONA_ERROR("Failed linking '%s' shader!\n", name);
     RONA_ERROR("%s\n", info);
   }
 

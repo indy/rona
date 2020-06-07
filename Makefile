@@ -37,7 +37,7 @@ $(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile $(SHADERS_OUT)
 
 $(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
 	$(CC) $(HOST_CFLAGS) -g -c $(INCLUDE_FLAGS) -DCR_DEPLOY_PATH=\"target\" -DCR_NAME=\"$(GUEST_NAME)\" $(HOST_SRC) -o ./target/host.o
-	$(CC) -o $(HOST_OUT) ./target/host.o -s -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
+	$(CC) -o $(HOST_OUT) ./target/host.o -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
 $(TEST_OUT): $(TEST_SRC) $(GUEST_SRC) $(GUEST_HEADERS) Makefile
 	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(GUEST_SRC) $(TEST_LIBS)
@@ -48,5 +48,5 @@ clean:
 	rm target/*
 all: guest host
 
-run:
+run: $(GUEST_OUT) $(HOST_OUT)
 	$(HOST_OUT)
