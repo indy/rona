@@ -42,6 +42,7 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->clear = (PFNGLCLEARPROC)GLProcAddress("glClear");
   gl->viewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
   gl->drawArrays = (PFNGLDRAWARRAYSPROC)GLProcAddress("glDrawArrays");
+  gl->drawElements = (PFNGLDRAWELEMENTSPROC)GLProcAddress("glDrawElements");
   gl->clearColor = (PFNGLCLEARCOLORPROC)GLProcAddress("glClearColor");
   gl->getIntegerv = (PFNGLGETINTEGERVPROC)GLProcAddress("glGetIntegerv");
   gl->getString = (PFNGLGETSTRINGPROC)GLProcAddress("glGetString");

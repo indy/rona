@@ -10,6 +10,16 @@
 static GLuint CreateShaderType(RonaGl *gl, GLenum type, const char *source);
 static GLuint CreateShaderProgram(RonaGl *gl, const char *vertexSource, const char *fragmentSource);
 
+void renderer_step(GameState *game_state) {
+  RonaGl *gl = &(game_state->gl);
+
+  gl->viewport(0, 0, game_state->window_width, game_state->window_height);
+  gl->clear(GL_COLOR_BUFFER_BIT);
+
+  gl->bindVertexArray(game_state->vao);
+  gl->drawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 /*
   This is a convoluted way of including text files into c source code
 
@@ -30,33 +40,48 @@ void renderer_lib_load(GameState *game_state) {
   gl->genVertexArrays(1, &game_state->vao); // Vertex Array Object
   gl->bindVertexArray(game_state->vao);
 
-  #include "../target/shader.vs.c"
-  SHADER_AS_STRING(&game_state->storage_transient, vertexSource, shader_vs);
+  #include "../target/shader.vert.c"
+  SHADER_AS_STRING(&game_state->storage_transient, vertexSource, shader_vert);
 
-  #include "../target/shader.fs.c"
-  SHADER_AS_STRING(&game_state->storage_transient, fragmentSource, shader_fs);
+  #include "../target/shader.frag.c"
+  SHADER_AS_STRING(&game_state->storage_transient, fragmentSource, shader_frag);
 
   GLuint shaderProgram = CreateShaderProgram(&(game_state->gl), vertexSource, fragmentSource);
 
   f32 vertices[] = {
-    0.0f, 0.5f,
+    -0.5f,  0.5f,
     -0.5f, -0.5f,
-    0.5f, -0.5f
+     0.5f, -0.5f,
+     0.5f,  0.5f
   };
+  u32 indices[] = {
+    0, 1, 2,
+    0, 2, 3
+  };
+
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
-  GLuint buffer;
-  gl->genBuffers(1, &buffer);
-  gl->bindBuffer(GL_ARRAY_BUFFER, buffer);
+  GLuint vbo;
+  gl->genBuffers(1, &vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // the data is set only once and used many times.
-  //  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
+  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
+
+  GLuint ebo;
+  gl->genBuffers(1, &ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   gl->useProgram(shaderProgram);
 
-  //  gl->bindBuffer(GL_ARRAY_BUFFER, buffer);
+  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
 
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+  gl->bindVertexArray(0);
 
   Colour bg;
   colour_from(&bg, ColourFormat_sRGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 1.0f);
@@ -72,16 +97,6 @@ void renderer_lib_unload(GameState *game_state) {
 
   gl->bindVertexArray(0);
   gl->deleteVertexArrays(1, &game_state->vao);
-}
-
-void renderer_step(GameState *game_state) {
-  RonaGl *gl = &(game_state->gl);
-
-  gl->viewport(0, 0, game_state->window_width, game_state->window_height);
-  gl->clear(GL_COLOR_BUFFER_BIT);
-
-  gl->bindVertexArray(game_state->vao);
-  gl->drawArrays(GL_TRIANGLES, 0, 3);
 }
 
 void renderer_startup(GameState *game_state) {
