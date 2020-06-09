@@ -2,8 +2,8 @@
 
 out vec4 frag_colour;
 
-in vec4 vertex_colour;
+uniform vec4 colour;
 
 void main() {
-  frag_colour = vertex_colour;
+  frag_colour = colour;
 }

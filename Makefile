@@ -9,10 +9,10 @@ GUEST_SRC=src/*.c
 GUEST_HEADERS=src/*.h
 GUEST_OUT=./target/lib$(GUEST_NAME).so
 
-HOST_CFLAGS=-Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
+HOST_CFLAGS=-Wno-pointer-arith -Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
 # HOST_CFLAGS=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
 HOST_SRC=src/host/host.cpp
-HOST_HEADERS=src/platform.h
+HOST_HEADERS=src/rona.h src/platform.h src/game_state.h
 HOST_LIBS=-lGL -lm -lpthread -ldl -lrt -lX11 -lstdc++
 HOST_OUT=./target/host
 

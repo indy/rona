@@ -3,6 +3,7 @@
 
 #include "rona.h"
 #include "platform.h"
+#include "game_state.h"
 #include "game.h"
 
 static GameState *g_game_state = 0;

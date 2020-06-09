@@ -650,6 +650,7 @@ typedef double		GLclampd;	/* double precision float in [0,1] */
 typedef long int GLsizeiptr;
 typedef long int GLintptr;
 typedef char GLchar;
+typedef unsigned int GLhandle;
 
 #ifndef GL_CONTEXT_PROFILE_MASK
 
@@ -673,6 +674,9 @@ typedef char GLchar;
 #define GL_LINK_STATUS                    0x8B82
 #define GL_STATIC_DRAW                    0x88E4
 
+typedef void (APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+typedef GLint (APIENTRYP PFNGLGETUNIFORMLOCATIONPROC) (GLhandle programObj, const GLchar *name);
+typedef void (APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
 
 typedef void (APIENTRYP PFNGLCLEARPROC)(GLbitfield mask);
 typedef void (APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
@@ -820,76 +824,57 @@ typedef enum RonaKey {
   NumRonaKeys,
 } RonaKey;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+// #ifdef __cplusplus
+// extern "C" {
+// #endif
 
-  typedef struct  {
-    PFNGLCLEARPROC clear;
-    PFNGLVIEWPORTPROC viewport;
-    PFNGLDRAWARRAYSPROC drawArrays;
+typedef struct {
+  PFNGLGETUNIFORMLOCATIONPROC getUniformLocation;
 
-    PFNGLDRAWELEMENTSPROC drawElements;
+  PFNGLUNIFORM4FPROC uniform4f;
+  PFNGLUNIFORMMATRIX4FVPROC uniformMatrix4fv;
 
-    PFNGLCLEARCOLORPROC clearColor;
-    PFNGLGETINTEGERVPROC getIntegerv;
-    PFNGLGETSTRINGPROC getString;
+  PFNGLCLEARPROC clear;
+  PFNGLVIEWPORTPROC viewport;
+  PFNGLDRAWARRAYSPROC drawArrays;
 
-    PFNGLCREATESHADERPROC createShader;
-    PFNGLSHADERSOURCEPROC shaderSource;
-    PFNGLCOMPILESHADERPROC compileShader;
-    PFNGLGETSHADERIVPROC getShaderiv;
-    PFNGLATTACHSHADERPROC attachShader;
-    PFNGLCREATEPROGRAMPROC createProgram;
-    PFNGLGETSHADERINFOLOGPROC getShaderInfoLog;
-    PFNGLLINKPROGRAMPROC linkProgram;
-    PFNGLVALIDATEPROGRAMPROC validateProgram;
-    PFNGLGETPROGRAMIVPROC getProgramiv;
-    PFNGLGETPROGRAMINFOLOGPROC getProgramInfoLog;
-    PFNGLDELETESHADERPROC deleteShader;
-    PFNGLUSEPROGRAMPROC useProgram;
-    PFNGLGENVERTEXARRAYSPROC genVertexArrays;
-    PFNGLBINDVERTEXARRAYPROC bindVertexArray;
-    PFNGLGENBUFFERSPROC genBuffers;
-    PFNGLBINDBUFFERPROC bindBuffer;
-    PFNGLBUFFERDATAPROC bufferData;
-    PFNGLENABLEVERTEXATTRIBARRAYPROC enableVertexAttribArray;
-    PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
-    PFNGLVERTEXATTRIBPOINTERPROC vertexAttribPointer;
-    PFNGLDELETEVERTEXARRAYSPROC deleteVertexArrays;
-  } RonaGl;
+  PFNGLDRAWELEMENTSPROC drawElements;
 
-  typedef struct {
-    int idx;
-    RonaButtonState key[2][NumRonaKeys];
-  } RonaInput;
+  PFNGLCLEARCOLORPROC clearColor;
+  PFNGLGETINTEGERVPROC getIntegerv;
+  PFNGLGETSTRINGPROC getString;
 
-  typedef struct  {
-    bool game_initialised;
-    bool quit_game;
+  PFNGLCREATESHADERPROC createShader;
+  PFNGLSHADERSOURCEPROC shaderSource;
+  PFNGLCOMPILESHADERPROC compileShader;
+  PFNGLGETSHADERIVPROC getShaderiv;
+  PFNGLATTACHSHADERPROC attachShader;
+  PFNGLCREATEPROGRAMPROC createProgram;
+  PFNGLGETSHADERINFOLOGPROC getShaderInfoLog;
+  PFNGLLINKPROGRAMPROC linkProgram;
+  PFNGLVALIDATEPROGRAMPROC validateProgram;
+  PFNGLGETPROGRAMIVPROC getProgramiv;
+  PFNGLGETPROGRAMINFOLOGPROC getProgramInfoLog;
+  PFNGLDELETESHADERPROC deleteShader;
+  PFNGLUSEPROGRAMPROC useProgram;
+  PFNGLGENVERTEXARRAYSPROC genVertexArrays;
+  PFNGLBINDVERTEXARRAYPROC bindVertexArray;
+  PFNGLGENBUFFERSPROC genBuffers;
+  PFNGLBINDBUFFERPROC bindBuffer;
+  PFNGLBUFFERDATAPROC bufferData;
+  PFNGLENABLEVERTEXATTRIBARRAYPROC enableVertexAttribArray;
+  PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
+  PFNGLVERTEXATTRIBPOINTERPROC vertexAttribPointer;
+  PFNGLDELETEVERTEXARRAYSPROC deleteVertexArrays;
+} RonaGl;
 
-    bool window_resized;
-    int window_width;
-    int window_height;
+typedef struct {
+  int idx;
+  RonaButtonState key[2][NumRonaKeys];
+} RonaInput;
 
-    u64 time_game_start;   // time at the start of the game
-    u64 time_last_frame;
-    u64 time_delta;
-
-    MemoryArena storage_permanent;
-    MemoryArena storage_transient;
-
-    GLuint vao;
-
-    Level *pLevel;
-
-    // RonaSys* == game agnostic layer of systems
-    RonaGl gl;
-    RonaInput input;
-  } GameState;
-
-#ifdef __cplusplus
-}
-#endif
+// #ifdef __cplusplus
+// }
+// #endif
 
 #endif

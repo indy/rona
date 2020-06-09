@@ -6,10 +6,10 @@ u64 kilobytes(u64 s);
 u64 megabytes(u64 s);
 u64 gigabytes(u64 s);
 
-void *memory_arena_push(MemoryArena *ma, u64 bytes);
+void *arena_alloc(MemoryArena *ma, u64 bytes);
 
-#define MEM_PUSH(arena, size) \
-  memory_arena_push((arena), (size));
+#define ARENA_ALLOC(arena, size) \
+  arena_alloc((arena), (size));
 
 // define a MemoryArena in the the transient storage
 //

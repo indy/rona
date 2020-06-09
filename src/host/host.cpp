@@ -15,6 +15,7 @@ typedef unsigned long long u64; // copied from rona.h
 
 #include "../rona.h"
 #include "../platform.h"
+#include "../game_state.h"
 
 const char *tmp = "/tmp/";
 
@@ -39,6 +40,9 @@ static void *GLProcAddress(const char *name) {
 #endif
 
 static void LoadGLFunctions(RonaGl *gl) {
+  gl->getUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GLProcAddress("glGetUniformLocation");
+  gl->uniform4f = (PFNGLUNIFORM4FPROC)GLProcAddress("glUniform4f");
+  gl->uniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GLProcAddress("glUniformMatrix4fv");
   gl->clear = (PFNGLCLEARPROC)GLProcAddress("glClear");
   gl->viewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
   gl->drawArrays = (PFNGLDRAWARRAYSPROC)GLProcAddress("glDrawArrays");
@@ -125,6 +129,12 @@ size_t gigabytes(size_t s) {
   return megabytes(s * 1024);
 }
 
+void *arena_alloc(MemoryArena *mem, u64 size) {
+  void* res = (void *)(mem->base + mem->used);
+  mem->used += size;
+  return res;
+}
+
 int main(int argc, char **args) {
   game_state.time_game_start = fplGetTimeInMilliseconds();
   game_state.time_last_frame = game_state.time_game_start;
@@ -184,15 +194,21 @@ int main(int argc, char **args) {
   settings.input.disabledEvents = 1;
 
   if (fplPlatformInit(fplInitFlags_Video, &settings)) {
-    LoadGLFunctions(&(game_state.gl));
+    // allocate memory arena space for RonaGL
+    game_state.gl = (RonaGl *)arena_alloc(&(game_state.storage_permanent), sizeof(RonaGl));
+
+    LoadGLFunctions(game_state.gl);
 
     fplWindowSize window_size;
     fplGetWindowSize(&window_size);
+    game_state.window_has_focus = true;
     game_state.window_width = window_size.width;
     game_state.window_height = window_size.height;
     RONA_INFO("Window Initial size: (%d, %d)\n", window_size.width, window_size.height);
 
-    game_state.input.idx = 1;
+    // allocate memory arena space for RonaInput
+    game_state.input = (RonaInput *)arena_alloc(&(game_state.storage_permanent), sizeof(RonaInput));
+    game_state.input->idx = 1;
 
     // Event/Main loop
     while (fplWindowUpdate() && !game_state.quit_game) {
@@ -216,11 +232,20 @@ int main(int argc, char **args) {
             game_state.window_height = window_size.height;
             RONA_INFO("Window Event: Resized (%d, %d)\n", window_size.width, window_size.height);
             break;
-          case fplWindowEventType_GotFocus:        RONA_INFO("Window Event: GotFocus\n"); break;
-          case fplWindowEventType_LostFocus:       RONA_INFO("Window Event: LostFocus\n"); break;
+          case fplWindowEventType_GotFocus:
+            RONA_INFO("Window Event: GotFocus\n");
+            game_state.window_has_focus = true;
+            break;
+          case fplWindowEventType_LostFocus:
+            RONA_INFO("Window Event: LostFocus\n");
+            game_state.window_has_focus = false;
+            break;
           case fplWindowEventType_Minimized:       RONA_INFO("Window Event: Minimized\n"); break;
           case fplWindowEventType_Maximized:       RONA_INFO("Window Event: Maximized\n"); break;
-          case fplWindowEventType_Restored:        RONA_INFO("Window Event: Restored\n"); break;
+          case fplWindowEventType_Restored:
+            RONA_INFO("Window Event: Restored\n");
+            game_state.window_has_focus = true;
+            break;
           case fplWindowEventType_DroppedFiles:    RONA_INFO("Window Event: DroppedFiles\n"); break;
           case fplWindowEventType_Exposed:         RONA_INFO("Window Event: Exposed\n"); break;
           case fplWindowEventType_PositionChanged: RONA_INFO("Window Event: PositionChanged\n"); break;
@@ -232,55 +257,57 @@ int main(int argc, char **args) {
         }
       }
 
-      fplKeyboardState keyboardState;
-      if (fplPollKeyboardState(&keyboardState)) {
-        game_state.input.idx = 1 - game_state.input.idx;
-        int idx = game_state.input.idx;
-        game_state.input.key[idx][Key_Space] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Space];
-        game_state.input.key[idx][Key_Return] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Return];
-        game_state.input.key[idx][Key_Shift] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Shift];
-        game_state.input.key[idx][Key_Control] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Control];
-        game_state.input.key[idx][Key_Escape] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Escape];
-        game_state.input.key[idx][Key_Up] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Up];
-        game_state.input.key[idx][Key_Down] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Down];
-        game_state.input.key[idx][Key_Left] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Left];
-        game_state.input.key[idx][Key_Right] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Right];
-        game_state.input.key[idx][Key_0] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_0];
-        game_state.input.key[idx][Key_1] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_1];
-        game_state.input.key[idx][Key_2] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_2];
-        game_state.input.key[idx][Key_3] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_3];
-        game_state.input.key[idx][Key_4] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_4];
-        game_state.input.key[idx][Key_5] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_5];
-        game_state.input.key[idx][Key_6] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_6];
-        game_state.input.key[idx][Key_7] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_7];
-        game_state.input.key[idx][Key_8] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_8];
-        game_state.input.key[idx][Key_9] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_9];
-        game_state.input.key[idx][Key_A] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_A];
-        game_state.input.key[idx][Key_B] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_B];
-        game_state.input.key[idx][Key_C] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_C];
-        game_state.input.key[idx][Key_D] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_D];
-        game_state.input.key[idx][Key_E] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_E];
-        game_state.input.key[idx][Key_F] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_F];
-        game_state.input.key[idx][Key_G] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_G];
-        game_state.input.key[idx][Key_H] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_H];
-        game_state.input.key[idx][Key_I] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_I];
-        game_state.input.key[idx][Key_J] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_J];
-        game_state.input.key[idx][Key_K] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_K];
-        game_state.input.key[idx][Key_L] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_L];
-        game_state.input.key[idx][Key_M] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_M];
-        game_state.input.key[idx][Key_N] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_N];
-        game_state.input.key[idx][Key_O] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_O];
-        game_state.input.key[idx][Key_P] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_P];
-        game_state.input.key[idx][Key_Q] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Q];
-        game_state.input.key[idx][Key_R] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_R];
-        game_state.input.key[idx][Key_S] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_S];
-        game_state.input.key[idx][Key_T] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_T];
-        game_state.input.key[idx][Key_U] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_U];
-        game_state.input.key[idx][Key_V] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_V];
-        game_state.input.key[idx][Key_W] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_W];
-        game_state.input.key[idx][Key_X] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_X];
-        game_state.input.key[idx][Key_Y] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Y];
-        game_state.input.key[idx][Key_Z] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Z];
+      if (game_state.window_has_focus) {
+        fplKeyboardState keyboardState;
+        if (fplPollKeyboardState(&keyboardState)) {
+          game_state.input->idx = 1 - game_state.input->idx;
+          int idx = game_state.input->idx;
+          game_state.input->key[idx][Key_Space] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Space];
+          game_state.input->key[idx][Key_Return] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Return];
+          game_state.input->key[idx][Key_Shift] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Shift];
+          game_state.input->key[idx][Key_Control] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Control];
+          game_state.input->key[idx][Key_Escape] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Escape];
+          game_state.input->key[idx][Key_Up] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Up];
+          game_state.input->key[idx][Key_Down] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Down];
+          game_state.input->key[idx][Key_Left] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Left];
+          game_state.input->key[idx][Key_Right] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Right];
+          game_state.input->key[idx][Key_0] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_0];
+          game_state.input->key[idx][Key_1] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_1];
+          game_state.input->key[idx][Key_2] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_2];
+          game_state.input->key[idx][Key_3] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_3];
+          game_state.input->key[idx][Key_4] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_4];
+          game_state.input->key[idx][Key_5] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_5];
+          game_state.input->key[idx][Key_6] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_6];
+          game_state.input->key[idx][Key_7] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_7];
+          game_state.input->key[idx][Key_8] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_8];
+          game_state.input->key[idx][Key_9] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_9];
+          game_state.input->key[idx][Key_A] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_A];
+          game_state.input->key[idx][Key_B] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_B];
+          game_state.input->key[idx][Key_C] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_C];
+          game_state.input->key[idx][Key_D] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_D];
+          game_state.input->key[idx][Key_E] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_E];
+          game_state.input->key[idx][Key_F] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_F];
+          game_state.input->key[idx][Key_G] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_G];
+          game_state.input->key[idx][Key_H] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_H];
+          game_state.input->key[idx][Key_I] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_I];
+          game_state.input->key[idx][Key_J] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_J];
+          game_state.input->key[idx][Key_K] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_K];
+          game_state.input->key[idx][Key_L] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_L];
+          game_state.input->key[idx][Key_M] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_M];
+          game_state.input->key[idx][Key_N] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_N];
+          game_state.input->key[idx][Key_O] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_O];
+          game_state.input->key[idx][Key_P] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_P];
+          game_state.input->key[idx][Key_Q] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Q];
+          game_state.input->key[idx][Key_R] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_R];
+          game_state.input->key[idx][Key_S] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_S];
+          game_state.input->key[idx][Key_T] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_T];
+          game_state.input->key[idx][Key_U] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_U];
+          game_state.input->key[idx][Key_V] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_V];
+          game_state.input->key[idx][Key_W] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_W];
+          game_state.input->key[idx][Key_X] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_X];
+          game_state.input->key[idx][Key_Y] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Y];
+          game_state.input->key[idx][Key_Z] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Z];
+        }
       }
 
       cr_plugin_update(ctx);
@@ -288,7 +315,8 @@ int main(int argc, char **args) {
         display_cr_failure(&ctx);
         fflush(stdout);
         fflush(stderr);
-        break;
+        if (ctx.failure != CR_BAD_IMAGE) // often get this - plough ahead
+          break;
       }
 
       fplVideoFlip();

@@ -16,7 +16,27 @@ typedef unsigned int u32;
 typedef signed int i32;
 typedef unsigned long long u64;
 
-typedef struct Vec3 {
+typedef struct {
+  union {
+    struct {
+      f32 x;
+      f32 y;
+    };
+    f32 v[2];
+  };
+} Vec2;
+
+typedef struct {
+  union {
+    struct {
+      i32 x;
+      i32 y;
+    };
+    i32 v[2];
+  };
+} Vec2i;
+
+typedef struct {
   union {
     struct {
       f32 x;
@@ -27,13 +47,19 @@ typedef struct Vec3 {
   };
 } Vec3;
 
-typedef struct Vec4 {
+typedef struct {
   union {
     struct {
       f32 x;
       f32 y;
       f32 z;
       f32 w;
+    };
+    struct {
+      f32 r;
+      f32 g;
+      f32 b;
+      f32 a;
     };
     f32 v[4];
   };
@@ -84,37 +110,10 @@ typedef struct Mat4 {
 	};
 } Mat4;
 
-void vec3_set(Vec3* v, f32 x, f32 y, f32 z);
-
 typedef struct {
   void *base;
   u64 size;
   u64 used;
 } MemoryArena;
-
-typedef struct {
-  i32 x;
-  i32 y;
-} Tile;
-
-typedef enum {
-  EntityType_Hero
-} EntityType;
-
-typedef struct Entity {
-  EntityType entity_type;
-
-  Tile pos;
-
-} Entity;
-
-typedef struct {
-  i32 width;
-  i32 height;
-
-  MemoryArena mem;
-  Entity* pEntities;
-} Level;
-
 
 #endif /* RONA_H */
