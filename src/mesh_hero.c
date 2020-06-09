@@ -28,7 +28,7 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
-  f32 half_dim = 0.5f;
+  f32 half_dim = 0.4f;
   f32 vertices[] = {
     -half_dim,  half_dim,
     -half_dim, -half_dim,

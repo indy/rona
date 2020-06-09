@@ -25,10 +25,14 @@ void level1_startup(Level *level, GameState *game_state) {
 
   hero->board_pos.x = 1;
   hero->board_pos.y = 1;
+  hero->world_pos.x = 1.0f;
+  hero->world_pos.y = 1.0f;
+  hero->world_target.x = 1.0f;
+  hero->world_target.y = 1.0f;
   hero->mesh = game_state->mesh_hero;
 
-  hero->colour.r = 0.1f;
-  hero->colour.g = 0.6f;
+  hero->colour.r = 0.9f;
+  hero->colour.g = 0.1f;
   hero->colour.b = 0.2f;
   hero->colour.a = 1.0f;
 }

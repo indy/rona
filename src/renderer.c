@@ -15,11 +15,25 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   gl->clear(GL_COLOR_BUFFER_BIT);
 
   f32 aspect_ratio = (f32)window_width / (f32)window_height;
-  f32 half_height = 5.0;
-  f32 half_width = half_height * aspect_ratio;
+
+
+  f32 height;
+  f32 width;
+
+  // f32 level_aspect_ratio = (f32)level->width / (f32)level-height;
+  if (aspect_ratio > 1.0) {
+    // the window is wider than it is tall
+    //
+    height = (f32)(level->height + 1);
+    width = height * aspect_ratio;
+  } else {
+    // the window is taller than it is wide
+    width = (f32)(level->width + 1);
+    height = width / aspect_ratio;
+  }
 
   Mat4 proj_matrix;
-  mat4_ortho(&proj_matrix, -half_width, half_width, -half_height, half_height, 10.0f, -10.0f);
+  mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
 
   GLuint current_shader = 0;
   for(i32 i=0;i<level->max_num_entities;i++) {

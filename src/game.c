@@ -55,6 +55,82 @@ void game_step(GameState* game_state) {
     fflush(stdout);
   }
 
+  Level *level = game_state->level;
+  Entity *e = &(game_state->level->entities[0]);
+  bool moved = false;
+
+  if (key_pressed(game_state->input, Key_Up)) {
+    e->board_pos.y += 1;
+    moved = true;
+  }
+  if (key_pressed(game_state->input, Key_Down)) {
+    e->board_pos.y -= 1;
+    moved = true;
+  }
+  if (key_pressed(game_state->input, Key_Left)) {
+    e->board_pos.x -= 1;
+    moved = true;
+  }
+  if (key_pressed(game_state->input, Key_Right)) {
+    e->board_pos.x += 1;
+    moved = true;
+  }
+
+  if (e->board_pos.x >= level->width) {
+    e->board_pos.x = level->width - 1;
+    moved = false;
+  }
+  if (e->board_pos.x < 0) {
+    e->board_pos.x = 0;
+    moved = false;
+  }
+  if (e->board_pos.y >= level->height) {
+    e->board_pos.y = level->height - 1;
+    moved = false;
+  }
+  if (e->board_pos.y < 0) {
+    e->board_pos.y = 0;
+    moved = false;
+  }
+
+  // board to world transform
+  if (moved) {
+    e->world_target.x = (f32)e->board_pos.x;
+    e->world_target.y = (f32)e->board_pos.y;
+    e->entity_state = EntityState_Moving;
+    // RONA_INFO("Moving");
+  }
+
+  if (e->entity_state == EntityState_Moving) {
+    if (e->world_pos.x < e->world_target.x) {
+      e->world_pos.x += 0.2f;
+      if (e->world_pos.x >= e->world_target.x) {
+        e->world_pos.x = e->world_target.x;
+      }
+    }
+    if (e->world_pos.y < e->world_target.y) {
+      e->world_pos.y += 0.2f;
+      if (e->world_pos.y >= e->world_target.y) {
+        e->world_pos.y = e->world_target.y;
+      }
+    }
+    if (e->world_pos.x > e->world_target.x) {
+      e->world_pos.x -= 0.2f;
+      if (e->world_pos.x <= e->world_target.x) {
+        e->world_pos.x = e->world_target.x;
+      }
+    }
+    if (e->world_pos.y > e->world_target.y) {
+      e->world_pos.y -= 0.2f;
+      if (e->world_pos.y <= e->world_target.y) {
+        e->world_pos.y = e->world_target.y;
+      }
+    }
+
+    if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
+      e->entity_state = EntityState_Standing;
+    }
+  }
 
   renderer_render(game_state->gl, game_state->level, game_state->window_width, game_state->window_height);
 }
