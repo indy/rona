@@ -41,6 +41,7 @@ static void *GLProcAddress(const char *name) {
 
 static void LoadGLFunctions(RonaGl *gl) {
   gl->getUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GLProcAddress("glGetUniformLocation");
+  gl->uniform2f = (PFNGLUNIFORM2FPROC)GLProcAddress("glUniform2f");
   gl->uniform4f = (PFNGLUNIFORM4FPROC)GLProcAddress("glUniform4f");
   gl->uniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GLProcAddress("glUniformMatrix4fv");
   gl->clear = (PFNGLCLEARPROC)GLProcAddress("glClear");

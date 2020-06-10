@@ -29,14 +29,25 @@ void level1_startup(Level *level, GameState *game_state) {
   hero->world_pos.y = 1.0f;
   hero->world_target.x = 1.0f;
   hero->world_target.y = 1.0f;
-  hero->mesh = game_state->mesh_hero;
 
-  hero->colour.r = 0.9f;
-  hero->colour.g = 0.1f;
-  hero->colour.b = 0.2f;
-  hero->colour.a = 1.0f;
+  hero->mesh = game_state->mesh_hero;
 }
 
 void level1_shutdown(Level *level) {
   level->mem.used = 0;
+}
+
+void level1_lib_load(Level *level) {
+  // properties we might want to change on each lib load
+  Entity *hero = &(level->entities[0]);
+
+  hero->world_max_speed = 18.0f;
+
+  hero->colour.r = 0.1f;
+  hero->colour.g = 0.8f;
+  hero->colour.b = 0.2f;
+  hero->colour.a = 1.0f;
+}
+void level1_lib_unload(Level *level) {
+
 }

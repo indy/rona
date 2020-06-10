@@ -21,9 +21,9 @@ typedef struct {
   // universal uniforms common to all meshes
   int uniform_colour;
   int uniform_proj_matrix;
+  int uniform_pos;
 
   // MeshUniform uniform;                         // discriminated union
-
 
   i32 num_elements;             // used in by gl->drawElements
 } Mesh;
@@ -52,6 +52,7 @@ typedef struct Entity {
 
   Vec2 world_pos;
   Vec2 world_target;
+  f32 world_max_speed;
 } Entity;
 
 typedef struct {

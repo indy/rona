@@ -60,6 +60,7 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   mesh->uniform_colour = gl->getUniformLocation(mesh->shader_program, "colour");
   mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
+  mesh->uniform_pos = gl->getUniformLocation(mesh->shader_program, "pos");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);

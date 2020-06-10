@@ -15,8 +15,6 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   gl->clear(GL_COLOR_BUFFER_BIT);
 
   f32 aspect_ratio = (f32)window_width / (f32)window_height;
-
-
   f32 height;
   f32 width;
 
@@ -24,16 +22,13 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   if (aspect_ratio > 1.0) {
     // the window is wider than it is tall
     //
-    height = (f32)(level->height + 1);
+    height = (f32)(level->height);
     width = height * aspect_ratio;
   } else {
     // the window is taller than it is wide
-    width = (f32)(level->width + 1);
+    width = (f32)(level->width);
     height = width / aspect_ratio;
   }
-
-  Mat4 proj_matrix;
-  mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
 
   GLuint current_shader = 0;
   for(i32 i=0;i<level->max_num_entities;i++) {
@@ -44,18 +39,14 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
     Mesh *mesh = entity->mesh;
     if (current_shader != mesh->shader_program) {
       gl->useProgram(mesh->shader_program);
+
+      Mat4 proj_matrix;
+      mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+      gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
     }
+
     gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b, entity->colour.a);
-
-    Mat4 transform_matrix;
-    mat4_identity(&transform_matrix);
-    transform_matrix.m14 = entity->world_pos.x;
-    transform_matrix.m24 = entity->world_pos.y;
-
-    Mat4 res_matrix;
-    mat4_multiply(&res_matrix, &proj_matrix, &transform_matrix);
-
-    gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(res_matrix.v));
+    gl->uniform2f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y);
 
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);

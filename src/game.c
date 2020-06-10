@@ -33,14 +33,29 @@ void game_shutdown(GameState* game_state) {
 void game_lib_load(GameState* game_state) {
   renderer_lib_load(game_state->gl);
   mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
+  level1_lib_load(game_state->level);
 }
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
+  level1_lib_unload(game_state->level);
   mesh_hero_lib_unload(game_state->mesh_hero, game_state->gl);
   renderer_lib_unload(game_state->gl);
 }
 
+Entity* get_hero(Level *level) {
+  RONA_ASSERT(level);
+
+  Entity *e = level->entities;
+  while(e->exists) {
+    if(e->entity_type == EntityType_Hero) {
+      return e;
+    }
+  }
+
+  RONA_ERROR("No hero found on level\n");
+  return NULL;
+}
 
 void game_step(GameState* game_state) {
   game_state->storage_transient.used = 0;
@@ -56,7 +71,7 @@ void game_step(GameState* game_state) {
   }
 
   Level *level = game_state->level;
-  Entity *e = &(game_state->level->entities[0]);
+  Entity *e = get_hero(level);
   bool moved = false;
 
   if (key_pressed(game_state->input, Key_Up)) {
@@ -101,27 +116,31 @@ void game_step(GameState* game_state) {
     // RONA_INFO("Moving");
   }
 
+  f32 time_delta = (f32)game_state->time_delta / 1000.0f;
+  // axis aligned distance, not the best but it will do for this simple game
+  f32 distance_to_move = e->world_max_speed * time_delta;
+
   if (e->entity_state == EntityState_Moving) {
     if (e->world_pos.x < e->world_target.x) {
-      e->world_pos.x += 0.2f;
+      e->world_pos.x += distance_to_move;
       if (e->world_pos.x >= e->world_target.x) {
         e->world_pos.x = e->world_target.x;
       }
     }
     if (e->world_pos.y < e->world_target.y) {
-      e->world_pos.y += 0.2f;
+      e->world_pos.y += distance_to_move;
       if (e->world_pos.y >= e->world_target.y) {
         e->world_pos.y = e->world_target.y;
       }
     }
     if (e->world_pos.x > e->world_target.x) {
-      e->world_pos.x -= 0.2f;
+      e->world_pos.x -= distance_to_move;
       if (e->world_pos.x <= e->world_target.x) {
         e->world_pos.x = e->world_target.x;
       }
     }
     if (e->world_pos.y > e->world_target.y) {
-      e->world_pos.y -= 0.2f;
+      e->world_pos.y -= distance_to_move;
       if (e->world_pos.y <= e->world_target.y) {
         e->world_pos.y = e->world_target.y;
       }
