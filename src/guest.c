@@ -1,10 +1,22 @@
+#include "string.h"
 #include <stdio.h>
 #include "cr.h"
 
 #include "rona.h"
 #include "platform.h"
 #include "game_state.h"
+
+#include "colour.h"
+#include "entity.h"
 #include "game.h"
+#include "input.h"
+#include "level.h"
+#include "level1.h"
+#include "memory_arena.h"
+#include "mesh_block.h"
+#include "mesh_hero.h"
+#include "renderer.h"
+#include "rona_math.h"
 
 static GameState *g_game_state = 0;
 

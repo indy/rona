@@ -1,11 +1,3 @@
-#include "string.h"
-#include "stdio.h"
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-#include "mesh_block.h"
-#include "memory_arena.h"
-#include "renderer.h"
 
 void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object

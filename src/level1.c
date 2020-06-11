@@ -1,10 +1,3 @@
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-#include "level.h"
-#include "level1.h"
-//#include "memory_arena.h"
-
 
 void level1_startup(Level *level, GameState *game_state) {
   char layout[5][14] = {

@@ -1,7 +1,3 @@
-#include "stdio.h"
-#include "rona.h"
-#include "platform.h"
-#include "memory_arena.h"
 
 u64 kilobytes(u64 s) {
   return (s * 1024);

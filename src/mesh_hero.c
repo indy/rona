@@ -1,11 +1,3 @@
-#include "string.h"
-#include "stdio.h"
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-#include "mesh_hero.h"
-#include "memory_arena.h"
-#include "renderer.h"
 
 // void mesh_hero_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix) {
 //   gl->useProgram(mesh->shader_program);

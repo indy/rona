@@ -1,5 +1,3 @@
-#include "rona.h"
-#include "rona_math.h"
 
 // void vec3_set(Vec3* v, f32 x, f32 y, f32 z);
 

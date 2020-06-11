@@ -1,7 +1,3 @@
-#include "rona.h"
-#include "platform.h"
-#include "input.h"
-
 bool key_down(RonaInput *input, RonaKey key) {
   return input->key[input->idx][key] == ButtonState_Down;
 }

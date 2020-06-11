@@ -1,16 +1,3 @@
-#include "stdio.h"
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-#include "game.h"
-#include "renderer.h"
-#include "memory_arena.h"
-#include "input.h"
-#include "mesh_hero.h"
-#include "mesh_block.h"
-#include "level.h"
-#include "level1.h"
-
 // one time init at startup
 void game_startup(GameState* game_state) {
   game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));

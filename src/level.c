@@ -1,14 +1,3 @@
-#include "string.h"
-#include "stdio.h"
-
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-
-#include "level.h"
-
-#include "memory_arena.h"
-#include "renderer.h"
 
 bool is_valid_move_direction(Level *level, Entity *entity, i32 x, i32 y) {
 

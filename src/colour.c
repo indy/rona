@@ -1,13 +1,3 @@
-#include "rona.h"
-#include "colour.h"
-
-#include "stdio.h"
-#include "platform.h"
-
-// float.h for FLT_MAX
-#include <float.h>
-#include <math.h>
-
 /*
   Note: All colour conversion code assumes that colour64 RGB is in linear space
   However, outside of this file, all colour RGB is in sRGB colour space

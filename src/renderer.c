@@ -1,14 +1,3 @@
-#include "string.h"
-#include "stdio.h"
-
-#include "rona.h"
-#include "platform.h"
-#include "game_state.h"
-#include "renderer.h"
-#include "colour.h"
-#include "memory_arena.h"
-#include "rona_math.h"
-#include "mesh_hero.h"
 
 void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_height) {
   gl->viewport(0, 0, window_width, window_height);
