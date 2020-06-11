@@ -15,8 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+// float.h for FLT_MAX
+#include <float.h>
+#include <math.h>
+
 #include "string.h"
-#include <stdio.h>
+#include "stdio.h"
 #include "cr.h"
 
 #include "rona.h"
@@ -34,6 +38,17 @@
 #include "mesh_hero.h"
 #include "renderer.h"
 #include "rona_math.h"
+
+#include "colour.c"
+#include "game.c"
+#include "input.c"
+#include "level1.c"
+#include "level.c"
+#include "memory_arena.c"
+#include "mesh_block.c"
+#include "mesh_hero.c"
+#include "renderer.c"
+#include "rona_math.c"
 
 static GameState *g_game_state = 0;
 

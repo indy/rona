@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 bool is_valid_move_direction(Level *level, Entity *entity, i32 x, i32 y) {
 
   if (x < 0 || x >= level->width) {

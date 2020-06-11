@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+
 /*
   Note: All colour conversion code assumes that colour64 RGB is in linear space
   However, outside of this file, all colour RGB is in sRGB colour space

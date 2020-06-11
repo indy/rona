@@ -15,16 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-// void mesh_hero_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix) {
-//   gl->useProgram(mesh->shader_program);
-//   gl->uniform4f(mesh->uniform_colour, 0.0f, 1.0f, 0.0f, 1.0f);
-//   gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix->v));
-
-//   gl->bindVertexArray(mesh->vao);
-//   gl->drawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-// }
-
 void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);

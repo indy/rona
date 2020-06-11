@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-// one time init at startup
 void game_startup(GameState* game_state) {
   game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_block = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));

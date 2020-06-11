@@ -15,9 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
-// void vec3_set(Vec3* v, f32 x, f32 y, f32 z);
-
 void mat4_identity(Mat4* m) {
   m->v[0] = 1.0f;
   m->v[1] = 0.0f;

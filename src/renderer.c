@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_height) {
   gl->viewport(0, 0, window_width, window_height);
   gl->clear(GL_COLOR_BUFFER_BIT);

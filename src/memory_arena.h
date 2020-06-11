@@ -18,6 +18,7 @@
 #ifndef MEMORY_ARENA_H
 #define MEMORY_ARENA_H
 
+
 u64 kilobytes(u64 s);
 u64 megabytes(u64 s);
 u64 gigabytes(u64 s);

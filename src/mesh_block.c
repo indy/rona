@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);

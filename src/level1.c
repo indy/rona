@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 void level1_startup(Level *level, GameState *game_state) {
   char layout[5][14] = {
     ". . . . . .   ",
