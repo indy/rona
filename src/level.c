@@ -15,31 +15,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-bool is_valid_move_direction(Level *level, Entity *entity, i32 x, i32 y) {
+bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
+  Vec2i new_pos;
+  new_pos.x = hero->board_pos.x;
+  new_pos.y = hero->board_pos.y;
 
-  if (x < 0 || x >= level->width) {
+  switch(direction) {
+  case Direction_North: new_pos.y += 1; break;
+  case Direction_South: new_pos.y -= 1; break;
+  case Direction_East: new_pos.x += 1; break;
+  case Direction_West: new_pos.x -= 1; break;
+  };
+
+  if (new_pos.x < 0 || new_pos.x >= level->width) {
     return false;
   }
-  if (y < 0 || y >= level->height) {
+  if (new_pos.y < 0 || new_pos.y >= level->height) {
     return false;
   }
 
-  if (level->tiles[x + (y * level->width)] == TileType_Void) {
+  i32 new_tile_index = new_pos.x + (new_pos.y * level->width);
+  if (level->tiles[new_tile_index].tile_type == TileType_Void) {
     return false;
   }
+
+  // check if this will push any other entities
+
+
+  hero->board_pos.x = new_pos.x;
+  hero->board_pos.y = new_pos.y;
+  hero->world_target.x = (f32)hero->board_pos.x;
+  hero->world_target.y = (f32)hero->board_pos.y;
+  hero->entity_state = EntityState_Moving;
+
+  // todo: update tile occupancy, but do this with furthest object that moves first
 
   return true;
 }
 
 
 // place an entity at the given board positions
-void entity_place(Entity *entity, i32 board_pos_x, i32 board_pos_y) {
+void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y) {
   entity->board_pos.x = board_pos_x;
   entity->board_pos.y = board_pos_y;
   entity->world_pos.x = (f32)board_pos_x;
   entity->world_pos.y = (f32)board_pos_y;
   entity->world_target.x = (f32)board_pos_x;
   entity->world_target.y = (f32)board_pos_y;
+
+  i32 tile_index = board_pos_x + (level->width * board_pos_y);
+  Tile *tile = &(level->tiles[tile_index]);
+  RONA_ASSERT(!tile->occupant1 || !tile->occupant2)
+  if (tile->occupant1 == NULL) {
+    tile->occupant1 = entity;
+  } else {
+    tile->occupant2 = entity;
+  }
+}
+
+void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
+  Colour c;
+  colour_from(&c, ColourFormat_sRGB, ColourFormat_HSLuv, h, s, l, 1.0f);
+  entity->colour.r = c.element[0];
+  entity->colour.g = c.element[1];
+  entity->colour.b = c.element[2];
+  entity->colour.a = c.element[3];
 }
 
 void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height, char layout[][dbl_width]) {
@@ -58,7 +98,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   level->width = width;
   level->height = height;
   i32 num_tiles = level->width * level->height;
-  level->tiles = (TileType *)ARENA_ALLOC(&(level->mem), sizeof(TileType) * num_tiles);
+  level->tiles = (Tile *)ARENA_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
 
   for (i32 j = 0; j < height; j++) {
 
@@ -66,12 +106,14 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
 
     for (i32 i = 0; i < dbl_width; i+=2) {
       i32 tile_index = (i / 2) + (j * width);
+      level->tiles[tile_index].occupant1 = NULL;
+      level->tiles[tile_index].occupant2 = NULL;
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
         i32 tile_y = j;
 
-        level->tiles[tile_index] = TileType_Floor;
+        level->tiles[tile_index].tile_type = TileType_Floor;
 
         if (plan_line[i] == 'H') { // hero
           Entity *hero = &(level->entities[0]);
@@ -81,17 +123,9 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           hero->entity_type = EntityType_Hero;
           hero->entity_state = EntityState_Standing;
           hero->mesh = game_state->mesh_hero;
-
-          entity_place(hero, tile_x, tile_y);
-
           hero->world_max_speed = 18.0f;
-
-          Colour hero_colour;
-          colour_from(&hero_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);
-          hero->colour.r = hero_colour.element[0];
-          hero->colour.g = hero_colour.element[1];
-          hero->colour.b = hero_colour.element[2];
-          hero->colour.a = hero_colour.element[3];
+          entity_place(level, hero, tile_x, tile_y);
+          entity_colour_as_hsluv(hero, 10.0f, 90.0f, 50.0f);
 
         } else if (plan_line[i] == 'B') { // block
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
@@ -102,18 +136,9 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           block->entity_type = EntityType_Block;
           block->entity_state = EntityState_Standing;
           block->mesh = game_state->mesh_block;
-
-          entity_place(block, tile_x, tile_y);
-
           block->world_max_speed = 18.0f;
-
-
-          Colour block_colour;
-          colour_from(&block_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 80.0f, 20.0f, 1.0f);
-          block->colour.r = block_colour.element[0];
-          block->colour.g = block_colour.element[1];
-          block->colour.b = block_colour.element[2];
-          block->colour.a = block_colour.element[3];
+          entity_place(level, block, tile_x, tile_y);
+          entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
 
         } else if (plan_line[i] == 'U') { // pit
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
@@ -124,20 +149,12 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           pit->entity_type = EntityType_Pit;
           pit->entity_state = EntityState_Standing;
           pit->mesh = game_state->mesh_pit;
-
-          entity_place(pit, tile_x, tile_y);
-
           pit->world_max_speed = 18.0f;
-
-          Colour pit_colour;
-          colour_from(&pit_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 80.0f, 2.0f, 1.0f);
-          pit->colour.r = pit_colour.element[0];
-          pit->colour.g = pit_colour.element[1];
-          pit->colour.b = pit_colour.element[2];
-          pit->colour.a = pit_colour.element[3];
+          entity_place(level, pit, tile_x, tile_y);
+          entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);
         }
       } else {
-        level->tiles[tile_index] = TileType_Void;
+        level->tiles[tile_index].tile_type = TileType_Void;
       }
     }
   }
@@ -167,7 +184,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   //
   i32 num_floor_tiles = 0;
   for(i32 i = 0; i < level->width * level->height; i++) {
-    if (level->tiles[i] == TileType_Floor) {
+    if (level->tiles[i].tile_type == TileType_Floor) {
       num_floor_tiles++;
     }
   }
@@ -185,7 +202,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
 
   for(i32 j = 0; j < level->height; j++) {
     for(i32 i = 0; i < level->width; i++) {
-      if (level->tiles[i + (j*level->width)] == TileType_Floor) {
+      if (level->tiles[i + (j*level->width)].tile_type == TileType_Floor) {
         i32 v_index = tile_count * 8;
         vertices[v_index + 0] = -half_dim + (f32)i; vertices[v_index + 1] =  half_dim + (f32)j;
         vertices[v_index + 2] = -half_dim + (f32)i; vertices[v_index + 3] = -half_dim + (f32)j;

@@ -82,71 +82,61 @@ void game_step(GameState* game_state) {
   }
 
   Level *level = game_state->level;
-  Entity *e = get_hero(level);
+  Entity *hero = get_hero(level);
+  Direction direction;
   bool moved = false;
 
-  if (key_pressed(game_state->input, Key_Up) &&
-      is_valid_move_direction(level, e, e->board_pos.x, e->board_pos.y + 1)) {
-    e->board_pos.y += 1;
-    moved = true;
-  }
-  if (key_pressed(game_state->input, Key_Down) &&
-      is_valid_move_direction(level, e, e->board_pos.x, e->board_pos.y - 1)) {
-    e->board_pos.y -= 1;
-    moved = true;
-  }
-  if (key_pressed(game_state->input, Key_Left) &&
-      is_valid_move_direction(level, e, e->board_pos.x - 1, e->board_pos.y)) {
-    e->board_pos.x -= 1;
-    moved = true;
-  }
-  if (key_pressed(game_state->input, Key_Right) &&
-      is_valid_move_direction(level, e, e->board_pos.x + 1, e->board_pos.y)) {
-    e->board_pos.x += 1;
-    moved = true;
-  }
-
-
-  // board to world transform
-  if (moved) {
-    e->world_target.x = (f32)e->board_pos.x;
-    e->world_target.y = (f32)e->board_pos.y;
-    e->entity_state = EntityState_Moving;
-    // RONA_INFO("Moving");
+  if (hero->entity_state == EntityState_Standing) {
+    if (key_pressed(game_state->input, Key_Up)) {
+      direction = Direction_North;
+      moved = true;
+    } else if (key_pressed(game_state->input, Key_Down)) {
+      direction = Direction_South;
+      moved = true;
+    } else if (key_pressed(game_state->input, Key_Left)) {
+      direction = Direction_West;
+      moved = true;
+    } else if (key_pressed(game_state->input, Key_Right)) {
+      direction = Direction_East;
+      moved = true;
+    }
+    if (moved) {
+      try_moving_hero(level, hero, direction);
+    }
   }
 
   f32 time_delta = (f32)game_state->time_delta / 1000.0f;
   // axis aligned distance, not the best but it will do for this simple game
-  f32 distance_to_move = e->world_max_speed * time_delta;
+  f32 distance_to_move = hero->world_max_speed * time_delta;
 
-  if (e->entity_state == EntityState_Moving) {
-    if (e->world_pos.x < e->world_target.x) {
-      e->world_pos.x += distance_to_move;
-      if (e->world_pos.x >= e->world_target.x) {
-        e->world_pos.x = e->world_target.x;
+  if (hero->entity_state == EntityState_Moving) {
+    if (hero->world_pos.x < hero->world_target.x) {
+      hero->world_pos.x += distance_to_move;
+      if (hero->world_pos.x >= hero->world_target.x) {
+        hero->world_pos.x = hero->world_target.x;
       }
     }
-    if (e->world_pos.y < e->world_target.y) {
-      e->world_pos.y += distance_to_move;
-      if (e->world_pos.y >= e->world_target.y) {
-        e->world_pos.y = e->world_target.y;
+    if (hero->world_pos.y < hero->world_target.y) {
+      hero->world_pos.y += distance_to_move;
+      if (hero->world_pos.y >= hero->world_target.y) {
+        hero->world_pos.y = hero->world_target.y;
       }
     }
-    if (e->world_pos.x > e->world_target.x) {
-      e->world_pos.x -= distance_to_move;
-      if (e->world_pos.x <= e->world_target.x) {
-        e->world_pos.x = e->world_target.x;
+    if (hero->world_pos.x > hero->world_target.x) {
+      hero->world_pos.x -= distance_to_move;
+      if (hero->world_pos.x <= hero->world_target.x) {
+        hero->world_pos.x = hero->world_target.x;
       }
     }
-    if (e->world_pos.y > e->world_target.y) {
-      e->world_pos.y -= distance_to_move;
-      if (e->world_pos.y <= e->world_target.y) {
-        e->world_pos.y = e->world_target.y;
+    if (hero->world_pos.y > hero->world_target.y) {
+      hero->world_pos.y -= distance_to_move;
+      if (hero->world_pos.y <= hero->world_target.y) {
+        hero->world_pos.y = hero->world_target.y;
       }
     }
 
-    if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
-      e->entity_state = EntityState_Standing;
+    if (hero->world_pos.x == hero->world_target.x && hero->world_pos.y == hero->world_target.y) {
+      hero->entity_state = EntityState_Standing;
     }
   }
 

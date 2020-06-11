@@ -74,11 +74,23 @@ typedef struct Entity {
   f32 world_max_speed;
 } Entity;
 
+typedef enum {
+  Direction_North,
+  Direction_South,
+  Direction_East,
+  Direction_West
+} Direction;
 
 typedef enum {
   TileType_Void,
   TileType_Floor
 } TileType;
+
+typedef struct {
+  TileType tile_type;
+  Entity *occupant1;            // hack: 1,2 is a hack, replace with array or next/prev pointers on entity
+  Entity *occupant2;
+} Tile;
 
 typedef struct {
   MemoryArena mem;
@@ -88,7 +100,7 @@ typedef struct {
 
   i32 width;
   i32 height;
-  TileType *tiles;
+  Tile *tiles;
   Mesh *mesh_floor;
 
   // history/replay data goes here as well
