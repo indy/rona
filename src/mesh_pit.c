@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
+void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
@@ -27,7 +27,7 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
-  f32 half_dim = 0.35f;
+  f32 half_dim = 0.43f;
   f32 vertices[] = {
     -half_dim,  half_dim,
     -half_dim, -half_dim,
@@ -70,6 +70,6 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->bindVertexArray(0);
 }
 
-void mesh_hero_lib_unload(Mesh *mesh, RonaGl *gl) {
+void mesh_pit_lib_unload(Mesh *mesh, RonaGl *gl) {
   gl->deleteVertexArrays(1, &mesh->vao);
 }

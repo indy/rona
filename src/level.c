@@ -50,7 +50,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   }
 
   bool have_hero = false;
-  // i32 next_non_hero_entity_index = 1;
+  i32 next_non_hero_entity_index = 1;
 
   level->mesh_floor = (Mesh *)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
 
@@ -73,7 +73,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
 
         level->tiles[tile_index] = TileType_Floor;
 
-        if (plan_line[i] == 'H') {
+        if (plan_line[i] == 'H') { // hero
           Entity *hero = &(level->entities[0]);
 
           have_hero = true;
@@ -86,10 +86,55 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
 
           hero->world_max_speed = 18.0f;
 
-          hero->colour.r = 0.1f;
-          hero->colour.g = 0.8f;
-          hero->colour.b = 0.2f;
-          hero->colour.a = 1.0f;
+          Colour hero_colour;
+          colour_from(&hero_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);
+          hero->colour.r = hero_colour.element[0];
+          hero->colour.g = hero_colour.element[1];
+          hero->colour.b = hero_colour.element[2];
+          hero->colour.a = hero_colour.element[3];
+
+        } else if (plan_line[i] == 'B') { // block
+          RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
+
+          Entity *block = &(level->entities[next_non_hero_entity_index++]);
+
+          block->exists = true;
+          block->entity_type = EntityType_Block;
+          block->entity_state = EntityState_Standing;
+          block->mesh = game_state->mesh_block;
+
+          entity_place(block, tile_x, tile_y);
+
+          block->world_max_speed = 18.0f;
+
+
+          Colour block_colour;
+          colour_from(&block_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 80.0f, 20.0f, 1.0f);
+          block->colour.r = block_colour.element[0];
+          block->colour.g = block_colour.element[1];
+          block->colour.b = block_colour.element[2];
+          block->colour.a = block_colour.element[3];
+
+        } else if (plan_line[i] == 'U') { // pit
+          RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
+
+          Entity *pit = &(level->entities[next_non_hero_entity_index++]);
+
+          pit->exists = true;
+          pit->entity_type = EntityType_Pit;
+          pit->entity_state = EntityState_Standing;
+          pit->mesh = game_state->mesh_pit;
+
+          entity_place(pit, tile_x, tile_y);
+
+          pit->world_max_speed = 18.0f;
+
+          Colour pit_colour;
+          colour_from(&pit_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 80.0f, 2.0f, 1.0f);
+          pit->colour.r = pit_colour.element[0];
+          pit->colour.g = pit_colour.element[1];
+          pit->colour.b = pit_colour.element[2];
+          pit->colour.a = pit_colour.element[3];
         }
       } else {
         level->tiles[tile_index] = TileType_Void;

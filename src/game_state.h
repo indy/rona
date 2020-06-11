@@ -46,7 +46,9 @@ typedef struct {
 } Mesh;
 
 typedef enum {
-  EntityType_Hero
+  EntityType_Hero,
+  EntityType_Block,
+  EntityType_Pit
 } EntityType;
 
 typedef enum {
@@ -110,6 +112,7 @@ typedef struct  {
 
   Mesh *mesh_hero;
   Mesh *mesh_block;
+  Mesh *mesh_pit;
 
   Level *level;
 

@@ -48,7 +48,10 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
     gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
   }
 
-  gl->uniform4f(mesh->uniform_colour, 0.4f, 0.0f, 0.0f, 1.0f);
+  Colour ground_colour;
+  colour_from(&ground_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
+  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1], ground_colour.element[2], ground_colour.element[3]);
+
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
   gl->uniform2f(mesh->uniform_pos, world_pos_x, world_pos_y);
