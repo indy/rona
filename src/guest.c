@@ -48,5 +48,7 @@ CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation) {
     RONA_OUT("CLOSE\n");
     game_shutdown(g_game_state);
     return 0;
+  default:
+    return 0;
   };
 }

@@ -7,11 +7,14 @@
 #include "memory_arena.h"
 #include "input.h"
 #include "mesh_hero.h"
+#include "mesh_block.h"
+#include "level.h"
 #include "level1.h"
 
 // one time init at startup
 void game_startup(GameState* game_state) {
   game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+  game_state->mesh_block = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
 
   u64 level_memory_arena_size = megabytes(64);
   game_state->level = (Level *)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
@@ -32,14 +35,16 @@ void game_shutdown(GameState* game_state) {
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
   renderer_lib_load(game_state->gl);
+  mesh_block_lib_load(game_state->mesh_block, game_state->gl, &game_state->storage_transient);
   mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
-  level1_lib_load(game_state->level);
+  level1_lib_load(game_state->level, game_state->gl, &game_state->storage_transient);
 }
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
-  level1_lib_unload(game_state->level);
+  level1_lib_unload(game_state->level, game_state->gl);
   mesh_hero_lib_unload(game_state->mesh_hero, game_state->gl);
+  mesh_block_lib_unload(game_state->mesh_block, game_state->gl);
   renderer_lib_unload(game_state->gl);
 }
 
@@ -74,39 +79,27 @@ void game_step(GameState* game_state) {
   Entity *e = get_hero(level);
   bool moved = false;
 
-  if (key_pressed(game_state->input, Key_Up)) {
+  if (key_pressed(game_state->input, Key_Up) &&
+      is_valid_move_direction(level, e, e->board_pos.x, e->board_pos.y + 1)) {
     e->board_pos.y += 1;
     moved = true;
   }
-  if (key_pressed(game_state->input, Key_Down)) {
+  if (key_pressed(game_state->input, Key_Down) &&
+      is_valid_move_direction(level, e, e->board_pos.x, e->board_pos.y - 1)) {
     e->board_pos.y -= 1;
     moved = true;
   }
-  if (key_pressed(game_state->input, Key_Left)) {
+  if (key_pressed(game_state->input, Key_Left) &&
+      is_valid_move_direction(level, e, e->board_pos.x - 1, e->board_pos.y)) {
     e->board_pos.x -= 1;
     moved = true;
   }
-  if (key_pressed(game_state->input, Key_Right)) {
+  if (key_pressed(game_state->input, Key_Right) &&
+      is_valid_move_direction(level, e, e->board_pos.x + 1, e->board_pos.y)) {
     e->board_pos.x += 1;
     moved = true;
   }
 
-  if (e->board_pos.x >= level->width) {
-    e->board_pos.x = level->width - 1;
-    moved = false;
-  }
-  if (e->board_pos.x < 0) {
-    e->board_pos.x = 0;
-    moved = false;
-  }
-  if (e->board_pos.y >= level->height) {
-    e->board_pos.y = level->height - 1;
-    moved = false;
-  }
-  if (e->board_pos.y < 0) {
-    e->board_pos.y = 0;
-    moved = false;
-  }
 
   // board to world transform
   if (moved) {

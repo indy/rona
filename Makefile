@@ -33,7 +33,7 @@ shaders: $(SHADERS_OUT)
 	xxd -i $< > $@
 
 $(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile $(SHADERS_OUT)
-	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) $(GUEST_SRC) -o $(GUEST_OUT) $(GUEST_LDFLAGS)
+	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) $(GUEST_SRC) -o $(GUEST_OUT) -Wall $(GUEST_LDFLAGS)
 
 $(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
 	$(CC) $(HOST_CFLAGS) -g -c $(INCLUDE_FLAGS) -DCR_DEPLOY_PATH=\"target\" -DCR_NAME=\"$(GUEST_NAME)\" $(HOST_SRC) -o ./target/host.o

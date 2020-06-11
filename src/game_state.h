@@ -55,14 +55,22 @@ typedef struct Entity {
   f32 world_max_speed;
 } Entity;
 
-typedef struct {
-  i32 width;
-  i32 height;
-  i32 max_num_entities;
 
+typedef enum {
+  TileType_Void,
+  TileType_Floor
+} TileType;
+
+typedef struct {
   MemoryArena mem;
+
+  i32 max_num_entities;
   Entity* entities;
 
+  i32 width;
+  i32 height;
+  TileType *tiles;
+  Mesh *mesh_floor;
 
   // history/replay data goes here as well
 } Level;
@@ -84,6 +92,7 @@ typedef struct  {
   MemoryArena storage_transient;
 
   Mesh *mesh_hero;
+  Mesh *mesh_block;
 
   Level *level;
 

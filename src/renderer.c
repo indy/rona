@@ -22,15 +22,38 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   if (aspect_ratio > 1.0) {
     // the window is wider than it is tall
     //
-    height = (f32)(level->height);
+    height = (f32)(level->height + 1);
     width = height * aspect_ratio;
   } else {
     // the window is taller than it is wide
-    width = (f32)(level->width);
+    width = (f32)(level->width + 1);
     height = width / aspect_ratio;
   }
 
   GLuint current_shader = 0;
+
+  // render level's floor
+
+  Mesh *mesh = level->mesh_floor;
+  if (current_shader != mesh->shader_program) {
+    gl->useProgram(mesh->shader_program);
+
+    Mat4 proj_matrix;
+    mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+    gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
+  }
+
+  gl->uniform4f(mesh->uniform_colour, 0.4f, 0.0f, 0.0f, 1.0f);
+  f32 world_pos_x = 0.0f;
+  f32 world_pos_y = 0.0f;
+  gl->uniform2f(mesh->uniform_pos, world_pos_x, world_pos_y);
+
+  gl->bindVertexArray(mesh->vao);
+  gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
+
+
+  // render entities
+
   for(i32 i=0;i<level->max_num_entities;i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {
