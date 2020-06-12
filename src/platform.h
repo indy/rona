@@ -692,10 +692,12 @@ typedef unsigned int GLhandle;
 #define GL_STATIC_DRAW                    0x88E4
 
 typedef void (APIENTRYP PFNGLUNIFORM2FPROC)(GLint location, GLfloat v0, GLfloat v1);
+typedef void (APIENTRYP PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
 typedef void (APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef GLint (APIENTRYP PFNGLGETUNIFORMLOCATIONPROC) (GLhandle programObj, const GLchar *name);
 typedef void (APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
 
+typedef void (APIENTRYP PFNGLENABLEPROC)(GLenum cap);
 typedef void (APIENTRYP PFNGLCLEARPROC)(GLbitfield mask);
 typedef void (APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void (APIENTRYP PFNGLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
@@ -850,9 +852,11 @@ typedef struct {
   PFNGLGETUNIFORMLOCATIONPROC getUniformLocation;
 
   PFNGLUNIFORM2FPROC uniform2f;
+  PFNGLUNIFORM3FPROC uniform3f;
   PFNGLUNIFORM4FPROC uniform4f;
   PFNGLUNIFORMMATRIX4FVPROC uniformMatrix4fv;
 
+  PFNGLENABLEPROC enable;
   PFNGLCLEARPROC clear;
   PFNGLVIEWPORTPROC viewport;
   PFNGLDRAWARRAYSPROC drawArrays;

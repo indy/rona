@@ -69,8 +69,8 @@ typedef struct Entity {
 
   Vec2i board_pos;
 
-  Vec2 world_pos;
-  Vec2 world_target;
+  Vec3 world_pos;
+  Vec3 world_target;
   f32 world_max_speed;
 } Entity;
 

@@ -15,6 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+#define MAX_OCCUPANTS_ALLOWED 10
 
 // how many entities are there on the level at the given position?
 // returns the amount and fills in the entities array
@@ -66,7 +67,6 @@ bool try_moving_block(Level *level, Entity *block, Direction direction) {
   }
 
   // check if this will push any other entities
-#define MAX_OCCUPANTS_ALLOWED 10
   Entity *occupants[MAX_OCCUPANTS_ALLOWED];
   i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
@@ -123,7 +123,6 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
   }
 
   // check if this will push any other entities
-#define MAX_OCCUPANTS_ALLOWED 10
   Entity *occupants[MAX_OCCUPANTS_ALLOWED];
   i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
@@ -170,13 +169,17 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
 
 
 // place an entity at the given board positions
-void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y) {
+void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
   entity->board_pos.x = board_pos_x;
   entity->board_pos.y = board_pos_y;
+
   entity->world_pos.x = (f32)board_pos_x;
   entity->world_pos.y = (f32)board_pos_y;
+  entity->world_pos.z = z;
+
   entity->world_target.x = (f32)board_pos_x;
   entity->world_target.y = (f32)board_pos_y;
+  entity->world_target.z = z;
 }
 
 void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
@@ -227,7 +230,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           hero->entity_state = EntityState_Standing;
           hero->mesh = game_state->mesh_hero;
           hero->world_max_speed = 18.0f;
-          entity_place(level, hero, tile_x, tile_y);
+          entity_place(level, hero, tile_x, tile_y, 0.0f);
           entity_colour_as_hsluv(hero, 10.0f, 90.0f, 50.0f);
 
         } else if (plan_line[i] == 'B') { // block
@@ -240,7 +243,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           block->entity_state = EntityState_Standing;
           block->mesh = game_state->mesh_block;
           block->world_max_speed = 18.0f;
-          entity_place(level, block, tile_x, tile_y);
+          entity_place(level, block, tile_x, tile_y, 0.5f);
           entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
 
         } else if (plan_line[i] == 'U') { // pit
@@ -253,7 +256,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           pit->entity_state = EntityState_Standing;
           pit->mesh = game_state->mesh_pit;
           pit->world_max_speed = 18.0f;
-          entity_place(level, pit, tile_x, tile_y);
+          entity_place(level, pit, tile_x, tile_y, 1.0f);
           entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);
         }
       } else {

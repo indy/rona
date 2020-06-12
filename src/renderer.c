@@ -17,7 +17,7 @@
 
 void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_height) {
   gl->viewport(0, 0, window_width, window_height);
-  gl->clear(GL_COLOR_BUFFER_BIT);
+  gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   f32 aspect_ratio = (f32)window_width / (f32)window_height;
   f32 height;
@@ -38,7 +38,7 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   GLuint current_shader = 0;
 
   // render level's floor
-
+#if 1
   Mesh *mesh = level->mesh_floor;
   if (current_shader != mesh->shader_program) {
     gl->useProgram(mesh->shader_program);
@@ -54,11 +54,11 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
-  gl->uniform2f(mesh->uniform_pos, world_pos_x, world_pos_y);
+  gl->uniform3f(mesh->uniform_pos, world_pos_x, world_pos_y, 2.0f);
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-
+#endif
 
   // render entities
 
@@ -77,7 +77,7 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
     }
 
     gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b, entity->colour.a);
-    gl->uniform2f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y);
+    gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
@@ -116,6 +116,9 @@ void renderer_startup(RonaGl *gl) {
   RONA_INFO("OpenGL supported profiles:\n");
   RONA_INFO("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
   RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
+
+
+  gl->enable(GL_DEPTH_TEST);
 
   RONA_OUT("Running modern opengl\n");
 }
