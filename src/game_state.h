@@ -88,8 +88,6 @@ typedef enum {
 
 typedef struct {
   TileType tile_type;
-  Entity *occupant1;            // hack: 1,2 is a hack, replace with array or next/prev pointers on entity
-  Entity *occupant2;
 } Tile;
 
 typedef struct {

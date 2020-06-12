@@ -106,39 +106,51 @@ void game_step(GameState* game_state) {
   }
 
   f32 time_delta = (f32)game_state->time_delta / 1000.0f;
-  // axis aligned distance, not the best but it will do for this simple game
-  f32 distance_to_move = hero->world_max_speed * time_delta;
 
-  if (hero->entity_state == EntityState_Moving) {
-    if (hero->world_pos.x < hero->world_target.x) {
-      hero->world_pos.x += distance_to_move;
-      if (hero->world_pos.x >= hero->world_target.x) {
-        hero->world_pos.x = hero->world_target.x;
-      }
-    }
-    if (hero->world_pos.y < hero->world_target.y) {
-      hero->world_pos.y += distance_to_move;
-      if (hero->world_pos.y >= hero->world_target.y) {
-        hero->world_pos.y = hero->world_target.y;
-      }
-    }
-    if (hero->world_pos.x > hero->world_target.x) {
-      hero->world_pos.x -= distance_to_move;
-      if (hero->world_pos.x <= hero->world_target.x) {
-        hero->world_pos.x = hero->world_target.x;
-      }
-    }
-    if (hero->world_pos.y > hero->world_target.y) {
-      hero->world_pos.y -= distance_to_move;
-      if (hero->world_pos.y <= hero->world_target.y) {
-        hero->world_pos.y = hero->world_target.y;
-      }
+
+  for (i32 i = 0; i < level->max_num_entities; i++) {
+    Entity *e = &(level->entities[i]);
+    if (e->exists == false) {
+      break;
     }
 
-    if (hero->world_pos.x == hero->world_target.x && hero->world_pos.y == hero->world_target.y) {
-      hero->entity_state = EntityState_Standing;
+
+    // axis aligned distance, not the best but it will do for this simple game
+    f32 distance_to_move = e->world_max_speed * time_delta;
+
+    if (e->entity_state == EntityState_Moving) {
+      if (e->world_pos.x < e->world_target.x) {
+        e->world_pos.x += distance_to_move;
+        if (e->world_pos.x >= e->world_target.x) {
+          e->world_pos.x = e->world_target.x;
+        }
+      }
+      if (e->world_pos.y < e->world_target.y) {
+        e->world_pos.y += distance_to_move;
+        if (e->world_pos.y >= e->world_target.y) {
+          e->world_pos.y = e->world_target.y;
+        }
+      }
+      if (e->world_pos.x > e->world_target.x) {
+        e->world_pos.x -= distance_to_move;
+        if (e->world_pos.x <= e->world_target.x) {
+          e->world_pos.x = e->world_target.x;
+        }
+      }
+      if (e->world_pos.y > e->world_target.y) {
+        e->world_pos.y -= distance_to_move;
+        if (e->world_pos.y <= e->world_target.y) {
+          e->world_pos.y = e->world_target.y;
+        }
+      }
+
+      if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
+        e->entity_state = EntityState_Standing;
+      }
     }
+
   }
+
 
   renderer_render(game_state->gl, game_state->level, game_state->window_width, game_state->window_height);
 }
