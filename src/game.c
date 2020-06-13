@@ -44,7 +44,7 @@ void game_lib_load(GameState* game_state) {
   mesh_pit_lib_load(game_state->mesh_pit, game_state->gl, &game_state->storage_transient);
   mesh_block_lib_load(game_state->mesh_block, game_state->gl, &game_state->storage_transient);
   mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
-  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient);
+  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient, &game_state->render_struct);
   level1_lib_load(game_state->level, game_state->gl, &game_state->storage_transient);
 }
 

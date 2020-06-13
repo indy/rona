@@ -272,8 +272,8 @@ GLuint create_texture(RonaGl *gl, u32 width, u32 height) {
   gl->bindTexture(GL_TEXTURE_2D, texture_id);
   gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -321,76 +321,3 @@ void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   update_viewport(gl, viewport_width, viewport_height);
 }
-
-
-#if 0
-void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct) {
-
-  gl->viewport(0, 0, render_struct->window_width, render_struct->window_height);
-  gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  f32 aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
-  f32 height;
-  f32 width;
-
-  // f32 level_aspect_ratio = (f32)level->width / (f32)level-height;
-  if (aspect_ratio > 1.0) {
-    // the window is wider than it is tall
-    //
-    height = (f32)(level->height + 1);
-    width = height * aspect_ratio;
-  } else {
-    // the window is taller than it is wide
-    width = (f32)(level->width + 1);
-    height = width / aspect_ratio;
-  }
-
-  GLuint current_shader = 0;
-
-  // render level's floor
-
-  Mesh *mesh = level->mesh_floor;
-  if (current_shader != mesh->shader_program) {
-    gl->useProgram(mesh->shader_program);
-
-    Mat4 proj_matrix;
-    mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
-  }
-
-  Colour ground_colour;
-  colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
-  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1], ground_colour.element[2], ground_colour.element[3]);
-
-  f32 world_pos_x = 0.0f;
-  f32 world_pos_y = 0.0f;
-  gl->uniform3f(mesh->uniform_pos, world_pos_x, world_pos_y, 2.0f);
-
-  gl->bindVertexArray(mesh->vao);
-  gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-
-
-  // render entities
-
-  for(i32 i=0;i<level->max_num_entities;i++) {
-    Entity *entity = &(level->entities[i]);
-    if (!entity->exists) {
-      break;                    // no more valid entities
-    }
-    Mesh *mesh = entity->mesh;
-    if (current_shader != mesh->shader_program) {
-      gl->useProgram(mesh->shader_program);
-
-      Mat4 proj_matrix;
-      mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
-    }
-
-    gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b, entity->colour.a);
-    gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
-
-    gl->bindVertexArray(mesh->vao);
-    gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-  }
-}
-#endif

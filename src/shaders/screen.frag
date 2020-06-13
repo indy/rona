@@ -17,8 +17,23 @@ vec3 linear_to_srgb(vec3 linear) {
         linear.b > b ? srgb_hi.b : srgb_lo.b);
 }
 
+
+// Distortion of scanlines, and end of screen alpha.
+vec2 warp(vec2 pos) {
+
+  vec2 warp_factor = vec2(0.2f, 0.1f);
+
+  pos = pos * 2.0 - 1.0;
+  pos *= vec2(1.0 + (pos.y * pos.y) * warp_factor.x, 1.0 + (pos.x * pos.x) * warp_factor.y);
+  return pos * 0.5 + 0.5;
+}
+
 void main() {
-  vec4 texture_colour = texture(sampler, texture_coord);
+
+  vec2 pos = warp(texture_coord);
+  vec4 texture_colour = texture(sampler, pos);
+
+  // vec4 texture_colour = texture(sampler, texture_coord);
 
   frag_colour = vec4(linear_to_srgb(texture_colour.rgb), 1.0);
 }

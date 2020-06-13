@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
+void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
@@ -27,12 +27,14 @@ void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
+  f32 width = (f32)render_struct->render_texture_width;
+  f32 height = (f32)render_struct->render_texture_height;
   // x, y, u, v
   f32 vertices[] = {
-    0.0f, 360.0f, 0.0f, 1.0f,
+    0.0f, height, 0.0f, 1.0f,
     0.0f, 0.0f, 0.0f, 0.0f,
-    640.0f, 0.0f, 1.0f, 0.0f,
-    640.0f, 360.0f, 1.0f, 1.0f
+    width, 0.0f, 1.0f, 0.0f,
+    width, height, 1.0f, 1.0f
   };
   u32 indices[] = {
     0, 1, 2,
