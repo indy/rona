@@ -7,5 +7,4 @@ uniform vec3 pos;
 
 void main() {
   gl_Position = proj_matrix * vec4(pos.x + inPosition.x, pos.y + inPosition.y, pos.z, 1.0);
-
 }

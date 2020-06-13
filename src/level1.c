@@ -45,7 +45,7 @@ void level1_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
 
 
   Colour hero_colour;
-  colour_from(&hero_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);
+  colour_from(&hero_colour, ColourFormat_RGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);
 
   Entity *hero = &(level->entities[0]);
   hero->colour.r = hero_colour.element[0];

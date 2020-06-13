@@ -184,7 +184,7 @@ void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y
 
 void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
   Colour c;
-  colour_from(&c, ColourFormat_sRGB, ColourFormat_HSLuv, h, s, l, 1.0f);
+  colour_from(&c, ColourFormat_RGB, ColourFormat_HSLuv, h, s, l, 1.0f);
   entity->colour.r = c.element[0];
   entity->colour.g = c.element[1];
   entity->colour.b = c.element[2];

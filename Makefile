@@ -6,7 +6,6 @@ GAME_HEADERS=src/*.h
 
 SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c ./target/screen.vert.c ./target/screen.frag.c
 
-
 # the shared library with the game code
 #
 GUEST_NAME=guest

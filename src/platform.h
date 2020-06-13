@@ -667,6 +667,10 @@ typedef double		GLclampd;	/* double precision float in [0,1] */
 
 
 /* OpenGL 3.0 */
+#define GL_DEPTH_COMPONENT32F             0x8CAC
+#define GL_DEPTH32F_STENCIL8              0x8CAD
+#define GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD
+#define GL_INVALID_FRAMEBUFFER_OPERATION  0x0506
 #define GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING 0x8210
 #define GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE 0x8211
 #define GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE 0x8212
@@ -800,7 +804,6 @@ typedef double		GLclampd;	/* double precision float in [0,1] */
 #define GL_CLAMP_VERTEX_COLOR             0x891A
 #define GL_CLAMP_FRAGMENT_COLOR           0x891B
 #define GL_ALPHA_INTEGER                  0x8D97
-
 
 #ifndef APIENTRY
 #define APIENTRY
