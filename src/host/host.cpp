@@ -13,9 +13,8 @@
 
 typedef unsigned long long u64; // copied from rona.h
 
-#include "../rona.h"
 #include "../platform.h"
-#include "../game_state.h"
+#include "../rona.h"
 
 const char *tmp = "/tmp/";
 
@@ -45,6 +44,7 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->uniform3f = (PFNGLUNIFORM3FPROC)GLProcAddress("glUniform3f");
   gl->uniform4f = (PFNGLUNIFORM4FPROC)GLProcAddress("glUniform4f");
   gl->uniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GLProcAddress("glUniformMatrix4fv");
+
   gl->enable = (PFNGLENABLEPROC)GLProcAddress("glEnable");
   gl->clear = (PFNGLCLEARPROC)GLProcAddress("glClear");
   gl->viewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
@@ -53,6 +53,18 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->clearColor = (PFNGLCLEARCOLORPROC)GLProcAddress("glClearColor");
   gl->getIntegerv = (PFNGLGETINTEGERVPROC)GLProcAddress("glGetIntegerv");
   gl->getString = (PFNGLGETSTRINGPROC)GLProcAddress("glGetString");
+
+  gl->activeTexture = (PFNGLACTIVETEXTUREPROC)GLProcAddress("glActiveTexture");
+  gl->genTextures = (PFNGLGENTEXTURESPROC)GLProcAddress("glGenTextures");
+  // gl->createTexture = (PFNGLCREATETEXTUREPROC)GLProcAddress("glCreateTexture");
+  gl->bindTexture = (PFNGLBINDTEXTUREPROC)GLProcAddress("glBindTexture");
+  gl->texImage2D = (PFNGLTEXIMAGE2DPROC)GLProcAddress("glTexImage2D");
+  gl->texParameteri = (PFNGLTEXPARAMETERIPROC)GLProcAddress("glTexParameteri");
+  gl->genFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)GLProcAddress("glGenFramebuffers");
+  // gl->createFramebuffer = (PFNGLCREATEFRAMEBUFFERPROC)GLProcAddress("glCreateFramebuffer"); // gl4 ???
+  gl->bindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)GLProcAddress("glBindFramebuffer");
+  gl->framebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)GLProcAddress("glFramebufferTexture2D");
+  gl->checkFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)GLProcAddress("glCheckFramebufferStatus");
 
   gl->createShader = (PFNGLCREATESHADERPROC)GLProcAddress("glCreateShader");
   gl->shaderSource = (PFNGLSHADERSOURCEPROC)GLProcAddress("glShaderSource");

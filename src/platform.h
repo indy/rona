@@ -696,7 +696,6 @@ typedef void (APIENTRYP PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat 
 typedef void (APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef GLint (APIENTRYP PFNGLGETUNIFORMLOCATIONPROC) (GLhandle programObj, const GLchar *name);
 typedef void (APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat * value);
-
 typedef void (APIENTRYP PFNGLENABLEPROC)(GLenum cap);
 typedef void (APIENTRYP PFNGLCLEARPROC)(GLbitfield mask);
 typedef void (APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
@@ -705,6 +704,20 @@ typedef void (APIENTRYP PFNGLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenu
 typedef void (APIENTRYP PFNGLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void (APIENTRYP PFNGLGETINTEGERVPROC)(GLenum pname, GLint * params);
 typedef GLubyte* (APIENTRYP PFNGLGETSTRINGPROC)(GLenum name);
+
+
+typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC)(GLenum texture);
+typedef void (APIENTRYP PFNGLGENTEXTURESPROC)(GLsizei n, GLuint *textures);
+// typedef void (APIENTRYP PFNGLCREATETEXTUREPROC)(); ????
+typedef void (APIENTRYP PFNGLBINDTEXTUREPROC)(GLenum target, GLuint texture);
+typedef void (APIENTRYP PFNGLTEXIMAGE2DPROC)(	GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid * data);
+typedef void (APIENTRYP PFNGLTEXPARAMETERIPROC)(GLenum target, GLenum pname, GLint param);
+typedef void (APIENTRYP PFNGLGENFRAMEBUFFERSPROC)(GLsizei n, GLuint *framebuffers);
+// typedef void (APIENTRYP PFNGLCREATEFRAMEBUFFERPROC)(GLsizei n, GLuint *ids); // gl4
+typedef void (APIENTRYP PFNGLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DPROC)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
+typedef GLenum (APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUSPROC)(GLenum target);
+
 
 typedef GLuint(APIENTRYP PFNGLCREATESHADERPROC) (GLenum type);
 typedef void (APIENTRYP PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length);
@@ -860,12 +873,22 @@ typedef struct {
   PFNGLCLEARPROC clear;
   PFNGLVIEWPORTPROC viewport;
   PFNGLDRAWARRAYSPROC drawArrays;
-
   PFNGLDRAWELEMENTSPROC drawElements;
-
   PFNGLCLEARCOLORPROC clearColor;
   PFNGLGETINTEGERVPROC getIntegerv;
   PFNGLGETSTRINGPROC getString;
+
+  PFNGLACTIVETEXTUREPROC activeTexture;
+  PFNGLGENTEXTURESPROC genTextures;
+  // PFNGLCREATETEXTUREPROC createTexture;
+  PFNGLBINDTEXTUREPROC bindTexture;
+  PFNGLTEXIMAGE2DPROC texImage2D;
+  PFNGLTEXPARAMETERIPROC texParameteri;
+  PFNGLGENFRAMEBUFFERSPROC genFramebuffers;;
+  // PFNGLCREATEFRAMEBUFFERPROC createFramebuffer;
+  PFNGLBINDFRAMEBUFFERPROC bindFramebuffer;
+  PFNGLFRAMEBUFFERTEXTURE2DPROC framebufferTexture2D;
+  PFNGLCHECKFRAMEBUFFERSTATUSPROC checkFramebufferStatus;
 
   PFNGLCREATESHADERPROC createShader;
   PFNGLSHADERSOURCEPROC shaderSource;

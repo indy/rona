@@ -38,7 +38,7 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   GLuint current_shader = 0;
 
   // render level's floor
-#if 1
+
   Mesh *mesh = level->mesh_floor;
   if (current_shader != mesh->shader_program) {
     gl->useProgram(mesh->shader_program);
@@ -58,7 +58,7 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-#endif
+
 
   // render entities
 

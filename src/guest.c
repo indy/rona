@@ -23,9 +23,8 @@
 #include "stdio.h"
 #include "cr.h"
 
-#include "rona.h"
 #include "platform.h"
-#include "game_state.h"
+#include "rona.h"
 
 #include "colour.h"
 #include "entity.h"

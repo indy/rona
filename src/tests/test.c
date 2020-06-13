@@ -1,5 +1,42 @@
 #include "munit/munit.h"
+
+#include <stdlib.h>
+
+// float.h for FLT_MAX
+#include <float.h>
+#include <math.h>
+
+#include "string.h"
+#include "stdio.h"
+
+#include "../platform.h"
 #include "../rona.h"
+
+#include "../colour.h"
+#include "../entity.h"
+#include "../game.h"
+#include "../input.h"
+#include "../level.h"
+#include "../level1.h"
+#include "../memory_arena.h"
+#include "../mesh_block.h"
+#include "../mesh_pit.h"
+#include "../mesh_hero.h"
+#include "../renderer.h"
+#include "../rona_math.h"
+
+#include "../colour.c"
+#include "../game.c"
+#include "../input.c"
+#include "../level1.c"
+#include "../level.c"
+#include "../memory_arena.c"
+#include "../mesh_block.c"
+#include "../mesh_pit.c"
+#include "../mesh_hero.c"
+#include "../renderer.c"
+#include "../rona_math.c"
+
 
 static MunitResult
 test_rona_types(const MunitParameter params[], void* user_data) {
@@ -28,7 +65,7 @@ static const MunitSuite test_suite = {
   MUNIT_SUITE_OPTION_NONE
 };
 
-#include <stdlib.h>
+
 
 int main(int argc, char* argv[MUNIT_ARRAY_PARAM(argc + 1)]) {
   return munit_suite_main(&test_suite, (void*) "rona", argc, argv);

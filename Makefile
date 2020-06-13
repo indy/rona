@@ -12,7 +12,7 @@ GUEST_OUT=./target/lib$(GUEST_NAME).so
 HOST_CFLAGS=-Wno-pointer-arith -Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
 # HOST_CFLAGS=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
 HOST_SRC=src/host/host.cpp
-HOST_HEADERS=src/rona.h src/platform.h src/game_state.h
+HOST_HEADERS=src/platform.h src/rona.h
 HOST_LIBS=-lGL -lm -lpthread -ldl -lrt -lX11 -lstdc++
 HOST_OUT=./target/host
 
@@ -40,7 +40,7 @@ $(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
 	$(CC) -o $(HOST_OUT) ./target/host.o -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
 $(TEST_OUT): $(TEST_SRC) $(GUEST_SRC) $(GUEST_HEADERS) Makefile
-	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(GUEST_SRC) $(TEST_LIBS)
+	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(TEST_LIBS)
 	$(TEST_OUT)
 
 .PHONY: clean
