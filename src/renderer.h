@@ -18,13 +18,13 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-void renderer_startup(RonaGl *gl);
+void renderer_startup(RonaGl *gl, RenderStruct *render_struct);
 void renderer_shutdown(RonaGl *gl);
 
 void renderer_lib_load(RonaGl *gl);
 void renderer_lib_unload(RonaGl *gl);
 
-void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_height);
+void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen);
 /*
   This is a convoluted way of including text files into c source code
 

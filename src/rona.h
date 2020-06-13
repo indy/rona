@@ -150,7 +150,8 @@ typedef struct {
   GLuint shader_program;
   GLuint vao;
 
-  // universal uniforms common to all meshes
+  // commonly used uniforms
+  int uniform_texture;
   int uniform_colour;
   int uniform_proj_matrix;
   int uniform_pos;
@@ -219,14 +220,24 @@ typedef struct {
   // history/replay data goes here as well
 } Level;
 
+typedef struct {
+  i32 window_width;
+  i32 window_height;
+
+  i32 render_texture_width;
+  i32 render_texture_height;
+  GLuint render_texture_id;
+  GLuint framebuffer_id;
+} RenderStruct;
+
 typedef struct  {
   bool game_initialised;
   bool quit_game;
 
   bool window_has_focus;
   bool window_resized;
-  i32 window_width;
-  i32 window_height;
+
+  RenderStruct render_struct;
 
   u64 time_game_start;   // time at the start of the game
   u64 time_last_frame;
@@ -235,6 +246,7 @@ typedef struct  {
   MemoryArena storage_permanent;
   MemoryArena storage_transient;
 
+  Mesh *mesh_screen;
   Mesh *mesh_hero;
   Mesh *mesh_block;
   Mesh *mesh_pit;

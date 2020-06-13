@@ -36,6 +36,7 @@
 #include "mesh_block.h"
 #include "mesh_pit.h"
 #include "mesh_hero.h"
+#include "mesh_screen.h"
 #include "renderer.h"
 #include "rona_math.h"
 
@@ -48,6 +49,7 @@
 #include "mesh_block.c"
 #include "mesh_pit.c"
 #include "mesh_hero.c"
+#include "mesh_screen.c"
 #include "renderer.c"
 #include "rona_math.c"
 

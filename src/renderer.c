@@ -15,11 +15,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_height) {
-  gl->viewport(0, 0, window_width, window_height);
+GLuint create_framebuffer(RonaGl *gl);
+GLuint create_texture(RonaGl *gl, u32 width, u32 height);
+void delete_texture(RonaGl *gl, GLuint texture_id);
+void attach_texture_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id);
+bool is_framebuffer_ok(RonaGl *gl);
+void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
+void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
+
+
+void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
+  bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width, render_struct->render_texture_height);
+
+  gl->clearColor(0.0f, 0.0f, 0.1f, 1.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  f32 aspect_ratio = (f32)window_width / (f32)window_height;
+  f32 render_texture_width = (f32)render_struct->render_texture_width;
+  f32 render_texture_height = (f32)render_struct->render_texture_height;
+  // this is always a 640x360 texture render target
+  f32 aspect_ratio = render_texture_width / render_texture_height;
   f32 height;
   f32 width;
 
@@ -65,7 +79,7 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
   for(i32 i=0;i<level->max_num_entities;i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {
-      break;                    // no more valid entities
+      break;
     }
     Mesh *mesh = entity->mesh;
     if (current_shader != mesh->shader_program) {
@@ -82,6 +96,41 @@ void renderer_render(RonaGl *gl, Level *level, i32 window_width, i32 window_heig
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
   }
+
+  // render texture to screen
+
+  bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
+
+  gl->clearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  gl->useProgram(screen->shader_program);
+
+  Mat4 mat;
+  f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
+
+  if (window_aspect_ratio <= aspect_ratio) {
+    // window is narrower than desired
+    f32 v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
+    f32 v_pad = (v - render_texture_height) / 2.0f;
+    mat4_ortho(&mat, 0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+  } else {
+    // window is more elongated horizontally than desired
+    f32 h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
+    f32 h_pad = (h - render_texture_width) / 2.0f;
+    mat4_ortho(&mat, -h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
+  }
+
+  gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(mat.v));
+  gl->uniform1i(screen->uniform_texture, 0);
+
+  gl->activeTexture(GL_TEXTURE0);
+  gl->bindTexture(GL_TEXTURE_2D, render_struct->render_texture_id);
+
+  gl->bindVertexArray(screen->vao);
+  gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
+
+
 }
 
 void renderer_lib_load(RonaGl *gl) {
@@ -98,7 +147,7 @@ void renderer_lib_unload(RonaGl *gl) {
   gl->bindVertexArray(0);
 }
 
-void renderer_startup(RonaGl *gl) {
+void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   const char *version = (const char *)gl->getString(GL_VERSION);
   const char *vendor = (const char *)gl->getString(GL_VENDOR);
   const char *renderer = (const char *)gl->getString(GL_RENDERER);
@@ -109,16 +158,29 @@ void renderer_startup(RonaGl *gl) {
   const char *glslVersion = (const char *)gl->getString(GL_SHADING_LANGUAGE_VERSION);
   RONA_INFO("OpenGL GLSL Version %s:\n", glslVersion);
 
-  int profileMask;
-  int contextFlags;
-  gl->getIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
-  gl->getIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
-  RONA_INFO("OpenGL supported profiles:\n");
-  RONA_INFO("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
-  RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
-
+  // int profileMask;
+  // int contextFlags;
+  // gl->getIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
+  // gl->getIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
+  // RONA_INFO("OpenGL supported profiles:\n");
+  // RONA_INFO("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
+  // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
 
   gl->enable(GL_DEPTH_TEST);
+
+  // setup render texture
+  render_struct->render_texture_width = 640;
+  render_struct->render_texture_height = 360;
+  render_struct->render_texture_id = create_texture(gl,
+                                                    render_struct->render_texture_width,
+                                                    render_struct->render_texture_height);
+  render_struct->framebuffer_id = create_framebuffer(gl);
+  attach_texture_to_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_id);
+  if (!is_framebuffer_ok(gl)) {
+    RONA_ERROR("%d, Framebuffer is not ok\n", 1);
+  }
+  gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
+  gl->viewport(0, 0, render_struct->render_texture_width, render_struct->render_texture_height);
 
   RONA_OUT("Running modern opengl\n");
 }
@@ -185,3 +247,129 @@ GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *f
 
   return(programId);
 }
+
+
+GLuint create_framebuffer(RonaGl *gl) {
+  GLuint framebuffer;
+  gl->genFramebuffers(1, &framebuffer);
+
+  return framebuffer;
+}
+
+GLuint create_texture(RonaGl *gl, u32 width, u32 height) {
+  GLuint texture_id;
+
+  gl->genTextures(1, &texture_id);
+  // bind so that all future texture ops happen to this texture
+  gl->bindTexture(GL_TEXTURE_2D, texture_id);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  gl->bindTexture(GL_TEXTURE_2D, 0);
+
+  return texture_id;
+}
+
+void delete_texture(RonaGl *gl, GLuint texture_id) {
+  gl->deleteTextures(1, &texture_id);
+}
+
+void attach_texture_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id) {
+  // todo: pass in a GL_READ_FRAMEBUFFER or GL_DRAW_FRAMEBUFFER
+  gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
+  gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
+}
+
+bool is_framebuffer_ok(RonaGl *gl) {
+  if (gl->checkFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    RONA_ERROR("Framebuffer is not complete\n");
+    return false;
+  }
+  return true;
+}
+
+void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height) {
+  gl->viewport(0, 0, viewport_width, viewport_height);
+}
+
+void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height) {
+  gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
+  update_viewport(gl, viewport_width, viewport_height);
+}
+
+
+#if 0
+void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct) {
+
+  gl->viewport(0, 0, render_struct->window_width, render_struct->window_height);
+  gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  f32 aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
+  f32 height;
+  f32 width;
+
+  // f32 level_aspect_ratio = (f32)level->width / (f32)level-height;
+  if (aspect_ratio > 1.0) {
+    // the window is wider than it is tall
+    //
+    height = (f32)(level->height + 1);
+    width = height * aspect_ratio;
+  } else {
+    // the window is taller than it is wide
+    width = (f32)(level->width + 1);
+    height = width / aspect_ratio;
+  }
+
+  GLuint current_shader = 0;
+
+  // render level's floor
+
+  Mesh *mesh = level->mesh_floor;
+  if (current_shader != mesh->shader_program) {
+    gl->useProgram(mesh->shader_program);
+
+    Mat4 proj_matrix;
+    mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+    gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
+  }
+
+  Colour ground_colour;
+  colour_from(&ground_colour, ColourFormat_sRGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
+  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1], ground_colour.element[2], ground_colour.element[3]);
+
+  f32 world_pos_x = 0.0f;
+  f32 world_pos_y = 0.0f;
+  gl->uniform3f(mesh->uniform_pos, world_pos_x, world_pos_y, 2.0f);
+
+  gl->bindVertexArray(mesh->vao);
+  gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
+
+
+  // render entities
+
+  for(i32 i=0;i<level->max_num_entities;i++) {
+    Entity *entity = &(level->entities[i]);
+    if (!entity->exists) {
+      break;                    // no more valid entities
+    }
+    Mesh *mesh = entity->mesh;
+    if (current_shader != mesh->shader_program) {
+      gl->useProgram(mesh->shader_program);
+
+      Mat4 proj_matrix;
+      mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+      gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
+    }
+
+    gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b, entity->colour.a);
+    gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
+
+    gl->bindVertexArray(mesh->vao);
+    gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
+  }
+}
+#endif

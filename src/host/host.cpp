@@ -40,6 +40,7 @@ static void *GLProcAddress(const char *name) {
 
 static void LoadGLFunctions(RonaGl *gl) {
   gl->getUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GLProcAddress("glGetUniformLocation");
+  gl->uniform1i = (PFNGLUNIFORM1IPROC)GLProcAddress("glUniform1i");
   gl->uniform2f = (PFNGLUNIFORM2FPROC)GLProcAddress("glUniform2f");
   gl->uniform3f = (PFNGLUNIFORM3FPROC)GLProcAddress("glUniform3f");
   gl->uniform4f = (PFNGLUNIFORM4FPROC)GLProcAddress("glUniform4f");
@@ -55,6 +56,7 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->getString = (PFNGLGETSTRINGPROC)GLProcAddress("glGetString");
 
   gl->activeTexture = (PFNGLACTIVETEXTUREPROC)GLProcAddress("glActiveTexture");
+  gl->deleteTextures = (PFNGLDELETETEXTURESPROC)GLProcAddress("glDeleteTextures");
   gl->genTextures = (PFNGLGENTEXTURESPROC)GLProcAddress("glGenTextures");
   // gl->createTexture = (PFNGLCREATETEXTUREPROC)GLProcAddress("glCreateTexture");
   gl->bindTexture = (PFNGLBINDTEXTUREPROC)GLProcAddress("glBindTexture");
@@ -217,8 +219,8 @@ int main(int argc, char **args) {
     fplWindowSize window_size;
     fplGetWindowSize(&window_size);
     game_state.window_has_focus = true;
-    game_state.window_width = window_size.width;
-    game_state.window_height = window_size.height;
+    game_state.render_struct.window_width = window_size.width;
+    game_state.render_struct.window_height = window_size.height;
     RONA_INFO("Window Initial size: (%d, %d)\n", window_size.width, window_size.height);
 
     // allocate memory arena space for RonaInput
@@ -243,8 +245,8 @@ int main(int argc, char **args) {
             fplWindowSize window_size;
             fplGetWindowSize(&window_size);
             game_state.window_resized = true;
-            game_state.window_width = window_size.width;
-            game_state.window_height = window_size.height;
+            game_state.render_struct.window_width = window_size.width;
+            game_state.render_struct.window_height = window_size.height;
             RONA_INFO("Window Event: Resized (%d, %d)\n", window_size.width, window_size.height);
             break;
           case fplWindowEventType_GotFocus:

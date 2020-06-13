@@ -16,9 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void game_startup(GameState* game_state) {
+  game_state->mesh_screen = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_block = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_pit = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+
 
   u64 level_memory_arena_size = megabytes(64);
   game_state->level = (Level *)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
@@ -28,7 +30,7 @@ void game_startup(GameState* game_state) {
 
   level1_startup(game_state->level, game_state);
 
-  renderer_startup(game_state->gl);
+  renderer_startup(game_state->gl, &(game_state->render_struct));
 }
 
 void game_shutdown(GameState* game_state) {
@@ -42,12 +44,14 @@ void game_lib_load(GameState* game_state) {
   mesh_pit_lib_load(game_state->mesh_pit, game_state->gl, &game_state->storage_transient);
   mesh_block_lib_load(game_state->mesh_block, game_state->gl, &game_state->storage_transient);
   mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
+  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient);
   level1_lib_load(game_state->level, game_state->gl, &game_state->storage_transient);
 }
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
   level1_lib_unload(game_state->level, game_state->gl);
+  mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
   mesh_hero_lib_unload(game_state->mesh_hero, game_state->gl);
   mesh_block_lib_unload(game_state->mesh_block, game_state->gl);
   mesh_pit_lib_unload(game_state->mesh_pit, game_state->gl);
@@ -152,5 +156,5 @@ void game_step(GameState* game_state) {
   }
 
 
-  renderer_render(game_state->gl, game_state->level, game_state->window_width, game_state->window_height);
+  renderer_render(game_state->gl, game_state->level, &game_state->render_struct, game_state->mesh_screen);
 }

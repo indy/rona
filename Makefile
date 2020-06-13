@@ -20,7 +20,7 @@ TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
 TEST_LIBS=-lm
 
-SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c
+SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c ./target/screen.vert.c ./target/screen.frag.c
 
 guest: $(GUEST_OUT)
 host: $(HOST_OUT)
@@ -30,6 +30,10 @@ shaders: $(SHADERS_OUT)
 ./target/shader.vert.c: src/shaders/shader.vert
 	xxd -i $< > $@
 ./target/shader.frag.c: src/shaders/shader.frag
+	xxd -i $< > $@
+./target/screen.vert.c: src/shaders/screen.vert
+	xxd -i $< > $@
+./target/screen.frag.c: src/shaders/screen.frag
 	xxd -i $< > $@
 
 $(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile $(SHADERS_OUT)
