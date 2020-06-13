@@ -1,26 +1,35 @@
 CC=gcc
 INCLUDE_FLAGS=-Iext
 
+GAME_SRC=src/*.c
+GAME_HEADERS=src/*.h
+
+SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c ./target/screen.vert.c ./target/screen.frag.c
+
+
+# the shared library with the game code
+#
 GUEST_NAME=guest
+GUEST_MAIN=src/guest/guest.c
 GUEST_CFLAGS=-std=c99 -fPIC -g -O0 -D _DEBUG -D FPL_DEBUG
 # GUEST_CFLAGS=-std=c99 -fPIC -g0 -O3 -D FPL_RELEASE
 GUEST_LDFLAGS=-shared
-GUEST_SRC=src/*.c
-GUEST_HEADERS=src/*.h
 GUEST_OUT=./target/lib$(GUEST_NAME).so
 
+# the host that hot-reloads the shared library
+#
 HOST_CFLAGS=-Wno-pointer-arith -Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
 # HOST_CFLAGS=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
-HOST_SRC=src/host/host.cpp
+HOST_MAIN=src/host/host.cpp
 HOST_HEADERS=src/platform.h src/rona.h
 HOST_LIBS=-lGL -lm -lpthread -ldl -lrt -lX11 -lstdc++
 HOST_OUT=./target/host
 
+# misc. unit tests
+#
 TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
 TEST_LIBS=-lm
-
-SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c ./target/screen.vert.c ./target/screen.frag.c
 
 guest: $(GUEST_OUT)
 host: $(HOST_OUT)
@@ -36,14 +45,14 @@ shaders: $(SHADERS_OUT)
 ./target/screen.frag.c: src/shaders/screen.frag
 	xxd -i $< > $@
 
-$(GUEST_OUT): $(GUEST_SRC) $(GUEST_HEADERS) Makefile $(SHADERS_OUT)
-	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) src/guest.c -o $(GUEST_OUT) -Wall $(GUEST_LDFLAGS)
+$(GUEST_OUT): $(GUEST_MAIN) $(GAME_SRC) $(GAME_HEADERS) Makefile $(SHADERS_OUT)
+	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) $(GUEST_MAIN) -o $(GUEST_OUT) -Wall $(GUEST_LDFLAGS)
 
-$(HOST_OUT): $(HOST_SRC) $(HOST_HEADERS) Makefile
-	$(CC) $(HOST_CFLAGS) -g -c $(INCLUDE_FLAGS) -DCR_DEPLOY_PATH=\"target\" -DCR_NAME=\"$(GUEST_NAME)\" $(HOST_SRC) -o ./target/host.o
+$(HOST_OUT): $(HOST_MAIN) $(HOST_HEADERS) Makefile
+	$(CC) $(HOST_CFLAGS) -g -c $(INCLUDE_FLAGS) -DCR_DEPLOY_PATH=\"target\" -DCR_NAME=\"$(GUEST_NAME)\" $(HOST_MAIN) -o ./target/host.o
 	$(CC) -o $(HOST_OUT) ./target/host.o -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
-$(TEST_OUT): $(TEST_SRC) $(GUEST_SRC) $(GUEST_HEADERS) Makefile
+$(TEST_OUT): $(TEST_SRC) $(GAME_SRC) $(GAME_HEADERS) Makefile
 	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(TEST_LIBS)
 	$(TEST_OUT)
 
