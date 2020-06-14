@@ -34,11 +34,10 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   The benefit of all this is that hot reloading works on shaders
 */
-#define SHADER_AS_STRING(ARENA, NAME, SHADER)                            \
-  char *NAME = (char *)ARENA_ALLOC(ARENA, (src_shaders_##SHADER##_len + 1)); \
-  memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);            \
+#define SHADER_AS_STRING(ARENA, NAME, SHADER)                                                      \
+  char *NAME = (char *)ARENA_ALLOC(ARENA, (src_shaders_##SHADER##_len + 1));                       \
+  memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                  \
   NAME[src_shaders_##SHADER##_len] = 0;
-
 
 GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *fragmentSource);
 

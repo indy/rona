@@ -19,14 +19,15 @@ GLuint create_framebuffer(RonaGl *gl);
 GLuint create_texture(RonaGl *gl, u32 width, u32 height);
 GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height);
 void delete_texture(RonaGl *gl, GLuint texture_id);
-void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id, GLuint depth_texture_id);
+void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
+                                    GLuint depth_texture_id);
 bool is_framebuffer_ok(RonaGl *gl);
 void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
 void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
-
 void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
-  bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width, render_struct->render_texture_height);
+  bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
+                   render_struct->render_texture_height);
 
   gl->clearColor(0.0f, 0.0f, 0.1f, 1.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -52,7 +53,6 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   GLuint current_shader = 0;
 
-
   // render level's floor
 
   Mesh *mesh = level->mesh_floor;
@@ -66,7 +66,8 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   Colour ground_colour;
   colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
-  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1], ground_colour.element[2], ground_colour.element[3]);
+  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1],
+                ground_colour.element[2], ground_colour.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
@@ -75,10 +76,9 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
 
-
   // render entities
 
-  for(i32 i=0;i<level->max_num_entities;i++) {
+  for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {
       break;
@@ -92,7 +92,8 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
       gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
     }
 
-    gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b, entity->colour.a);
+    gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
+                  entity->colour.a);
     gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);
@@ -131,8 +132,6 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   gl->bindVertexArray(screen->vao);
   gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
-
-
 }
 
 void renderer_lib_load(RonaGl *gl) {
@@ -166,7 +165,8 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   // gl->getIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
   // RONA_INFO("OpenGL supported profiles:\n");
   // RONA_INFO("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
-  // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" : "no"));
+  // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
+  // "no"));
 
   gl->enable(GL_DEPTH_TEST);
 
@@ -180,10 +180,8 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   render_struct->depth_texture_id = create_depth_texture(gl, width, height);
   render_struct->framebuffer_id = create_framebuffer(gl);
 
-  attach_textures_to_framebuffer(gl,
-                                 render_struct->framebuffer_id,
-                                 render_struct->render_texture_id,
-                                 render_struct->depth_texture_id);
+  attach_textures_to_framebuffer(gl, render_struct->framebuffer_id,
+                                 render_struct->render_texture_id, render_struct->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
     RONA_ERROR("%d, Framebuffer is not ok\n", 1);
   }
@@ -193,9 +191,7 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   RONA_OUT("Running modern opengl\n");
 }
 
-void renderer_shutdown(RonaGl *gl) {
-}
-
+void renderer_shutdown(RonaGl *gl) {}
 
 GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
   GLuint shaderId = gl->createShader(type);
@@ -211,7 +207,7 @@ GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
 
   GLint compileResult;
   gl->getShaderiv(shaderId, GL_COMPILE_STATUS, &compileResult);
-  if(!compileResult) {
+  if (!compileResult) {
     GLint infoLen;
     gl->getShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLen);
     // RONA_ASSERT(infoLen <= fplArrayCount(info));
@@ -220,7 +216,7 @@ GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
     RONA_ERROR("%s\n", info);
   }
 
-  return(shaderId);
+  return (shaderId);
 }
 
 GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *fragmentSource) {
@@ -242,7 +238,7 @@ GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *f
 
   GLint linkResult;
   gl->getProgramiv(programId, GL_LINK_STATUS, &linkResult);
-  if(!linkResult) {
+  if (!linkResult) {
     GLint infoLen;
     gl->getProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
     // RONA_ASSERT(infoLen <= fplArrayCount(info));
@@ -253,9 +249,8 @@ GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *f
   gl->deleteShader(fragmentShader);
   gl->deleteShader(vertexShader);
 
-  return(programId);
+  return (programId);
 }
-
 
 GLuint create_framebuffer(RonaGl *gl) {
   GLuint framebuffer;
@@ -270,7 +265,8 @@ GLuint create_texture(RonaGl *gl, u32 width, u32 height) {
   gl->genTextures(1, &texture_id);
   // bind so that all future texture ops happen to this texture
   gl->bindTexture(GL_TEXTURE_2D, texture_id);
-  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, NULL);
 
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -288,18 +284,18 @@ GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height) {
   gl->genTextures(1, &texture_id);
   // bind so that all future texture ops happen to this texture
   gl->bindTexture(GL_TEXTURE_2D, texture_id);
-  gl->texImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, (GLsizei)width, (GLsizei)height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, (GLsizei)width, (GLsizei)height, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
   gl->bindTexture(GL_TEXTURE_2D, 0);
 
   return texture_id;
 }
 
-void delete_texture(RonaGl *gl, GLuint texture_id) {
-  gl->deleteTextures(1, &texture_id);
-}
+void delete_texture(RonaGl *gl, GLuint texture_id) { gl->deleteTextures(1, &texture_id); }
 
-void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id, GLuint depth_texture_id) {
+void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
+                                    GLuint depth_texture_id) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture_id, 0);

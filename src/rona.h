@@ -18,8 +18,8 @@
 #ifndef RONA_H
 #define RONA_H
 
-#define true	1
-#define false	0
+#define true 1
+#define false 0
 
 #ifndef __cplusplus
 typedef _Bool bool;
@@ -93,11 +93,19 @@ Matrix 4×4 representation:
 
 https://www.opengl.org/archives/resources/faq/technical/transformations.htm
 
-For programming purposes, OpenGL matrices are 16-value arrays with base vectors laid out contiguously in memory. The translation components occupy the 13th, 14th, and 15th elements of the 16-element matrix, where indices are numbered from 1 to 16 as described in section 2.11.2 of the OpenGL 2.1 Specification.
+For programming purposes, OpenGL matrices are 16-value arrays with base vectors laid out
+contiguously in memory. The translation components occupy the 13th, 14th, and 15th elements of the
+16-element matrix, where indices are numbered from 1 to 16 as described in section 2.11.2 of the
+OpenGL 2.1 Specification.
 
-Column-major versus row-major is purely a notational convention. Note that post-multiplying with column-major matrices produces the same result as pre-multiplying with row-major matrices. The OpenGL Specification and the OpenGL Reference Manual both use column-major notation. You can use any notation, as long as it's clearly stated.
+Column-major versus row-major is purely a notational convention. Note that post-multiplying with
+column-major matrices produces the same result as pre-multiplying with row-major matrices. The
+OpenGL Specification and the OpenGL Reference Manual both use column-major notation. You can use any
+notation, as long as it's clearly stated.
 
-Sadly, the use of column-major format in the spec and blue book has resulted in endless confusion in the OpenGL programming community. Column-major notation suggests that matrices are not laid out in memory as a programmer would expect.
+Sadly, the use of column-major format in the spec and blue book has resulted in endless confusion in
+the OpenGL programming community. Column-major notation suggests that matrices are not laid out in
+memory as a programmer would expect.
 
 unreal is row major
 unity is colum major
@@ -105,26 +113,26 @@ unity is colum major
 
 typedef struct Mat4 {
   union {
-		struct {
-			f32 m11;
+    struct {
+      f32 m11;
       f32 m21;
       f32 m31;
       f32 m41;
-			f32 m12;
+      f32 m12;
       f32 m22;
       f32 m32;
       f32 m42;
-			f32 m13;
+      f32 m13;
       f32 m23;
       f32 m33;
       f32 m43;
-			f32 m14;
+      f32 m14;
       f32 m24;
       f32 m34;
       f32 m44;
-		};
-		f32 v[16];
-	};
+    };
+    f32 v[16];
+  };
 } Mat4;
 
 typedef struct {
@@ -133,10 +141,7 @@ typedef struct {
   u64 used;
 } MemoryArena;
 
-
-typedef enum {
-  MeshType_Hero
-} MeshType;
+typedef enum { MeshType_Hero } MeshType;
 
 // typedef struct {
 //   union {
@@ -158,19 +163,12 @@ typedef struct {
 
   // MeshUniform uniform;                         // discriminated union
 
-  i32 num_elements;             // used in by gl->drawElements
+  i32 num_elements; // used in by gl->drawElements
 } Mesh;
 
-typedef enum {
-  EntityType_Hero,
-  EntityType_Block,
-  EntityType_Pit
-} EntityType;
+typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;
 
-typedef enum {
-  EntityState_Standing,
-  EntityState_Moving
-} EntityState;
+typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
 
 typedef struct Entity {
   EntityType entity_type;
@@ -190,17 +188,9 @@ typedef struct Entity {
   f32 world_max_speed;
 } Entity;
 
-typedef enum {
-  Direction_North,
-  Direction_South,
-  Direction_East,
-  Direction_West
-} Direction;
+typedef enum { Direction_North, Direction_South, Direction_East, Direction_West } Direction;
 
-typedef enum {
-  TileType_Void,
-  TileType_Floor
-} TileType;
+typedef enum { TileType_Void, TileType_Floor } TileType;
 
 typedef struct {
   TileType tile_type;
@@ -210,7 +200,7 @@ typedef struct {
   MemoryArena mem;
 
   i32 max_num_entities;
-  Entity* entities;
+  Entity *entities;
 
   i32 width;
   i32 height;
@@ -231,7 +221,7 @@ typedef struct {
   GLuint framebuffer_id;
 } RenderStruct;
 
-typedef struct  {
+typedef struct {
   bool game_initialised;
   bool quit_game;
 
@@ -240,7 +230,7 @@ typedef struct  {
 
   RenderStruct render_struct;
 
-  u64 time_game_start;   // time at the start of the game
+  u64 time_game_start; // time at the start of the game
   u64 time_last_frame;
   u64 time_delta;
 
@@ -257,6 +247,5 @@ typedef struct  {
   RonaGl *gl;
   RonaInput *input;
 } GameState;
-
 
 #endif /* RONA_H */

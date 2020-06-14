@@ -1,3 +1,13 @@
+# make          defaults to make guest
+# make guest    compile the shared library containing game code
+# make host     compile the host that hot-reloads the guest
+# make all      compile guest + host
+# make run      run the game
+# make test     compile and run the unit tests
+# make clean    clean target directory
+# make tags     create TAGS file for emacs
+# make fmt      format c code
+
 CC=gcc
 INCLUDE_FLAGS=-Iext
 
@@ -36,7 +46,6 @@ guest: $(GUEST_OUT)
 host: $(HOST_OUT)
 test: $(TEST_OUT)
 tags: $(TAGS_OUT)
-shaders: $(SHADERS_OUT)
 
 ./target/shader.vert.c: src/shaders/shader.vert
 	xxd -i $< > $@
@@ -60,6 +69,9 @@ $(TEST_OUT): $(TEST_SRC) $(GAME_SRC) $(GAME_HEADERS) Makefile
 
 $(TAGS_OUT): $(GAME_SRC) $(GAME_HEADERS)
 	find src -type f -print | xargs etags
+
+fmt: $(GAME_SRC) $(GAME_HEADERS)
+	find src -name '*.[ch]' | xargs clang-format -i -style=file
 
 .PHONY: clean
 

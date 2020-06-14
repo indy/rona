@@ -15,12 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void game_startup(GameState* game_state) {
+void game_startup(GameState *game_state) {
   game_state->mesh_screen = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_block = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_pit = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-
 
   u64 level_memory_arena_size = megabytes(64);
   game_state->level = (Level *)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
@@ -33,23 +32,24 @@ void game_startup(GameState* game_state) {
   renderer_startup(game_state->gl, &(game_state->render_struct));
 }
 
-void game_shutdown(GameState* game_state) {
+void game_shutdown(GameState *game_state) {
   level1_shutdown(game_state->level);
   renderer_shutdown(game_state->gl);
 }
 
 // changes have been made to the game client and it has now been automatically loaded
-void game_lib_load(GameState* game_state) {
+void game_lib_load(GameState *game_state) {
   renderer_lib_load(game_state->gl);
   mesh_pit_lib_load(game_state->mesh_pit, game_state->gl, &game_state->storage_transient);
   mesh_block_lib_load(game_state->mesh_block, game_state->gl, &game_state->storage_transient);
   mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
-  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient, &game_state->render_struct);
+  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient,
+                       &game_state->render_struct);
   level1_lib_load(game_state->level, game_state->gl, &game_state->storage_transient);
 }
 
 // changes have been made to the game client, this old version will be unloaded
-void game_lib_unload(GameState* game_state) {
+void game_lib_unload(GameState *game_state) {
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
   mesh_hero_lib_unload(game_state->mesh_hero, game_state->gl);
@@ -58,12 +58,12 @@ void game_lib_unload(GameState* game_state) {
   renderer_lib_unload(game_state->gl);
 }
 
-Entity* get_hero(Level *level) {
+Entity *get_hero(Level *level) {
   RONA_ASSERT(level);
 
   Entity *e = level->entities;
-  while(e->exists) {
-    if(e->entity_type == EntityType_Hero) {
+  while (e->exists) {
+    if (e->entity_type == EntityType_Hero) {
       return e;
     }
   }
@@ -72,11 +72,10 @@ Entity* get_hero(Level *level) {
   return NULL;
 }
 
-void game_step(GameState* game_state) {
+void game_step(GameState *game_state) {
   game_state->storage_transient.used = 0;
 
-  if (key_down(game_state->input, Key_Escape) ||
-      key_down(game_state->input, Key_Q)) {
+  if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;
     return;
   }
@@ -111,13 +110,11 @@ void game_step(GameState* game_state) {
 
   f32 time_delta = (f32)game_state->time_delta / 1000.0f;
 
-
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *e = &(level->entities[i]);
     if (e->exists == false) {
       break;
     }
-
 
     // axis aligned distance, not the best but it will do for this simple game
     f32 distance_to_move = e->world_max_speed * time_delta;
@@ -152,9 +149,8 @@ void game_step(GameState* game_state) {
         e->entity_state = EntityState_Standing;
       }
     }
-
   }
 
-
-  renderer_render(game_state->gl, game_state->level, &game_state->render_struct, game_state->mesh_screen);
+  renderer_render(game_state->gl, game_state->level, &game_state->render_struct,
+                  game_state->mesh_screen);
 }

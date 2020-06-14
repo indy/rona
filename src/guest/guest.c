@@ -19,9 +19,9 @@
 #include <float.h>
 #include <math.h>
 
-#include "string.h"
-#include "stdio.h"
 #include "cr.h"
+#include "stdio.h"
+#include "string.h"
 
 #include "../platform.h"
 #include "../rona.h"
@@ -34,8 +34,8 @@
 #include "../level1.h"
 #include "../memory_arena.h"
 #include "../mesh_block.h"
-#include "../mesh_pit.h"
 #include "../mesh_hero.h"
+#include "../mesh_pit.h"
 #include "../mesh_screen.h"
 #include "../renderer.h"
 #include "../rona_math.h"
@@ -43,22 +43,23 @@
 #include "../colour.c"
 #include "../game.c"
 #include "../input.c"
-#include "../level1.c"
 #include "../level.c"
+#include "../level1.c"
 #include "../memory_arena.c"
 #include "../mesh_block.c"
-#include "../mesh_pit.c"
 #include "../mesh_hero.c"
+#include "../mesh_pit.c"
 #include "../mesh_screen.c"
 #include "../renderer.c"
 #include "../rona_math.c"
 
 static GameState *g_game_state = 0;
 
-// To save states automatically from previous instance to a new loaded one, use CR_STATE flag on statics/globals.
-// This will create a new data section in the binary for transferable states between instances that will be copied
-// and kept around to overwrite the new instance initial states. That means that things that were initialized in
-// a previous loaded states will continue from where they were.
+// To save states automatically from previous instance to a new loaded one, use CR_STATE flag on
+// statics/globals. This will create a new data section in the binary for transferable states
+// between instances that will be copied and kept around to overwrite the new instance initial
+// states. That means that things that were initialized in a previous loaded states will continue
+// from where they were.
 static unsigned int CR_STATE version = 1;
 
 CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation) {
@@ -66,7 +67,8 @@ CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation) {
   g_game_state = (GameState *)ctx->userdata;
 
   // crash protection may cause the version to decrement. So we can test current version against one
-  // tracked between instances with CR_STATE to signal that we're not running the most recent instance.
+  // tracked between instances with CR_STATE to signal that we're not running the most recent
+  // instance.
   if (ctx->version < version) {
     // a failure code is acessible in the `failure` variable from the `cr_plugin` context.
     // on windows this is the structured exception error code, for more info:

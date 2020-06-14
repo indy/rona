@@ -19,7 +19,7 @@
 
 // how many entities are there on the level at the given position?
 // returns the amount and fills in the entities array
-i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level* level, Vec2i *pos) {
+i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level *level, Vec2i *pos) {
   i32 num_occupants = 0;
   for (i32 i = 0; i < level->max_num_entities; i++) {
     if (level->entities[i].exists == false) {
@@ -39,11 +39,19 @@ i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level* level
 }
 
 void vec2i_add_direction(Vec2i *pos, Direction direction) {
-  switch(direction) {
-  case Direction_North: pos->y += 1; break;
-  case Direction_South: pos->y -= 1; break;
-  case Direction_East: pos->x += 1; break;
-  case Direction_West: pos->x -= 1; break;
+  switch (direction) {
+  case Direction_North:
+    pos->y += 1;
+    break;
+  case Direction_South:
+    pos->y -= 1;
+    break;
+  case Direction_East:
+    pos->x += 1;
+    break;
+  case Direction_West:
+    pos->x -= 1;
+    break;
   };
 }
 
@@ -164,10 +172,6 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
   return true;
 }
 
-
-
-
-
 // place an entity at the given board positions
 void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
   entity->board_pos.x = board_pos_x;
@@ -191,7 +195,8 @@ void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
   entity->colour.a = c.element[3];
 }
 
-void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height, char layout[][dbl_width]) {
+void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
+                 char layout[][dbl_width]) {
   level->max_num_entities = 10;
   level->entities = (Entity *)ARENA_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
@@ -213,7 +218,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
 
     char *plan_line = layout[height - 1 - j];
 
-    for (i32 i = 0; i < dbl_width; i+=2) {
+    for (i32 i = 0; i < dbl_width; i += 2) {
       i32 tile_index = (i / 2) + (j * width);
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
@@ -276,10 +281,10 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-  #include "../target/shader.vert.c"
+#include "../target/shader.vert.c"
   SHADER_AS_STRING(transient, vertexSource, shader_vert);
 
-  #include "../target/shader.frag.c"
+#include "../target/shader.frag.c"
   SHADER_AS_STRING(transient, fragmentSource, shader_frag);
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
@@ -289,7 +294,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   // count the number of floor tiles to generate
   //
   i32 num_floor_tiles = 0;
-  for(i32 i = 0; i < level->width * level->height; i++) {
+  for (i32 i = 0; i < level->width * level->height; i++) {
     if (level->tiles[i].tile_type == TileType_Floor) {
       num_floor_tiles++;
     }
@@ -306,19 +311,27 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   // build geometry
   i32 tile_count = 0;
 
-  for(i32 j = 0; j < level->height; j++) {
-    for(i32 i = 0; i < level->width; i++) {
-      if (level->tiles[i + (j*level->width)].tile_type == TileType_Floor) {
+  for (i32 j = 0; j < level->height; j++) {
+    for (i32 i = 0; i < level->width; i++) {
+      if (level->tiles[i + (j * level->width)].tile_type == TileType_Floor) {
         i32 v_index = tile_count * 8;
-        vertices[v_index + 0] = -half_dim + (f32)i; vertices[v_index + 1] =  half_dim + (f32)j;
-        vertices[v_index + 2] = -half_dim + (f32)i; vertices[v_index + 3] = -half_dim + (f32)j;
-        vertices[v_index + 4] =  half_dim + (f32)i; vertices[v_index + 5] = -half_dim + (f32)j;
-        vertices[v_index + 6] =  half_dim + (f32)i; vertices[v_index + 7] =  half_dim + (f32)j;
+        vertices[v_index + 0] = -half_dim + (f32)i;
+        vertices[v_index + 1] = half_dim + (f32)j;
+        vertices[v_index + 2] = -half_dim + (f32)i;
+        vertices[v_index + 3] = -half_dim + (f32)j;
+        vertices[v_index + 4] = half_dim + (f32)i;
+        vertices[v_index + 5] = -half_dim + (f32)j;
+        vertices[v_index + 6] = half_dim + (f32)i;
+        vertices[v_index + 7] = half_dim + (f32)j;
 
         i32 i_index = tile_count * 6;
         i32 offset = tile_count * 4;
-        indices[i_index + 0] = 0 + offset; indices[i_index + 1] = 1 + offset; indices[i_index + 2] = 2 + offset;
-        indices[i_index + 3] = 0 + offset; indices[i_index + 4] = 2 + offset; indices[i_index + 5] = 3 + offset;
+        indices[i_index + 0] = 0 + offset;
+        indices[i_index + 1] = 1 + offset;
+        indices[i_index + 2] = 2 + offset;
+        indices[i_index + 3] = 0 + offset;
+        indices[i_index + 4] = 2 + offset;
+        indices[i_index + 5] = 3 + offset;
 
         tile_count++;
       }
@@ -330,7 +343,8 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   GLuint vbo;
   gl->genBuffers(1, &vbo);
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
-  gl->bufferData(GL_ARRAY_BUFFER, sizeof_vertices, vertices, GL_STATIC_DRAW); // the data is set only once and used many times.
+  gl->bufferData(GL_ARRAY_BUFFER, sizeof_vertices, vertices,
+                 GL_STATIC_DRAW); // the data is set only once and used many times.
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   GLuint ebo;

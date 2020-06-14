@@ -19,14 +19,15 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-  #include "../target/shader.vert.c"
+#include "../target/shader.vert.c"
   SHADER_AS_STRING(transient, vertexSource, shader_vert);
 
-  #include "../target/shader.frag.c"
+#include "../target/shader.frag.c"
   SHADER_AS_STRING(transient, fragmentSource, shader_frag);
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
+  // clang-format off
   f32 half_dim = 0.35f;
   f32 vertices[] = {
     -half_dim,  half_dim,
@@ -38,6 +39,7 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
     0, 1, 2,
     0, 2, 3
   };
+  // clang-format on
 
   mesh->num_elements = 6;
 
@@ -46,7 +48,8 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   GLuint vbo;
   gl->genBuffers(1, &vbo);
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
-  gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW); // the data is set only once and used many times.
+  gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
+                 GL_STATIC_DRAW); // the data is set only once and used many times.
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   GLuint ebo;
@@ -70,6 +73,4 @@ void mesh_hero_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   gl->bindVertexArray(0);
 }
 
-void mesh_hero_lib_unload(Mesh *mesh, RonaGl *gl) {
-  gl->deleteVertexArrays(1, &mesh->vao);
-}
+void mesh_hero_lib_unload(Mesh *mesh, RonaGl *gl) { gl->deleteVertexArrays(1, &mesh->vao); }

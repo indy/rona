@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 /*
 
   | Symbol | Description |
@@ -25,6 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level *level, GameState *game_state) {
+  // clang-format off
   char layout[5][14] = {
     ". . . . . .   ",
     ". . .   U .   ",
@@ -32,17 +32,15 @@ void level1_startup(Level *level, GameState *game_state) {
     ". H . . B . . ",
     ". . . . . . . "
   };
+  // clang-format on
 
   level_build(game_state, level, 14, 5, layout);
 }
 
-void level1_shutdown(Level *level) {
-  level->mem.used = 0;
-}
+void level1_shutdown(Level *level) { level->mem.used = 0; }
 
 void level1_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   mesh_floor_lib_load(level, gl, transient);
-
 
   Colour hero_colour;
   colour_from(&hero_colour, ColourFormat_RGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);
@@ -53,6 +51,4 @@ void level1_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   hero->colour.b = hero_colour.element[2];
   hero->colour.a = hero_colour.element[3];
 }
-void level1_lib_unload(Level *level, RonaGl *gl) {
-  mesh_floor_lib_unload(level, gl);
-}
+void level1_lib_unload(Level *level, RonaGl *gl) { mesh_floor_lib_unload(level, gl); }

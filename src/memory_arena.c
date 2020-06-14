@@ -15,17 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-u64 kilobytes(u64 s) {
-  return (s * 1024);
-}
+u64 kilobytes(u64 s) { return (s * 1024); }
 
-u64 megabytes(u64 s) {
-  return kilobytes(s * 1024);
-}
+u64 megabytes(u64 s) { return kilobytes(s * 1024); }
 
-u64 gigabytes(u64 s) {
-  return megabytes(s * 1024);
-}
+u64 gigabytes(u64 s) { return megabytes(s * 1024); }
 
 void *arena_alloc(MemoryArena *ma, u64 bytes) {
   RONA_ASSERT((ma->used + bytes) <= ma->size)

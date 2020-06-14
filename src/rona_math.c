@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mat4_identity(Mat4* m) {
+void mat4_identity(Mat4 *m) {
   m->v[0] = 1.0f;
   m->v[1] = 0.0f;
   m->v[2] = 0.0f;
@@ -34,7 +34,7 @@ void mat4_identity(Mat4* m) {
   m->v[15] = 1.0f;
 }
 
-void mat4_ortho(Mat4* m, f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
+void mat4_ortho(Mat4 *m, f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
   f32 lr = 1.0f / (left - right);
   f32 bt = 1.0f / (bottom - top);
   f32 nf = 1.0f / (near - far);
@@ -57,7 +57,7 @@ void mat4_ortho(Mat4* m, f32 left, f32 right, f32 bottom, f32 top, f32 near, f32
   m->v[15] = 1.0f;
 }
 
-void mat4_copy(Mat4* a, Mat4* b) {
+void mat4_copy(Mat4 *a, Mat4 *b) {
   a->v[0] = b->v[0];
   a->v[1] = b->v[1];
   a->v[2] = b->v[2];
@@ -76,7 +76,7 @@ void mat4_copy(Mat4* a, Mat4* b) {
   a->v[15] = b->v[15];
 }
 
-void mat4_multiply(Mat4* out, Mat4* a, Mat4* b) {
+void mat4_multiply(Mat4 *out, Mat4 *a, Mat4 *b) {
   f32 a00 = a->v[0];
   f32 a01 = a->v[1];
   f32 a02 = a->v[2];
@@ -139,7 +139,7 @@ void mat4_multiply(Mat4* out, Mat4* a, Mat4* b) {
 }
 
 // a = a * b
-void mat4_multiply_inplace(Mat4* a, Mat4* b) {
+void mat4_multiply_inplace(Mat4 *a, Mat4 *b) {
   f32 a00 = a->v[0];
   f32 a01 = a->v[1];
   f32 a02 = a->v[2];

@@ -28,8 +28,8 @@
 // |--------+-----------+-------------+-------------|
 
 typedef enum {
-  ColourFormat_sRGB,            // sRGB
-  ColourFormat_RGB,             // linear RGB
+  ColourFormat_sRGB, // sRGB
+  ColourFormat_RGB,  // linear RGB
   ColourFormat_HSL,
   ColourFormat_HSLuv,
   ColourFormat_LAB,
@@ -39,13 +39,13 @@ typedef enum {
 
 typedef struct {
   ColourFormat format;
-  f32          element[4];
+  f32 element[4];
 } Colour;
 
-void colour_set(Colour* out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
-void colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1, f32 e2, f32 alpha);
+void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
+void colour_from(Colour *out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
+                 f32 e2, f32 alpha);
 
-Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format);
-
+Colour *colour_clone_as(Colour *out, Colour *in, ColourFormat new_format);
 
 #endif /* COLOUR_H */
