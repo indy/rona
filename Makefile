@@ -30,9 +30,12 @@ TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
 TEST_LIBS=-lm
 
+TAGS_OUT=./TAGS
+
 guest: $(GUEST_OUT)
 host: $(HOST_OUT)
 test: $(TEST_OUT)
+tags: $(TAGS_OUT)
 shaders: $(SHADERS_OUT)
 
 ./target/shader.vert.c: src/shaders/shader.vert
@@ -55,7 +58,11 @@ $(TEST_OUT): $(TEST_SRC) $(GAME_SRC) $(GAME_HEADERS) Makefile
 	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(TEST_LIBS)
 	$(TEST_OUT)
 
+$(TAGS_OUT): $(GAME_SRC) $(GAME_HEADERS)
+	find src -type f -print | xargs etags
+
 .PHONY: clean
+
 clean:
 	rm target/*
 all: guest host
