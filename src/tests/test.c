@@ -22,6 +22,7 @@
 #include "../mesh_block.h"
 #include "../mesh_hero.h"
 #include "../mesh_pit.h"
+#include "../mesh_screen.h"
 #include "../renderer.h"
 #include "../rona_math.h"
 
@@ -34,6 +35,7 @@
 #include "../mesh_block.c"
 #include "../mesh_hero.c"
 #include "../mesh_pit.c"
+#include "../mesh_screen.c"
 #include "../renderer.c"
 #include "../rona_math.c"
 
@@ -50,8 +52,20 @@ static MunitResult test_rona_types(const MunitParameter params[], void *user_dat
   return MUNIT_OK;
 }
 
+static MunitResult test_rona_math(const MunitParameter params[], void *user_data) {
+  munit_assert(lerp(1.0f, 0.5f, 10.0f) == 5.5f);
+  munit_assert(lerp(10.0f, 0.5f, 1.0f) == 5.5f);
+
+  munit_assert(clamp(10.0f, 12.0f, 15.0f) == 12.0f);
+  munit_assert(clamp(10.0f, 9.0f, 15.0f) == 10.0f);
+  munit_assert(clamp(10.0f, 16.0f, 15.0f) == 15.0f);
+
+  return MUNIT_OK;
+}
+
 static MunitTest test_suite_tests[] = {
     {(char *)"/rona/types", test_rona_types, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {(char *)"/rona/math", test_rona_math, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};
 
 static const MunitSuite test_suite = {(char *)"", test_suite_tests, NULL, 1,

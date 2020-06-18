@@ -38,29 +38,28 @@ i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level *level
   return num_occupants;
 }
 
-void vec2i_add_direction(Vec2i *pos, Direction direction) {
+Vec2i vec2i_add_direction(Vec2i *pos, Direction direction) {
+  Vec2i res = vec2i_clone(pos);
   switch (direction) {
   case Direction_North:
-    pos->y += 1;
+    res.y += 1;
     break;
   case Direction_South:
-    pos->y -= 1;
+    res.y -= 1;
     break;
   case Direction_East:
-    pos->x += 1;
+    res.x += 1;
     break;
   case Direction_West:
-    pos->x -= 1;
+    res.x -= 1;
     break;
   };
+
+  return res;
 }
 
 bool try_moving_block(Level *level, Entity *block, Direction direction) {
-  Vec2i new_pos;
-  new_pos.x = block->board_pos.x;
-  new_pos.y = block->board_pos.y;
-
-  vec2i_add_direction(&new_pos, direction);
+  Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
 
   if (new_pos.x < 0 || new_pos.x >= level->width) {
     return false;
@@ -102,21 +101,17 @@ bool try_moving_block(Level *level, Entity *block, Direction direction) {
     }
   }
 
-  block->board_pos.x = new_pos.x;
-  block->board_pos.y = new_pos.y;
-  block->world_target.x = (f32)block->board_pos.x;
-  block->world_target.y = (f32)block->board_pos.y;
+  vec2i_set(&block->board_pos, new_pos.x, new_pos.y);
+  vec3_set(&block->world_target, (f32)block->board_pos.x, (f32)block->board_pos.y,
+           block->world_target.z);
+
   block->entity_state = EntityState_Moving;
 
   return true;
 }
 
 bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
-  Vec2i new_pos;
-  new_pos.x = hero->board_pos.x;
-  new_pos.y = hero->board_pos.y;
-
-  vec2i_add_direction(&new_pos, direction);
+  Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
   if (new_pos.x < 0 || new_pos.x >= level->width) {
     return false;
@@ -163,10 +158,10 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
     }
   }
 
-  hero->board_pos.x = new_pos.x;
-  hero->board_pos.y = new_pos.y;
-  hero->world_target.x = (f32)hero->board_pos.x;
-  hero->world_target.y = (f32)hero->board_pos.y;
+  vec2i_set(&hero->board_pos, new_pos.x, new_pos.y);
+  vec3_set(&hero->world_target, (f32)hero->board_pos.x, (f32)hero->board_pos.y,
+           hero->world_target.z);
+
   hero->entity_state = EntityState_Moving;
 
   return true;
@@ -174,25 +169,15 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
 
 // place an entity at the given board positions
 void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
-  entity->board_pos.x = board_pos_x;
-  entity->board_pos.y = board_pos_y;
-
-  entity->world_pos.x = (f32)board_pos_x;
-  entity->world_pos.y = (f32)board_pos_y;
-  entity->world_pos.z = z;
-
-  entity->world_target.x = (f32)board_pos_x;
-  entity->world_target.y = (f32)board_pos_y;
-  entity->world_target.z = z;
+  vec2i_set(&entity->board_pos, board_pos_x, board_pos_y);
+  vec3_set(&entity->world_pos, (f32)board_pos_x, (f32)board_pos_y, z);
+  vec3_set(&entity->world_target, (f32)board_pos_x, (f32)board_pos_y, z);
 }
 
 void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
   Colour c;
   colour_from(&c, ColourFormat_RGB, ColourFormat_HSLuv, h, s, l, 1.0f);
-  entity->colour.r = c.element[0];
-  entity->colour.g = c.element[1];
-  entity->colour.b = c.element[2];
-  entity->colour.a = c.element[3];
+  vec4_from_colour(&entity->colour, &c);
 }
 
 void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,

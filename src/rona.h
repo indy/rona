@@ -36,22 +36,30 @@ typedef unsigned long long u64;
 typedef struct {
   union {
     struct {
-      f32 x;
-      f32 y;
-    };
-    f32 v[2];
-  };
-} Vec2;
-
-typedef struct {
-  union {
-    struct {
       i32 x;
       i32 y;
+    };
+    struct {
+      i32 width;
+      i32 height;
     };
     i32 v[2];
   };
 } Vec2i;
+
+typedef struct {
+  union {
+    struct {
+      f32 x;
+      f32 y;
+    };
+    struct {
+      f32 width;
+      f32 height;
+    };
+    f32 v[2];
+  };
+} Vec2;
 
 typedef struct {
   union {

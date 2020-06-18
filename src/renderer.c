@@ -59,8 +59,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   if (current_shader != mesh->shader_program) {
     gl->useProgram(mesh->shader_program);
 
-    Mat4 proj_matrix;
-    mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+    Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
     gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
   }
 
@@ -87,8 +86,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     if (current_shader != mesh->shader_program) {
       gl->useProgram(mesh->shader_program);
 
-      Mat4 proj_matrix;
-      mat4_ortho(&proj_matrix, -1.0, width, -1.0, height, 10.0f, -10.0f);
+      Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
       gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
     }
 
@@ -109,22 +107,22 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   gl->useProgram(screen->shader_program);
 
-  Mat4 mat;
   f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
 
   if (window_aspect_ratio <= aspect_ratio) {
     // window is narrower than desired
     f32 v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
     f32 v_pad = (v - render_texture_height) / 2.0f;
-    mat4_ortho(&mat, 0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+    Mat4 m = mat4_ortho(0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+    gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
   } else {
     // window is more elongated horizontally than desired
     f32 h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
     f32 h_pad = (h - render_texture_width) / 2.0f;
-    mat4_ortho(&mat, -h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
+    Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
+    gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
   }
 
-  gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(mat.v));
   gl->uniform1i(screen->uniform_texture, 0);
 
   gl->activeTexture(GL_TEXTURE0);
