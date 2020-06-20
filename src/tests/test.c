@@ -18,7 +18,7 @@
 #include "../input.h"
 #include "../level.h"
 #include "../level1.h"
-#include "../memory_arena.h"
+#include "../memory.h"
 #include "../mesh_block.h"
 #include "../mesh_hero.h"
 #include "../mesh_pit.h"
@@ -31,7 +31,7 @@
 #include "../input.c"
 #include "../level.c"
 #include "../level1.c"
-#include "../memory_arena.c"
+#include "../memory.c"
 #include "../mesh_block.c"
 #include "../mesh_hero.c"
 #include "../mesh_pit.c"
@@ -63,9 +63,37 @@ static MunitResult test_rona_math(const MunitParameter params[], void *user_data
   return MUNIT_OK;
 }
 
+static MunitResult test_rona_memory(const MunitParameter params[], void *user_data) {
+
+  MemoryArena arena;
+  arena.size = megabytes(1);
+  arena.base = malloc(arena.size);
+  arena.used = 0;
+
+  MemoryAllocator ma;
+  memory_allocator_reset(&ma, &arena);
+
+  void *ptr = rona_malloc(&ma, 500);
+  munit_assert(ma.available_1k == NULL);
+
+  rona_free(&ma, ptr);
+
+  // added memory block to available list
+  munit_assert(ma.available_1k != NULL);
+
+  void *ptr2 = rona_malloc(&ma, 500);
+
+  // reusing previous memory block
+  munit_assert(ptr2 == ptr);
+  munit_assert(ma.available_1k == NULL);
+
+  return MUNIT_OK;
+}
+
 static MunitTest test_suite_tests[] = {
     {(char *)"/rona/types", test_rona_types, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {(char *)"/rona/math", test_rona_math, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {(char *)"/rona/memory", test_rona_memory, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};
 
 static const MunitSuite test_suite = {(char *)"", test_suite_tests, NULL, 1,

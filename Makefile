@@ -38,6 +38,7 @@ HOST_OUT=./target/host
 #
 TEST_OUT=./target/test
 TEST_SRC=src/tests/test.c
+TEST_CFLAGS= -g -O0
 TEST_LIBS=-lm
 
 TAGS_OUT=./TAGS
@@ -64,7 +65,7 @@ $(HOST_OUT): $(HOST_MAIN) $(HOST_HEADERS) Makefile
 	$(CC) -o $(HOST_OUT) ./target/host.o -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
 $(TEST_OUT): $(TEST_SRC) $(GAME_SRC) $(GAME_HEADERS) Makefile
-	$(CC) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(TEST_LIBS)
+	$(CC) $(TEST_CFLAGS) $(INCLUDE_FLAGS) -o $@ ext/munit/munit.c $(TEST_SRC) $(TEST_LIBS)
 	$(TEST_OUT)
 
 $(TAGS_OUT): $(GAME_SRC) $(GAME_HEADERS)

@@ -33,6 +33,9 @@ typedef unsigned int u32;
 typedef signed int i32;
 typedef unsigned long long u64;
 
+typedef unsigned char byte;
+typedef unsigned int usize;
+
 typedef struct {
   union {
     struct {

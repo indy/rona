@@ -134,19 +134,21 @@ void display_cr_failure(cr_plugin* ctx) {
   }
 }
 
-size_t kilobytes(size_t s) {
+typedef unsigned int usize;     // 32bit for size, max addressable = 4GB
+
+usize kilobytes(usize s) {
   return (s * 1024);
 }
 
-size_t megabytes(size_t s) {
+usize megabytes(usize s) {
   return kilobytes(s * 1024);
 }
 
-size_t gigabytes(size_t s) {
+usize gigabytes(usize s) {
   return megabytes(s * 1024);
 }
 
-void *arena_alloc(MemoryArena *mem, u64 size) {
+void *arena_alloc(MemoryArena *mem, usize size) {
   void* res = (void *)(mem->base + mem->used);
   mem->used += size;
   return res;

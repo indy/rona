@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef MEMORY_ARENA_H
-#define MEMORY_ARENA_H
+#ifndef MEMORY_H
+#define MEMORY_H
 
-u64 kilobytes(u64 s);
-u64 megabytes(u64 s);
-u64 gigabytes(u64 s);
+usize kilobytes(usize s);
+usize megabytes(usize s);
+usize gigabytes(usize s);
 
-void *arena_alloc(MemoryArena *ma, u64 bytes);
+void *arena_alloc(MemoryArena *ma, usize bytes);
 
 #define ARENA_ALLOC(arena, size) arena_alloc((arena), (size));
 
@@ -34,4 +34,28 @@ void *arena_alloc(MemoryArena *ma, u64 bytes);
   new_arena.size = game_state->storage_transient.size - game_state->storage_transient.used;        \
   new_arena.used = 0;
 
-#endif /* MEMORY_ARENA_H */
+
+typedef struct MemoryBlock {
+  usize bytes_allocated;
+  usize bytes_requested;
+  struct MemoryBlock *next;
+} MemoryBlock;
+
+// lifetimes: MemoryArena > MemoryAllocator > MemoryBlock
+//
+typedef struct {
+  MemoryArena *arena;
+
+  MemoryBlock *available_1k;
+  MemoryBlock *available_10k;
+  MemoryBlock *available_large;
+} MemoryAllocator;
+
+void memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena);
+void *rona_malloc(MemoryAllocator *ma, usize bytes);
+void rona_free(MemoryAllocator *ma, void* mem);
+void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes);
+
+
+
+#endif /* MEMORY_H */
