@@ -168,8 +168,8 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
 
   gl->enable(GL_DEPTH_TEST);
 
-  i32 width = 640;
-  i32 height = 360;
+  i32 width = 640 * 2;
+  i32 height = 360 * 2;;
 
   // setup render texture
   render_struct->render_texture_width = width;

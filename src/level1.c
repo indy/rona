@@ -24,17 +24,36 @@
   |   U    | Pit         |
 */
 void level1_startup(Level *level, GameState *game_state) {
+  // // clang-format off
+  // char layout[5][14] = {
+  //   ". . . . . .   ",
+  //   ". . .   U .   ",
+  //   ". . .   . .   ",
+  //   ". H . B B . . ",
+  //   ". . . . . . . "
+  // };
+  // // clang-format on
+
+
+
   // clang-format off
-  char layout[5][14] = {
-    ". . . . . .   ",
-    ". . .   U .   ",
-    ". . .   . .   ",
-    ". H . . B . . ",
-    ". . . . . . . "
+
+  // declare as: layout[height][width*2]
+  #define L1_WIDTH 7
+  #define L1_HEIGHT 7
+  char layout[L1_HEIGHT][L1_WIDTH * 2] = {
+    "    . . U . . ",
+    "    . .       ",
+    "    . .       ",
+    "H . B . U . . ",
+    "    . .       ",
+    "    . .       ",
+    "    . . U . . "
   };
+
   // clang-format on
 
-  level_build(game_state, level, 14, 5, layout);
+  level_build(game_state, level, L1_WIDTH * 2, L1_HEIGHT, layout);
 }
 
 void level1_shutdown(Level *level) { level->mem.used = 0; }
