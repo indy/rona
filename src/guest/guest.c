@@ -23,6 +23,8 @@
 #include "stdio.h"
 #include "string.h"
 
+#include "stdlib.h"             // temp
+
 #include "../platform.h"
 #include "../rona.h"
 
@@ -40,6 +42,60 @@
 #include "../renderer.h"
 #include "../rona_math.h"
 
+static GameState *g_game_state = 0;
+
+#define SYS_MALLOC
+//#define DEBUG_MALLOC
+
+void *stb_rona_transient_malloc(usize bytes) {
+  void *addr;
+#ifdef SYS_MALLOC
+  addr = malloc(bytes);
+#else
+  addr = rona_malloc(&(g_game_state->allocator_transient), bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called malloc %d bytes -> %p\n", bytes, addr);
+#endif
+
+  return addr;
+}
+
+void *stb_rona_transient_realloc(void* mem, usize bytes) {
+  void *addr;
+#ifdef SYS_MALLOC
+  addr = realloc(mem, bytes);
+#else
+  addr = rona_realloc(&(g_game_state->allocator_transient), mem, bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called realloc %p to %d bytes -> %p\n", mem, bytes, addr);
+#endif
+
+  return addr;
+}
+
+void stb_rona_transient_free(void* mem) {
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called free %p\n", mem);
+#endif
+#ifdef SYS_MALLOC
+  free(mem);
+#else
+  rona_free(&(g_game_state->allocator_transient), mem);
+#endif
+}
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_ASSERT(x) RONA_ASSERT(x)
+#define STBI_MALLOC(X) stb_rona_transient_malloc(X)
+#define STBI_REALLOC(X, Y) stb_rona_transient_realloc(X, Y)
+#define STBI_FREE(X) stb_rona_transient_free(X)
+#include "stb_image.h"
+
 #include "../colour.c"
 #include "../game.c"
 #include "../input.c"
@@ -52,8 +108,6 @@
 #include "../mesh_screen.c"
 #include "../renderer.c"
 #include "../rona_math.c"
-
-static GameState *g_game_state = 0;
 
 // To save states automatically from previous instance to a new loaded one, use CR_STATE flag on
 // statics/globals. This will create a new data section in the binary for transferable states

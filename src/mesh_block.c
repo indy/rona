@@ -30,10 +30,11 @@ void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
   // clang-format off
   f32 half_dim = 0.3f;
   f32 vertices[] = {
-    -half_dim,  half_dim,
-    -half_dim, -half_dim,
-     half_dim, -half_dim,
-     half_dim,  half_dim
+    // positions                     colours                uv
+    -half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+    -half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+     half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+     half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f
   };
   u32 indices[] = {
     0, 1, 2,
@@ -60,13 +61,22 @@ void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   gl->useProgram(mesh->shader_program);
 
+  mesh->uniform_texture = gl->getUniformLocation(mesh->shader_program, "ourTexture");
   mesh->uniform_colour = gl->getUniformLocation(mesh->shader_program, "colour");
   mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
   mesh->uniform_pos = gl->getUniformLocation(mesh->shader_program, "pos");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
+  gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
+
+  // positions
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(0 * sizeof(float)));
+  // colour
+  gl->vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(2 * sizeof(float)));
+  // uv
+  gl->vertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(6 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 

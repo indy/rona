@@ -47,6 +47,7 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->uniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GLProcAddress("glUniformMatrix4fv");
 
   gl->enable = (PFNGLENABLEPROC)GLProcAddress("glEnable");
+  gl->disable = (PFNGLDISABLEPROC)GLProcAddress("glDisable");
   gl->clear = (PFNGLCLEARPROC)GLProcAddress("glClear");
   gl->viewport = (PFNGLVIEWPORTPROC)GLProcAddress("glViewport");
   gl->drawArrays = (PFNGLDRAWARRAYSPROC)GLProcAddress("glDrawArrays");
@@ -54,6 +55,9 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->clearColor = (PFNGLCLEARCOLORPROC)GLProcAddress("glClearColor");
   gl->getIntegerv = (PFNGLGETINTEGERVPROC)GLProcAddress("glGetIntegerv");
   gl->getString = (PFNGLGETSTRINGPROC)GLProcAddress("glGetString");
+
+  gl->blendEquation = (PFNGLBLENDEQUATIONPROC)GLProcAddress("glBlendEquation");
+  gl->blendFunc = (PFNGLBLENDFUNCPROC)GLProcAddress("glBlendFunc");
 
   gl->activeTexture = (PFNGLACTIVETEXTUREPROC)GLProcAddress("glActiveTexture");
   gl->deleteTextures = (PFNGLDELETETEXTURESPROC)GLProcAddress("glDeleteTextures");
@@ -178,6 +182,12 @@ int main(int argc, char **args) {
                                            -1,
                                            0);
   game_state.storage_transient.used = 0;
+
+  game_state.allocator_transient.arena = &(game_state.storage_transient);
+  game_state.allocator_transient.available_1k = NULL;
+  game_state.allocator_transient.available_10k = NULL;
+  game_state.allocator_transient.available_large = NULL;
+
 
   cr_plugin ctx;
   ctx.userdata = &game_state;

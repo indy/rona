@@ -25,12 +25,20 @@ bool is_framebuffer_ok(RonaGl *gl);
 void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
 void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
+u32 g_tempo_texture;
+
 void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
                    render_struct->render_texture_height);
 
-  gl->clearColor(0.0f, 0.0f, 0.1f, 1.0f);
+  gl->clearColor(0.0f, 0.0f, 0.1f, 0.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  gl->disable(GL_DEPTH_TEST);
+
+  gl->enable(GL_BLEND);
+  gl->blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
   f32 render_texture_width = (f32)render_struct->render_texture_width;
   f32 render_texture_height = (f32)render_struct->render_texture_height;
@@ -54,7 +62,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   GLuint current_shader = 0;
 
   // render level's floor
-
+#if 0
   Mesh *mesh = level->mesh_floor;
   if (current_shader != mesh->shader_program) {
     gl->useProgram(mesh->shader_program);
@@ -74,7 +82,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-
+#endif
   // render entities
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
@@ -90,6 +98,12 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
       gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
     }
 
+
+    gl->uniform1i(mesh->uniform_texture, 1);
+    gl->activeTexture(GL_TEXTURE1);
+    gl->bindTexture(GL_TEXTURE_2D, g_tempo_texture);
+
+
     gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
                   entity->colour.a);
     gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
@@ -102,7 +116,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
 
-  gl->clearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   gl->useProgram(screen->shader_program);
@@ -124,7 +138,6 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   }
 
   gl->uniform1i(screen->uniform_texture, 0);
-
   gl->activeTexture(GL_TEXTURE0);
   gl->bindTexture(GL_TEXTURE_2D, render_struct->render_texture_id);
 
@@ -134,9 +147,9 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
 void renderer_lib_load(RonaGl *gl) {
   Colour bg;
-  colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 1.0f);
+  colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
-  gl->clearColor(bg.element[0], bg.element[1], bg.element[2], bg.element[3]);
+  gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
 
 void renderer_lib_unload(RonaGl *gl) {
@@ -166,7 +179,29 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
   // "no"));
 
-  gl->enable(GL_DEPTH_TEST);
+
+  // load textures
+  gl->genTextures(1, &g_tempo_texture);
+  int tex_width, tex_height, num_channels;
+  unsigned char *data = stbi_load("assets/test3.png", &tex_width, &tex_height, &num_channels, 0);
+  RONA_INFO("width %d height %d channels %d\n", tex_width, tex_height, num_channels);
+  for (int i = 0; i < 40; i++) {
+    RONA_LOG("%d: %d\n", i, data[i]);
+  }
+
+  if (data) {
+    gl->activeTexture(GL_TEXTURE1);
+    gl->bindTexture(GL_TEXTURE_2D, g_tempo_texture);
+
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    //gl->generateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+  }
 
   i32 width = 640 * 2;
   i32 height = 360 * 2;;

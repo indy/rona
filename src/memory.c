@@ -27,6 +27,11 @@ void *arena_alloc(MemoryArena *ma, usize bytes) {
   void *res = ma->base + ma->used;
   ma->used += bytes;
 
+  // byte *b = (byte *)res;
+  // for (usize i=0; i < bytes; i++) {
+  //   *b++ = 0;
+  // }
+
   return res;
 }
 
@@ -82,6 +87,9 @@ void *rona_malloc(MemoryAllocator *ma, usize bytes) {
 }
 
 void rona_free(MemoryAllocator *ma, void* mem) {
+  if (!mem) {
+    return;
+  }
   MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
 
   if (block->bytes_allocated <= kilobytes(1)) {
@@ -97,11 +105,15 @@ void rona_free(MemoryAllocator *ma, void* mem) {
 }
 
 void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes) {
+  if (!mem) {
+    return rona_malloc(ma, bytes);
+  }
+
   MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
 
-  if (block->bytes_allocated < bytes_to_use) {
+  if (block->bytes_allocated > bytes_to_use) {
     // the existing memory block is large enough
     block->bytes_requested = bytes;
     return mem;

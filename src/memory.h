@@ -34,23 +34,6 @@ void *arena_alloc(MemoryArena *ma, usize bytes);
   new_arena.size = game_state->storage_transient.size - game_state->storage_transient.used;        \
   new_arena.used = 0;
 
-
-typedef struct MemoryBlock {
-  usize bytes_allocated;
-  usize bytes_requested;
-  struct MemoryBlock *next;
-} MemoryBlock;
-
-// lifetimes: MemoryArena > MemoryAllocator > MemoryBlock
-//
-typedef struct {
-  MemoryArena *arena;
-
-  MemoryBlock *available_1k;
-  MemoryBlock *available_10k;
-  MemoryBlock *available_large;
-} MemoryAllocator;
-
 void memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena);
 void *rona_malloc(MemoryAllocator *ma, usize bytes);
 void rona_free(MemoryAllocator *ma, void* mem);

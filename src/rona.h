@@ -152,6 +152,22 @@ typedef struct {
   u64 used;
 } MemoryArena;
 
+typedef struct MemoryBlock {
+  usize bytes_allocated;
+  usize bytes_requested;
+  struct MemoryBlock *next;
+} MemoryBlock;
+
+// lifetimes: MemoryArena > MemoryAllocator > MemoryBlock
+//
+typedef struct {
+  MemoryArena *arena;
+
+  MemoryBlock *available_1k;
+  MemoryBlock *available_10k;
+  MemoryBlock *available_large;
+} MemoryAllocator;
+
 typedef enum { MeshType_Hero } MeshType;
 
 // typedef struct {
@@ -247,6 +263,8 @@ typedef struct {
 
   MemoryArena storage_permanent;
   MemoryArena storage_transient;
+
+  MemoryAllocator allocator_transient;
 
   Mesh *mesh_screen;
   Mesh *mesh_hero;
