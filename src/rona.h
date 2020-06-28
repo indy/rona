@@ -243,6 +243,7 @@ typedef struct {
 
   i32 render_texture_width;
   i32 render_texture_height;
+  GLuint uber_texture_id;
   GLuint render_texture_id;
   GLuint depth_texture_id;
   GLuint framebuffer_id;

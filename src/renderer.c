@@ -25,8 +25,6 @@ bool is_framebuffer_ok(RonaGl *gl);
 void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
 void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
-u32 g_tempo_texture;
-
 void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
                    render_struct->render_texture_height);
@@ -39,6 +37,8 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->enable(GL_BLEND);
   gl->blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  gl->activeTexture(GL_TEXTURE1);
+  gl->bindTexture(GL_TEXTURE_2D, render_struct->uber_texture_id);
 
   f32 render_texture_width = (f32)render_struct->render_texture_width;
   f32 render_texture_height = (f32)render_struct->render_texture_height;
@@ -62,14 +62,17 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   GLuint current_shader = 0;
 
   // render level's floor
-#if 0
+
   Mesh *mesh = level->mesh_floor;
   if (current_shader != mesh->shader_program) {
     gl->useProgram(mesh->shader_program);
 
+    gl->uniform1i(mesh->uniform_texture, 1);
+
     Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
     gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
   }
+
 
   Colour ground_colour;
   colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
@@ -82,7 +85,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
-#endif
+
   // render entities
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
@@ -94,15 +97,11 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     if (current_shader != mesh->shader_program) {
       gl->useProgram(mesh->shader_program);
 
+      gl->uniform1i(mesh->uniform_texture, 1);
+
       Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
       gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
     }
-
-
-    gl->uniform1i(mesh->uniform_texture, 1);
-    gl->activeTexture(GL_TEXTURE1);
-    gl->bindTexture(GL_TEXTURE_2D, g_tempo_texture);
-
 
     gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
                   entity->colour.a);
@@ -181,17 +180,13 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
 
 
   // load textures
-  gl->genTextures(1, &g_tempo_texture);
+  gl->genTextures(1, &(render_struct->uber_texture_id));
   int tex_width, tex_height, num_channels;
   unsigned char *data = stbi_load("assets/test3.png", &tex_width, &tex_height, &num_channels, 0);
-  RONA_INFO("width %d height %d channels %d\n", tex_width, tex_height, num_channels);
-  for (int i = 0; i < 40; i++) {
-    RONA_LOG("%d: %d\n", i, data[i]);
-  }
 
   if (data) {
     gl->activeTexture(GL_TEXTURE1);
-    gl->bindTexture(GL_TEXTURE_2D, g_tempo_texture);
+    gl->bindTexture(GL_TEXTURE_2D, render_struct->uber_texture_id);
 
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

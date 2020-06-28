@@ -286,7 +286,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   }
 
   mesh->num_elements = 6 * num_floor_tiles;
-  i32 num_vert_elements = 8 * num_floor_tiles;
+  i32 num_vert_elements = (4 * (2 + 4 + 2)) * num_floor_tiles;
 
   u32 sizeof_vertices = sizeof(f32) * num_vert_elements;
   u32 sizeof_indices = sizeof(u32) * mesh->num_elements;
@@ -296,18 +296,56 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   // build geometry
   i32 tile_count = 0;
 
+  f32 *v;
   for (i32 j = 0; j < level->height; j++) {
     for (i32 i = 0; i < level->width; i++) {
       if (level->tiles[i + (j * level->width)].tile_type == TileType_Floor) {
-        i32 v_index = tile_count * 8;
-        vertices[v_index + 0] = -half_dim + (f32)i;
-        vertices[v_index + 1] = half_dim + (f32)j;
-        vertices[v_index + 2] = -half_dim + (f32)i;
-        vertices[v_index + 3] = -half_dim + (f32)j;
-        vertices[v_index + 4] = half_dim + (f32)i;
-        vertices[v_index + 5] = -half_dim + (f32)j;
-        vertices[v_index + 6] = half_dim + (f32)i;
-        vertices[v_index + 7] = half_dim + (f32)j;
+        i32 v_index = tile_count * 32;
+        v = &vertices[v_index];
+
+        *v++ = -half_dim + (f32)i;
+        *v++ = half_dim + (f32)j;
+
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+
+        *v++ = 0.0f;
+        *v++ = 0.0f;
+
+        *v++ = -half_dim + (f32)i;
+        *v++ = -half_dim + (f32)j;
+
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+
+        *v++ = 0.0f;
+        *v++ = 1.0f;
+
+        *v++ = half_dim + (f32)i;
+        *v++ = -half_dim + (f32)j;
+
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+
+        *v++ = half_dim + (f32)i;
+        *v++ = half_dim + (f32)j;
+
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+        *v++ = 1.0f;
+
+        *v++ = 1.0f;
+        *v++ = 0.0f;
 
         i32 i_index = tile_count * 6;
         i32 offset = tile_count * 4;
@@ -340,13 +378,22 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
 
   gl->useProgram(mesh->shader_program);
 
+  mesh->uniform_texture = gl->getUniformLocation(mesh->shader_program, "ourTexture");
   mesh->uniform_colour = gl->getUniformLocation(mesh->shader_program, "colour");
   mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
   mesh->uniform_pos = gl->getUniformLocation(mesh->shader_program, "pos");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, NULL);
+  gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
+
+  // positions
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(0 * sizeof(float)));
+  // colour
+  gl->vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(2 * sizeof(float)));
+  // uv
+  gl->vertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(6 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
