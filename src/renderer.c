@@ -73,7 +73,6 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
   }
 
-
   Colour ground_colour;
   colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
   gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1],
@@ -178,7 +177,6 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
   // "no"));
 
-
   // load textures
   gl->genTextures(1, &(render_struct->uber_texture_id));
   int tex_width, tex_height, num_channels;
@@ -193,13 +191,14 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    //gl->generateMipmap(GL_TEXTURE_2D);
+    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                   data);
+    // gl->generateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
   }
 
   i32 width = 640 * 2;
-  i32 height = 360 * 2;;
+  i32 height = 360 * 2;
 
   // setup render texture
   render_struct->render_texture_width = width;

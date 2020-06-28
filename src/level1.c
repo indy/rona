@@ -34,8 +34,6 @@ void level1_startup(Level *level, GameState *game_state) {
   // };
   // // clang-format on
 
-
-
   // clang-format off
 
   // declare as: layout[height][width*2]

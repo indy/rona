@@ -83,7 +83,7 @@ void *rona_malloc(MemoryAllocator *ma, usize bytes) {
   return (void *)((byte *)block + sizeof(MemoryBlock));
 }
 
-void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes) {
+void *rona_realloc(MemoryAllocator *ma, void *mem, usize bytes) {
   if (!mem) {
     return rona_malloc(ma, bytes);
   }
@@ -106,8 +106,7 @@ void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes) {
   return new_mem;
 }
 
-
-void rona_free(MemoryAllocator *ma, void* mem) {
+void rona_free(MemoryAllocator *ma, void *mem) {
   if (!mem) {
     return;
   }
