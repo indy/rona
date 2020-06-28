@@ -163,8 +163,8 @@ typedef struct MemoryBlock {
 typedef struct {
   MemoryArena *arena;
 
-  MemoryBlock *available_1k;
-  MemoryBlock *available_10k;
+  MemoryBlock *available_one_kilobyte;
+  MemoryBlock *available_one_megabyte;
   MemoryBlock *available_large;
 } MemoryAllocator;
 
@@ -264,6 +264,7 @@ typedef struct {
   MemoryArena storage_permanent;
   MemoryArena storage_transient;
 
+  MemoryAllocator allocator_permanent;
   MemoryAllocator allocator_transient;
 
   Mesh *mesh_screen;

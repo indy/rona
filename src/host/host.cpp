@@ -183,9 +183,14 @@ int main(int argc, char **args) {
                                            0);
   game_state.storage_transient.used = 0;
 
+  game_state.allocator_permanent.arena = &(game_state.storage_permanent);
+  game_state.allocator_permanent.available_one_kilobyte = NULL;
+  game_state.allocator_permanent.available_one_megabyte = NULL;
+  game_state.allocator_permanent.available_large = NULL;
+
   game_state.allocator_transient.arena = &(game_state.storage_transient);
-  game_state.allocator_transient.available_1k = NULL;
-  game_state.allocator_transient.available_10k = NULL;
+  game_state.allocator_transient.available_one_kilobyte = NULL;
+  game_state.allocator_transient.available_one_megabyte = NULL;
   game_state.allocator_transient.available_large = NULL;
 
 

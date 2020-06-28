@@ -27,11 +27,6 @@ void *arena_alloc(MemoryArena *ma, usize bytes) {
   void *res = ma->base + ma->used;
   ma->used += bytes;
 
-  // byte *b = (byte *)res;
-  // for (usize i=0; i < bytes; i++) {
-  //   *b++ = 0;
-  // }
-
   return res;
 }
 
@@ -45,8 +40,8 @@ void *memory_block(MemoryArena *arena, usize bytes_to_allocate, usize bytes_requ
 
 void memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena) {
   ma->arena = arena;
-  ma->available_1k = NULL;
-  ma->available_10k = NULL;
+  ma->available_one_kilobyte = NULL;
+  ma->available_one_megabyte = NULL;
   ma->available_large = NULL;
 }
 
@@ -54,26 +49,28 @@ void *rona_malloc(MemoryAllocator *ma, usize bytes) {
   MemoryBlock *block;
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
+
   if (bytes_to_use < kilobytes(1)) {
-    if (ma->available_1k) {
-      block = ma->available_1k;
-      ma->available_1k = block->next;
+    if (ma->available_one_kilobyte) {
+      block = ma->available_one_kilobyte;
+      ma->available_one_kilobyte = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
       block = memory_block(ma->arena, kilobytes(1), bytes);
     }
-  } else if (bytes_to_use < kilobytes(10)) {
-    if (ma->available_10k) {
-      block = ma->available_10k;
-      ma->available_10k = block->next;
+  } else if (bytes_to_use < megabytes(1)) {
+    if (ma->available_one_megabyte) {
+      block = ma->available_one_megabyte;
+      ma->available_one_megabyte = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
-      block = memory_block(ma->arena, kilobytes(10), bytes);
+      block = memory_block(ma->arena, megabytes(1), bytes);
     }
   } else {
-    if (ma->available_large) {
+    // stupid simple method of just looking at the head of the list to see if it's big enough
+    if (ma->available_large && ma->available_large->bytes_allocated > bytes_to_use) {
       block = ma->available_large;
       ma->available_large = block->next;
       block->next = NULL;
@@ -84,24 +81,6 @@ void *rona_malloc(MemoryAllocator *ma, usize bytes) {
   }
 
   return (void *)((byte *)block + sizeof(MemoryBlock));
-}
-
-void rona_free(MemoryAllocator *ma, void* mem) {
-  if (!mem) {
-    return;
-  }
-  MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
-
-  if (block->bytes_allocated <= kilobytes(1)) {
-    block->next = ma->available_1k;
-    ma->available_1k = block;
-  } else if (block->bytes_allocated <= kilobytes(10)) {
-    block->next = ma->available_10k;
-    ma->available_10k = block;
-  } else {
-    block->next = ma->available_large;
-    ma->available_large = block;
-  }
 }
 
 void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes) {
@@ -125,4 +104,23 @@ void *rona_realloc(MemoryAllocator *ma, void* mem, usize bytes) {
   rona_free(ma, mem);
 
   return new_mem;
+}
+
+
+void rona_free(MemoryAllocator *ma, void* mem) {
+  if (!mem) {
+    return;
+  }
+  MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
+
+  if (block->bytes_allocated <= kilobytes(1)) {
+    block->next = ma->available_one_kilobyte;
+    ma->available_one_kilobyte = block;
+  } else if (block->bytes_allocated <= megabytes(1)) {
+    block->next = ma->available_one_megabyte;
+    ma->available_one_megabyte = block;
+  } else {
+    block->next = ma->available_large;
+    ma->available_large = block;
+  }
 }
