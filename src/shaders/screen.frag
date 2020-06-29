@@ -2,7 +2,7 @@
 
 in vec2 texture_coord;
 
-uniform sampler2D sampler;
+uniform sampler2D screen_texture;
 
 out vec4 frag_colour;
 
@@ -32,7 +32,7 @@ vec3 linear_to_srgb(vec3 linear) {
 // const float quality = 1.1; 	        // lower = smaller glow, better quality
 
 void main() {
-  vec4 texture_colour = texture(sampler, texture_coord);
+  vec4 texture_colour = texture(screen_texture, texture_coord);
   frag_colour = vec4(linear_to_srgb(texture_colour.rgb), 1.0);
 
 
@@ -41,14 +41,14 @@ void main() {
   // //
   // vec4 sum = vec4(0);
   // vec2 sizeFactor = vec2(1)/size*quality;
-  // // Texel color fetching from texture sampler
-  // vec4 source = texture(sampler, texture_coord);
+  // // Texel color fetching from texture screen_texture
+  // vec4 source = texture(screen_texture, texture_coord);
   // const int range = 2;            // should be = (samples - 1)/2;
   // for (int x = -range; x <= range; x++)
   // {
   //   for (int y = -range; y <= range; y++)
   //   {
-  //     sum += texture(sampler, texture_coord + vec2(x, y)*sizeFactor);
+  //     sum += texture(screen_texture, texture_coord + vec2(x, y)*sizeFactor);
   //   }
   // }
   // // Calculate final fragment color
@@ -89,19 +89,19 @@ void main() {
   // --------------------------------------------------------------------------------
   // // dream vision
   // //
-  // vec4 color = texture(sampler, texture_coord);
-  // color += texture(sampler, texture_coord + 0.001);
-  // color += texture(sampler, texture_coord + 0.003);
-  // color += texture(sampler, texture_coord + 0.005);
-  // color += texture(sampler, texture_coord + 0.007);
-  // color += texture(sampler, texture_coord + 0.009);
-  // color += texture(sampler, texture_coord + 0.011);
-  // color += texture(sampler, texture_coord - 0.001);
-  // color += texture(sampler, texture_coord - 0.003);
-  // color += texture(sampler, texture_coord - 0.005);
-  // color += texture(sampler, texture_coord - 0.007);
-  // color += texture(sampler, texture_coord - 0.009);
-  // color += texture(sampler, texture_coord - 0.011);
+  // vec4 color = texture(screen_texture, texture_coord);
+  // color += texture(screen_texture, texture_coord + 0.001);
+  // color += texture(screen_texture, texture_coord + 0.003);
+  // color += texture(screen_texture, texture_coord + 0.005);
+  // color += texture(screen_texture, texture_coord + 0.007);
+  // color += texture(screen_texture, texture_coord + 0.009);
+  // color += texture(screen_texture, texture_coord + 0.011);
+  // color += texture(screen_texture, texture_coord - 0.001);
+  // color += texture(screen_texture, texture_coord - 0.003);
+  // color += texture(screen_texture, texture_coord - 0.005);
+  // color += texture(screen_texture, texture_coord - 0.007);
+  // color += texture(screen_texture, texture_coord - 0.009);
+  // color += texture(screen_texture, texture_coord - 0.011);
   // color.rgb = vec3((color.r + color.g + color.b)/3.0);
   // color = color/9.5;
   // frag_colour = vec4(linear_to_srgb(color.rgb), 1.0);

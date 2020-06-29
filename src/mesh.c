@@ -18,7 +18,7 @@
 void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, TilesetSprite tile_sprite) {
 
   mesh->num_elements = 6;
-  mesh->mesh_type = MeshType_Tile;
+  mesh->shader_type = ShaderType_Tile;
 
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);

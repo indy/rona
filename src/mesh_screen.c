@@ -15,22 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient,
-                          RenderStruct *render_struct) {
+void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, RenderStruct *render_struct) {
 
   mesh->num_elements = 6;
-  mesh->mesh_type = MeshType_Screen;
+  mesh->shader_type = ShaderType_Screen;
 
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
-
-#include "../target/screen.vert.c"
-  SHADER_AS_STRING(transient, vertexSource, screen_vert);
-
-#include "../target/screen.frag.c"
-  SHADER_AS_STRING(transient, fragmentSource, screen_frag);
-
-  mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
   f32 width = (f32)render_struct->render_texture_width;
   f32 height = (f32)render_struct->render_texture_height;
@@ -62,11 +53,6 @@ void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient,
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  gl->useProgram(mesh->shader_program);
-
-  mesh->uniform_texture = gl->getUniformLocation(mesh->shader_program, "sampler");
-  mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);

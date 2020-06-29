@@ -14,7 +14,7 @@ INCLUDE_FLAGS=-Iext
 GAME_SRC=src/*.c
 GAME_HEADERS=src/*.h
 
-SHADERS_OUT=./target/shader.vert.c ./target/shader.frag.c ./target/screen.vert.c ./target/screen.frag.c
+SHADERS_OUT=./target/tile.vert.c ./target/tile.frag.c ./target/screen.vert.c ./target/screen.frag.c
 
 # the shared library with the game code
 #
@@ -48,9 +48,9 @@ host: $(HOST_OUT)
 test: $(TEST_OUT)
 tags: $(TAGS_OUT)
 
-./target/shader.vert.c: src/shaders/shader.vert
+./target/tile.vert.c: src/shaders/tile.vert
 	xxd -i $< > $@
-./target/shader.frag.c: src/shaders/shader.frag
+./target/tile.frag.c: src/shaders/tile.frag
 	xxd -i $< > $@
 ./target/screen.vert.c: src/shaders/screen.vert
 	xxd -i $< > $@

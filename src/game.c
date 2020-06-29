@@ -48,7 +48,7 @@ void game_lib_load(GameState *game_state) {
   mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated);
   mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block);
   mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero);
-  mesh_screen_lib_load(game_state->mesh_screen, gl, arena, &(game_state->render_struct));
+  mesh_screen_lib_load(game_state->mesh_screen, gl, &(game_state->render_struct));
   level1_lib_load(game_state->level, gl, arena, tileset);
 }
 

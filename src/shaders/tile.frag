@@ -3,11 +3,11 @@
 in vec4 outColour;
 in vec2 outTexCoord;
 
-uniform sampler2D ourTexture;
+uniform sampler2D tilesheet;
+uniform vec4 colour_fg;
+uniform vec4 colour_bg;
 
 out vec4 frag_colour;
-
-uniform vec4 colour;
 
 void main() {
   // frag_colour = ourColour;
@@ -25,7 +25,7 @@ void main() {
 //  frag_colour = colour;
 //frag_colour = vec4(0.0, 1.0, 1.0, 1.0);
 
-  vec4 texture_colour = texture(ourTexture, outTexCoord);
+  vec4 texture_colour = texture(tilesheet, outTexCoord);
   frag_colour = vec4(texture_colour.r, texture_colour.g, texture_colour.b, texture_colour.a);
   // frag_colour = vec4(0.1, 0.0, 0.0, 0.8);
 }

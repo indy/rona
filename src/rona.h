@@ -187,29 +187,30 @@ typedef struct {
 } MemoryAllocator;
 
 typedef enum {
-  MeshType_Tile,
-  MeshType_Screen
-} MeshType;
-
-// typedef struct {
-//   union {
-//     struct {
-//     } hero;
-//   };
-// } MeshUniform;
+  ShaderType_Tile,
+  ShaderType_Screen
+} ShaderType;
 
 typedef struct {
-  MeshType mesh_type;
-  GLuint shader_program;
-  GLuint vao;
+  GLuint program;
 
-  // commonly used uniforms
   int uniform_texture;
-  //int uniform_colour;
+  int uniform_colour_fg;
+  int uniform_colour_bg;
   int uniform_proj_matrix;
-  //int uniform_pos;
+  int uniform_pos;
 
-  // MeshUniform uniform;                         // discriminated union
+} ShaderTile;
+
+typedef struct {
+  GLuint program;
+  int uniform_texture;
+  int uniform_proj_matrix;
+} ShaderScreen;
+
+typedef struct {
+  ShaderType shader_type;
+  GLuint vao;
 
   i32 num_elements; // used in by gl->drawElements
 } Mesh;
@@ -275,12 +276,8 @@ typedef struct {
 
   Tileset tileset;
 
-  GLuint tile_shader_program;
-  int tile_uniform_texture;
-  int tile_uniform_colour;
-  int tile_uniform_proj_matrix;
-  int tile_uniform_pos;
-
+  ShaderTile tile_shader;
+  ShaderScreen screen_shader;
 
   GLuint tileset_texture_id;
   GLuint render_texture_id;

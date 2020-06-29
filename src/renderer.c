@@ -59,24 +59,24 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     height = width / aspect_ratio;
   }
 
-  // use the RenderStruct's tile_shader_program for all tile based entities
+  // use the RenderStruct's tile_shader.program for all tile based entities
   //
-  gl->useProgram(render_struct->tile_shader_program);
-  gl->uniform1i(render_struct->tile_uniform_texture, 1);
+  gl->useProgram(render_struct->tile_shader.program);
+  gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
   Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
-  gl->uniformMatrix4fv(render_struct->tile_uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
+  gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
 
   // render level's floor
   //
   Mesh *mesh = level->mesh_floor;
   Colour ground_colour;
   colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_uniform_colour, ground_colour.element[0], ground_colour.element[1],
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, ground_colour.element[0], ground_colour.element[1],
                 ground_colour.element[2], ground_colour.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
-  gl->uniform3f(render_struct->tile_uniform_pos, world_pos_x, world_pos_y, 2.0f);
+  gl->uniform3f(render_struct->tile_shader.uniform_pos, world_pos_x, world_pos_y, 2.0f);
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
@@ -89,9 +89,9 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
       break;
     }
     Mesh *mesh = entity->mesh;
-    gl->uniform4f(render_struct->tile_uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
+    gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, entity->colour.r, entity->colour.g, entity->colour.b,
                   entity->colour.a);
-    gl->uniform3f(render_struct->tile_uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
+    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
@@ -104,7 +104,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  gl->useProgram(screen->shader_program);
+  gl->useProgram(render_struct->screen_shader.program);
 
   f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
 
@@ -113,16 +113,16 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     f32 v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
     f32 v_pad = (v - render_texture_height) / 2.0f;
     Mat4 m = mat4_ortho(0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
+    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
   } else {
     // window is more elongated horizontally than desired
     f32 h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
     f32 h_pad = (h - render_texture_width) / 2.0f;
     Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(screen->uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
+    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
   }
 
-  gl->uniform1i(screen->uniform_texture, 0);
+  gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
   gl->activeTexture(GL_TEXTURE0);
   gl->bindTexture(GL_TEXTURE_2D, render_struct->render_texture_id);
 
@@ -135,17 +135,30 @@ void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
 
-#include "../target/shader.vert.c"
-  SHADER_AS_STRING(transient, vertexSource, shader_vert);
+#include "../target/tile.vert.c"
+  SHADER_AS_STRING(transient, tileVertexSource, tile_vert);
 
-#include "../target/shader.frag.c"
-  SHADER_AS_STRING(transient, fragmentSource, shader_frag);
+#include "../target/tile.frag.c"
+  SHADER_AS_STRING(transient, tileFragmentSource, tile_frag);
 
-  render_struct->tile_shader_program = create_shader_program(gl, vertexSource, fragmentSource);
-  render_struct->tile_uniform_texture = gl->getUniformLocation(render_struct->tile_shader_program, "ourTexture");
-  render_struct->tile_uniform_colour = gl->getUniformLocation(render_struct->tile_shader_program, "colour");
-  render_struct->tile_uniform_proj_matrix = gl->getUniformLocation(render_struct->tile_shader_program, "proj_matrix");
-  render_struct->tile_uniform_pos = gl->getUniformLocation(render_struct->tile_shader_program, "pos");
+  ShaderTile *tile_shader = &(render_struct->tile_shader);
+  tile_shader->program = create_shader_program(gl, tileVertexSource, tileFragmentSource);
+  tile_shader->uniform_texture = gl->getUniformLocation(tile_shader->program, "tilesheet");
+  tile_shader->uniform_colour_fg = gl->getUniformLocation(tile_shader->program, "colour_fg");
+  tile_shader->uniform_colour_bg = gl->getUniformLocation(tile_shader->program, "colour_bg");
+  tile_shader->uniform_proj_matrix = gl->getUniformLocation(tile_shader->program, "proj_matrix");
+  tile_shader->uniform_pos = gl->getUniformLocation(tile_shader->program, "pos");
+
+#include "../target/screen.vert.c"
+  SHADER_AS_STRING(transient, screenVertexSource, screen_vert);
+
+#include "../target/screen.frag.c"
+  SHADER_AS_STRING(transient, screenFragmentSource, screen_frag);
+
+  ShaderScreen *screen_shader = &(render_struct->screen_shader);
+  screen_shader->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
+  screen_shader->uniform_texture = gl->getUniformLocation(screen_shader->program, "screen_texture");
+  screen_shader->uniform_proj_matrix = gl->getUniformLocation(screen_shader->program, "proj_matrix");
 
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
