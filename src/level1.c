@@ -56,8 +56,8 @@ void level1_startup(Level *level, GameState *game_state) {
 
 void level1_shutdown(Level *level) { level->mem.used = 0; }
 
-void level1_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
-  mesh_floor_lib_load(level, gl, transient);
+void level1_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tileset *tileset) {
+  mesh_floor_lib_load(level, gl, transient, tileset);
 
   Colour hero_colour;
   colour_from(&hero_colour, ColourFormat_RGB, ColourFormat_HSLuv, 10.0f, 90.0f, 50.0f, 1.0f);

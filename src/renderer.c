@@ -38,7 +38,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   gl->activeTexture(GL_TEXTURE1);
-  gl->bindTexture(GL_TEXTURE_2D, render_struct->uber_texture_id);
+  gl->bindTexture(GL_TEXTURE_2D, render_struct->tileset_texture_id);
 
   f32 render_texture_width = (f32)render_struct->render_texture_width;
   f32 render_texture_height = (f32)render_struct->render_texture_height;
@@ -157,7 +157,7 @@ void renderer_lib_unload(RonaGl *gl) {
   gl->bindVertexArray(0);
 }
 
-void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
+bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   const char *version = (const char *)gl->getString(GL_VERSION);
   const char *vendor = (const char *)gl->getString(GL_VENDOR);
   const char *renderer = (const char *)gl->getString(GL_RENDERER);
@@ -178,13 +178,14 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   // "no"));
 
   // load textures
-  gl->genTextures(1, &(render_struct->uber_texture_id));
+  gl->genTextures(1, &(render_struct->tileset_texture_id));
   int tex_width, tex_height, num_channels;
-  unsigned char *data = stbi_load("assets/test3.png", &tex_width, &tex_height, &num_channels, 0);
+  char *tileset_filename = "assets/tileset.png";
+  unsigned char *data = stbi_load(tileset_filename, &tex_width, &tex_height, &num_channels, 0);
 
   if (data) {
     gl->activeTexture(GL_TEXTURE1);
-    gl->bindTexture(GL_TEXTURE_2D, render_struct->uber_texture_id);
+    gl->bindTexture(GL_TEXTURE_2D, render_struct->tileset_texture_id);
 
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -195,6 +196,17 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
                    data);
     // gl->generateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
+
+    Tileset *tileset = &(render_struct->tileset);
+    tileset->image_dim.width = tex_width;
+    tileset->image_dim.height = tex_height;
+    tileset->sprite_dim.width = 16;
+    tileset->sprite_dim.height = 16;
+    tileset_calc_uv_units(tileset);
+
+  } else {
+    RONA_ERROR("renderer.c failed to load %s\n", tileset_filename);
+    return false;
   }
 
   i32 width = 640 * 2;
@@ -211,11 +223,14 @@ void renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
                                  render_struct->render_texture_id, render_struct->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
     RONA_ERROR("%d, Framebuffer is not ok\n", 1);
+    return false;
   }
   gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
   gl->viewport(0, 0, width, height);
 
   RONA_OUT("Running modern opengl\n");
+
+  return true;
 }
 
 void renderer_shutdown(RonaGl *gl) {}

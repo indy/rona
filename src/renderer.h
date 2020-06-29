@@ -18,7 +18,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-void renderer_startup(RonaGl *gl, RenderStruct *render_struct);
+bool renderer_startup(RonaGl *gl, RenderStruct *render_struct);
 void renderer_shutdown(RonaGl *gl);
 
 void renderer_lib_load(RonaGl *gl);

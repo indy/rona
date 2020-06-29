@@ -39,6 +39,20 @@ typedef unsigned int usize;
 typedef struct {
   union {
     struct {
+      usize width;
+      usize height;
+    };
+    struct {
+      usize col;
+      usize row;
+    };
+    usize v[2];
+  };
+} Dim2;
+
+typedef struct {
+  union {
+    struct {
       i32 x;
       i32 y;
     };
@@ -57,10 +71,14 @@ typedef struct {
       f32 y;
     };
     struct {
+      f32 u;
+      f32 v;
+    };
+    struct {
       f32 width;
       f32 height;
     };
-    f32 v[2];
+    //    f32 v[2];
   };
 } Vec2;
 
@@ -238,15 +256,27 @@ typedef struct {
 } Level;
 
 typedef struct {
+  // char *image_filename;
+  Dim2 image_dim;
+  Dim2 sprite_dim;
+
+  Vec2 uv_unit; // size of each sprite in u,v normalized co-ordinates
+} Tileset;
+
+typedef struct {
   i32 window_width;
   i32 window_height;
 
   i32 render_texture_width;
   i32 render_texture_height;
-  GLuint uber_texture_id;
+
+  Tileset tileset;
+
+  GLuint tileset_texture_id;
   GLuint render_texture_id;
   GLuint depth_texture_id;
   GLuint framebuffer_id;
+
 } RenderStruct;
 
 typedef struct {

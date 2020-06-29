@@ -39,13 +39,16 @@ void game_shutdown(GameState *game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState *game_state) {
-  renderer_lib_load(game_state->gl);
-  mesh_pit_lib_load(game_state->mesh_pit, game_state->gl, &game_state->storage_transient);
-  mesh_block_lib_load(game_state->mesh_block, game_state->gl, &game_state->storage_transient);
-  mesh_hero_lib_load(game_state->mesh_hero, game_state->gl, &game_state->storage_transient);
-  mesh_screen_lib_load(game_state->mesh_screen, game_state->gl, &game_state->storage_transient,
-                       &game_state->render_struct);
-  level1_lib_load(game_state->level, game_state->gl, &game_state->storage_transient);
+  RonaGl *gl = game_state->gl;
+  MemoryArena *arena = &(game_state->storage_transient);
+  Tileset *tileset = &(game_state->render_struct.tileset);
+
+  renderer_lib_load(gl);
+  mesh_pit_lib_load(game_state->mesh_pit, gl, arena, tileset);
+  mesh_block_lib_load(game_state->mesh_block, gl, arena, tileset);
+  mesh_hero_lib_load(game_state->mesh_hero, gl, arena, tileset);
+  mesh_screen_lib_load(game_state->mesh_screen, gl, arena, &(game_state->render_struct));
+  level1_lib_load(game_state->level, gl, arena, tileset);
 }
 
 // changes have been made to the game client, this old version will be unloaded

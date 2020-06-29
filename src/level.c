@@ -260,7 +260,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   }
 }
 
-void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
+void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tileset *tileset) {
   Mesh *mesh = level->mesh_floor;
 
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
@@ -273,6 +273,13 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   SHADER_AS_STRING(transient, fragmentSource, shader_frag);
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
+
+  Vec2 sprite = tileset_get_uv(tileset, TS_Debug4Corners);
+  f32 u = sprite.u;
+  f32 v = sprite.v;
+  f32 ud = tileset->uv_unit.u;
+  f32 vd = tileset->uv_unit.v;
+
 
   f32 half_dim = 0.48f;
 
@@ -296,56 +303,56 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient) {
   // build geometry
   i32 tile_count = 0;
 
-  f32 *v;
+  f32 *e;
   for (i32 j = 0; j < level->height; j++) {
     for (i32 i = 0; i < level->width; i++) {
       if (level->tiles[i + (j * level->width)].tile_type == TileType_Floor) {
-        i32 v_index = tile_count * 32;
-        v = &vertices[v_index];
+        i32 e_index = tile_count * 32;
+        e = &vertices[e_index];
 
-        *v++ = -half_dim + (f32)i;
-        *v++ = half_dim + (f32)j;
+        *e++ = -half_dim + (f32)i;
+        *e++ = half_dim + (f32)j;
 
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
 
-        *v++ = 0.0f;
-        *v++ = 0.0f;
+        *e++ = u;
+        *e++ = v;
 
-        *v++ = -half_dim + (f32)i;
-        *v++ = -half_dim + (f32)j;
+        *e++ = -half_dim + (f32)i;
+        *e++ = -half_dim + (f32)j;
 
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
 
-        *v++ = 0.0f;
-        *v++ = 1.0f;
+        *e++ = u;
+        *e++ = v + vd;
 
-        *v++ = half_dim + (f32)i;
-        *v++ = -half_dim + (f32)j;
+        *e++ = half_dim + (f32)i;
+        *e++ = -half_dim + (f32)j;
 
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
 
-        *v++ = 1.0f;
-        *v++ = 1.0f;
+        *e++ = u + ud;
+        *e++ = v + vd;
 
-        *v++ = half_dim + (f32)i;
-        *v++ = half_dim + (f32)j;
+        *e++ = half_dim + (f32)i;
+        *e++ = half_dim + (f32)j;
 
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
-        *v++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
+        *e++ = 1.0f;
 
-        *v++ = 1.0f;
-        *v++ = 0.0f;
+        *e++ = u + ud;
+        *e++ = v;
 
         i32 i_index = tile_count * 6;
         i32 offset = tile_count * 4;

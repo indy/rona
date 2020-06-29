@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
+void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *tileset) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
@@ -27,14 +27,20 @@ void mesh_block_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient) {
 
   mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
 
+  Vec2 sprite = tileset_get_uv(tileset, TS_Block);
+  f32 u = sprite.u;
+  f32 v = sprite.v;
+  f32 ud = tileset->uv_unit.u;
+  f32 vd = tileset->uv_unit.v;
+
   // clang-format off
   f32 half_dim = 0.3f;
   f32 vertices[] = {
     // positions                     colours                uv
-    -half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
-    -half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-     half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-     half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   1.0f, 0.0f
+    -half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u,    v,
+    -half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u,    v+vd,
+     half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u+ud, v+vd,
+     half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u+ud, v
   };
   u32 indices[] = {
     0, 1, 2,
