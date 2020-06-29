@@ -30,21 +30,19 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, Tileset
   f32 vd = tileset->uv_unit.v;
 
   // clang-format off
-  f32 half_dim = 0.35f;
+  f32 half_dim = 0.5f;
   f32 vertices[] = {
-    // positions                     colours                uv
-    -half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u,    v,
-    -half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u,    v+vd,
-     half_dim, -half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u+ud, v+vd,
-     half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u+ud, v
+    //    positions              uv
+    -half_dim,  half_dim,     u,    v,
+    -half_dim, -half_dim,     u,    v+vd,
+     half_dim, -half_dim,     u+ud, v+vd,
+     half_dim,  half_dim,     u+ud, v
   };
   u32 indices[] = {
     0, 1, 2,
     0, 2, 3
   };
   // clang-format on
-
-
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
@@ -64,14 +62,11 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, Tileset
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
-  gl->enableVertexAttribArray(2);
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(0 * sizeof(float)));
-  // colour
-  gl->vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(2 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(0 * sizeof(float)));
   // uv
-  gl->vertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(6 * sizeof(float)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(2 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 

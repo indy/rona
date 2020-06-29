@@ -59,7 +59,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     height = width / aspect_ratio;
   }
 
-  // use the RenderStruct's tile_shader.program for all tile based entities
+  // use the RenderStruct's tile_shader for all tile based entities
   //
   gl->useProgram(render_struct->tile_shader.program);
   gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
@@ -69,10 +69,16 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   // render level's floor
   //
   Mesh *mesh = level->mesh_floor;
-  Colour ground_colour;
-  colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, ground_colour.element[0], ground_colour.element[1],
-                ground_colour.element[2], ground_colour.element[3]);
+  Colour ground_colour_fg;
+  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 90.0f, 1.0f);
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg,
+                ground_colour_fg.element[0], ground_colour_fg.element[1],
+                ground_colour_fg.element[2], ground_colour_fg.element[3]);
+  Colour ground_colour_bg;
+  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 260.0f, 80.0f, 50.0f, 1.0f);
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg,
+                ground_colour_bg.element[0], ground_colour_bg.element[1],
+                ground_colour_bg.element[2], ground_colour_bg.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
@@ -83,6 +89,8 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   // render entities
   //
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, 0.0f, 0.0f, 0.0f, 0.0f); // transparent bg
+
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {

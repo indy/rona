@@ -199,6 +199,8 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   i32 num_tiles = level->width * level->height;
   level->tiles = (Tile *)ARENA_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
 
+  const f32 max_speed = 9.0f;
+
   for (i32 j = 0; j < height; j++) {
 
     char *plan_line = layout[height - 1 - j];
@@ -219,9 +221,9 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           hero->entity_type = EntityType_Hero;
           hero->entity_state = EntityState_Standing;
           hero->mesh = game_state->mesh_hero;
-          hero->world_max_speed = 18.0f;
+          hero->world_max_speed = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
-          entity_colour_as_hsluv(hero, 10.0f, 90.0f, 50.0f);
+          entity_colour_as_hsluv(hero, 290.0f, 90.0f, 30.0f);
 
         } else if (plan_line[i] == 'B') { // block
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
@@ -232,7 +234,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           block->entity_type = EntityType_Block;
           block->entity_state = EntityState_Standing;
           block->mesh = game_state->mesh_block;
-          block->world_max_speed = 18.0f;
+          block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
           entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
 
@@ -245,7 +247,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
           pit->entity_type = EntityType_Pit;
           pit->entity_state = EntityState_Standing;
           pit->mesh = game_state->mesh_pit;
-          pit->world_max_speed = 18.0f;
+          pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
           entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);
         }
@@ -272,7 +274,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   f32 ud = tileset->uv_unit.u;
   f32 vd = tileset->uv_unit.v;
 
-  f32 half_dim = 0.48f;
+  f32 half_dim = 0.5f;
 
   // count the number of floor tiles to generate
   //
@@ -284,7 +286,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   }
 
   mesh->num_elements = 6 * num_floor_tiles;
-  i32 num_vert_elements = (4 * (2 + 4 + 2)) * num_floor_tiles;
+  i32 num_vert_elements = (4 * (2 + 2)) * num_floor_tiles;
 
   u32 sizeof_vertices = sizeof(f32) * num_vert_elements;
   u32 sizeof_indices = sizeof(u32) * mesh->num_elements;
@@ -298,16 +300,11 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   for (i32 j = 0; j < level->height; j++) {
     for (i32 i = 0; i < level->width; i++) {
       if (level->tiles[i + (j * level->width)].tile_type == TileType_Floor) {
-        i32 e_index = tile_count * 32;
+        i32 e_index = tile_count * 16;
         e = &vertices[e_index];
 
         *e++ = -half_dim + (f32)i;
         *e++ = half_dim + (f32)j;
-
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
 
         *e++ = u;
         *e++ = v;
@@ -315,32 +312,17 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
         *e++ = -half_dim + (f32)i;
         *e++ = -half_dim + (f32)j;
 
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-
         *e++ = u;
         *e++ = v + vd;
 
         *e++ = half_dim + (f32)i;
         *e++ = -half_dim + (f32)j;
 
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-
         *e++ = u + ud;
         *e++ = v + vd;
 
         *e++ = half_dim + (f32)i;
         *e++ = half_dim + (f32)j;
-
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
-        *e++ = 1.0f;
 
         *e++ = u + ud;
         *e++ = v;
@@ -377,14 +359,11 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
-  gl->enableVertexAttribArray(2);
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(0 * sizeof(float)));
-  // colour
-  gl->vertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(2 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(0 * sizeof(float)));
   // uv
-  gl->vertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void *)(6 * sizeof(float)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(2 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
