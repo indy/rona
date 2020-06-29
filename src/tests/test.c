@@ -1,43 +1,7 @@
 #include "munit/munit.h"
-
 #include <stdlib.h>
 
-// float.h for FLT_MAX
-#include <float.h>
-#include <math.h>
-
-#include "stdio.h"
-#include "string.h"
-
-#include "../platform.h"
-#include "../rona.h"
-
-#include "../colour.h"
-#include "../entity.h"
-#include "../game.h"
-#include "../input.h"
-#include "../level.h"
-#include "../level1.h"
-#include "../memory.h"
-#include "../mesh_block.h"
-#include "../mesh_hero.h"
-#include "../mesh_pit.h"
-#include "../mesh_screen.h"
-#include "../renderer.h"
-#include "../rona_math.h"
-
-#include "../colour.c"
-#include "../game.c"
-#include "../input.c"
-#include "../level.c"
-#include "../level1.c"
-#include "../memory.c"
-#include "../mesh_block.c"
-#include "../mesh_hero.c"
-#include "../mesh_pit.c"
-#include "../mesh_screen.c"
-#include "../renderer.c"
-#include "../rona_math.c"
+#include "../unity_build.h"
 
 static MunitResult test_rona_types(const MunitParameter params[], void *user_data) {
   munit_assert(sizeof(f32) == 4);
@@ -74,18 +38,18 @@ static MunitResult test_rona_memory(const MunitParameter params[], void *user_da
   memory_allocator_reset(&ma, &arena);
 
   void *ptr = rona_malloc(&ma, 500);
-  munit_assert(ma.available_1k == NULL);
+  munit_assert(ma.available_one_kilobyte == NULL);
 
   rona_free(&ma, ptr);
 
   // added memory block to available list
-  munit_assert(ma.available_1k != NULL);
+  munit_assert(ma.available_one_kilobyte != NULL);
 
   void *ptr2 = rona_malloc(&ma, 500);
 
   // reusing previous memory block
   munit_assert(ptr2 == ptr);
-  munit_assert(ma.available_1k == NULL);
+  munit_assert(ma.available_one_kilobyte == NULL);
 
   return MUNIT_OK;
 }
