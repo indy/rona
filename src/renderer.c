@@ -18,12 +18,12 @@
 GLuint create_framebuffer(RonaGl *gl);
 GLuint create_texture(RonaGl *gl, u32 width, u32 height);
 GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height);
-void delete_texture(RonaGl *gl, GLuint texture_id);
-void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
-                                    GLuint depth_texture_id);
-bool is_framebuffer_ok(RonaGl *gl);
-void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
-void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
+void   delete_texture(RonaGl *gl, GLuint texture_id);
+void   attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
+                                      GLuint depth_texture_id);
+bool   is_framebuffer_ok(RonaGl *gl);
+void   update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
+void   bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
 void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
@@ -42,43 +42,29 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   f32 render_texture_width = (f32)render_struct->render_texture_width;
   f32 render_texture_height = (f32)render_struct->render_texture_height;
-  // this is always a 640x360 texture render target
-  f32 aspect_ratio = render_texture_width / render_texture_height;
-  f32 height;
-  f32 width;
-
-  // f32 level_aspect_ratio = (f32)level->width / (f32)level-height;
-  if (aspect_ratio > 1.0) {
-    // the window is wider than it is tall
-    //
-    height = (f32)(level->height + 1);
-    width = height * aspect_ratio;
-  } else {
-    // the window is taller than it is wide
-    width = (f32)(level->width + 1);
-    height = width / aspect_ratio;
-  }
 
   // use the RenderStruct's tile_shader for all tile based entities
   //
   gl->useProgram(render_struct->tile_shader.program);
   gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
-  Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
-  gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
+  Mat4 proj_matrix =
+      mat4_ortho(-10.0, render_texture_width, 0.0, render_texture_height, 10.0f, -10.0f);
+  gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
+                       (GLfloat *)&(proj_matrix.v));
 
   // render level's floor
   //
-  Mesh *mesh = level->mesh_floor;
+  Mesh * mesh = level->mesh_floor;
   Colour ground_colour_fg;
   colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 90.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg,
-                ground_colour_fg.element[0], ground_colour_fg.element[1],
-                ground_colour_fg.element[2], ground_colour_fg.element[3]);
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, ground_colour_fg.element[0],
+                ground_colour_fg.element[1], ground_colour_fg.element[2],
+                ground_colour_fg.element[3]);
   Colour ground_colour_bg;
   colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 260.0f, 80.0f, 50.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg,
-                ground_colour_bg.element[0], ground_colour_bg.element[1],
-                ground_colour_bg.element[2], ground_colour_bg.element[3]);
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, ground_colour_bg.element[0],
+                ground_colour_bg.element[1], ground_colour_bg.element[2],
+                ground_colour_bg.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
@@ -89,7 +75,8 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   // render entities
   //
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, 0.0f, 0.0f, 0.0f, 0.0f); // transparent bg
+  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, 0.0f, 0.0f, 0.0f,
+                0.0f); // transparent bg
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *entity = &(level->entities[i]);
@@ -97,9 +84,10 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
       break;
     }
     Mesh *mesh = entity->mesh;
-    gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, entity->colour.r, entity->colour.g, entity->colour.b,
-                  entity->colour.a);
-    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
+    gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, entity->colour.r, entity->colour.g,
+                  entity->colour.b, entity->colour.a);
+    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
+                  entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
@@ -114,20 +102,23 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   gl->useProgram(render_struct->screen_shader.program);
 
+  f32 aspect_ratio = render_texture_width / render_texture_height;
   f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
 
   if (window_aspect_ratio <= aspect_ratio) {
     // window is narrower than desired
-    f32 v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
-    f32 v_pad = (v - render_texture_height) / 2.0f;
+    f32  v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
+    f32  v_pad = (v - render_texture_height) / 2.0f;
     Mat4 m = mat4_ortho(0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
+    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                         (GLfloat *)&(m.v));
   } else {
     // window is more elongated horizontally than desired
-    f32 h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
-    f32 h_pad = (h - render_texture_width) / 2.0f;
+    f32  h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
+    f32  h_pad = (h - render_texture_width) / 2.0f;
     Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false, (GLfloat *)&(m.v));
+    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                         (GLfloat *)&(m.v));
   }
 
   gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
@@ -141,7 +132,6 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct) {
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
-
 
 #include "../target/tile.vert.c"
   SHADER_AS_STRING(transient, tileVertexSource, tile_vert);
@@ -166,7 +156,8 @@ void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_
   ShaderScreen *screen_shader = &(render_struct->screen_shader);
   screen_shader->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
   screen_shader->uniform_texture = gl->getUniformLocation(screen_shader->program, "screen_texture");
-  screen_shader->uniform_proj_matrix = gl->getUniformLocation(screen_shader->program, "proj_matrix");
+  screen_shader->uniform_proj_matrix =
+      gl->getUniformLocation(screen_shader->program, "proj_matrix");
 
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
@@ -200,8 +191,8 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
 
   // load textures
   gl->genTextures(1, &(render_struct->tileset_texture_id));
-  int tex_width, tex_height, num_channels;
-  char *tileset_filename = "assets/tileset.png";
+  int            tex_width, tex_height, num_channels;
+  char *         tileset_filename = "assets/tileset.png";
   unsigned char *data = stbi_load(tileset_filename, &tex_width, &tex_height, &num_channels, 0);
 
   if (data) {
@@ -230,14 +221,13 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
     return false;
   }
 
-  i32 width = 640 * 2;
-  i32 height = 360 * 2;
-
   // setup render texture
-  render_struct->render_texture_width = width;
-  render_struct->render_texture_height = height;
-  render_struct->render_texture_id = create_texture(gl, width, height);
-  render_struct->depth_texture_id = create_depth_texture(gl, width, height);
+  render_struct->render_texture_width = RENDER_TEXTURE_WIDTH;
+  render_struct->render_texture_height = RENDER_TEXTURE_HEIGHT;
+  render_struct->render_texture_id =
+      create_texture(gl, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
+  render_struct->depth_texture_id =
+      create_depth_texture(gl, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
   render_struct->framebuffer_id = create_framebuffer(gl);
 
   attach_textures_to_framebuffer(gl, render_struct->framebuffer_id,
@@ -247,7 +237,7 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
     return false;
   }
   gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
-  gl->viewport(0, 0, width, height);
+  gl->viewport(0, 0, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
 
   RONA_OUT("Running modern opengl\n");
 
@@ -263,7 +253,7 @@ GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
   gl->compileShader(shaderId);
 
   char info[1024 * 10];
-  int i = 0;
+  int  i = 0;
   for (i = 0; i < 1024 * 10; i++) {
     info[i] = 0;
   }
@@ -294,7 +284,7 @@ GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *f
   gl->validateProgram(programId);
 
   char info[1024 * 10];
-  int i = 0;
+  int  i = 0;
   for (i = 0; i < 1024 * 10; i++) {
     info[i] = 0;
   }

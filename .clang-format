@@ -3,4 +3,6 @@ Language:        Cpp
 BasedOnStyle:  LLVM
 ColumnLimit:     100
 UseTab:          Never
+AlignConsecutiveDeclarations: true
+AlignOperands: true
 ...

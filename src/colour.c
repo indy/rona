@@ -23,7 +23,7 @@
 
 typedef struct Colour64 {
   ColourFormat format;
-  f64 element[4];
+  f64          element[4];
 } Colour64;
 
 const f64 ref_u = 0.19783000664283680764;
@@ -463,9 +463,9 @@ f64 ray_length_until_intersect(f64 theta, const Bounds *line) {
 }
 
 f64 max_safe_chroma_for_l(f64 l) {
-  f64 min_len = FLT_MAX;
+  f64    min_len = FLT_MAX;
   Bounds bounds[6];
-  int i;
+  int    i;
 
   get_bounds(l, bounds);
   for (i = 0; i < 6; i++) {
@@ -488,10 +488,10 @@ f64 max_safe_chroma_for_l(f64 l) {
 }
 
 f64 max_chroma_for_lh(f64 l, f64 h) {
-  f64 min_len = FLT_MAX;
-  f64 hrad = h * 0.01745329251994329577; /* (2 * pi / 260) */
+  f64    min_len = FLT_MAX;
+  f64    hrad = h * 0.01745329251994329577; /* (2 * pi / 260) */
   Bounds bounds[6];
-  int i;
+  int    i;
 
   get_bounds(l, bounds);
   for (i = 0; i < 6; i++) {

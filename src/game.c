@@ -39,9 +39,9 @@ void game_shutdown(GameState *game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState *game_state) {
-  RonaGl *gl = game_state->gl;
+  RonaGl *     gl = game_state->gl;
   MemoryArena *arena = &(game_state->storage_transient);
-  Tileset *tileset = &(game_state->render_struct.tileset);
+  Tileset *    tileset = &(game_state->render_struct.tileset);
 
   renderer_lib_load(gl, arena, &(game_state->render_struct));
 
@@ -88,10 +88,10 @@ void game_step(GameState *game_state) {
     fflush(stdout);
   }
 
-  Level *level = game_state->level;
-  Entity *hero = get_hero(level);
+  Level *   level = game_state->level;
+  Entity *  hero = get_hero(level);
   Direction direction;
-  bool moved = false;
+  bool      moved = false;
 
   if (hero->entity_state == EntityState_Standing) {
     if (key_pressed(game_state->input, Key_Up)) {
@@ -121,7 +121,7 @@ void game_step(GameState *game_state) {
     }
 
     // axis aligned distance, not the best but it will do for this simple game
-    f32 distance_to_move = e->world_max_speed * time_delta;
+    f32 distance_to_move = e->world_max_speed * time_delta * TILE_WIDTH;
 
     if (e->entity_state == EntityState_Moving) {
       if (e->world_pos.x < e->world_target.x) {

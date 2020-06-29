@@ -15,7 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, TilesetSprite tile_sprite) {
+void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
+                               TilesetSprite tile_sprite) {
 
   mesh->num_elements = 6;
   mesh->shader_type = ShaderType_Tile;
@@ -24,19 +25,20 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, Tileset
   gl->bindVertexArray(mesh->vao);
 
   Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
-  f32 u = sprite.u;
-  f32 v = sprite.v;
-  f32 ud = tileset->uv_unit.u;
-  f32 vd = tileset->uv_unit.v;
+  f32  u = sprite.u;
+  f32  v = sprite.v;
+  f32  ud = tileset->uv_unit.u;
+  f32  vd = tileset->uv_unit.v;
 
   // clang-format off
-  f32 half_dim = 0.5f;
+  f32 half_dim_x = TILE_WIDTH * 0.5f;
+  f32 half_dim_y = TILE_HEIGHT * 0.5f;
   f32 vertices[] = {
-    //    positions              uv
-    -half_dim,  half_dim,     u,    v,
-    -half_dim, -half_dim,     u,    v+vd,
-     half_dim, -half_dim,     u+ud, v+vd,
-     half_dim,  half_dim,     u+ud, v
+    //      positions                uv
+    -half_dim_x,  half_dim_y,     u,    v,
+    -half_dim_x, -half_dim_y,     u,    v+vd,
+     half_dim_x, -half_dim_y,     u+ud, v+vd,
+     half_dim_x,  half_dim_y,     u+ud, v
   };
   u32 indices[] = {
     0, 1, 2,

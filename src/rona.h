@@ -24,17 +24,17 @@
 #ifndef __cplusplus
 typedef _Bool bool;
 #endif
-typedef float f32;
-typedef double f64;
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef signed short i16;
-typedef unsigned int u32;
-typedef signed int i32;
+typedef float              f32;
+typedef double             f64;
+typedef unsigned char      u8;
+typedef unsigned short     u16;
+typedef signed short       i16;
+typedef unsigned int       u32;
+typedef signed int         i32;
 typedef unsigned long long u64;
 
 typedef unsigned char byte;
-typedef unsigned int usize;
+typedef unsigned int  usize;
 
 typedef struct {
   union {
@@ -166,13 +166,13 @@ typedef struct Mat4 {
 
 typedef struct {
   void *base;
-  u64 size;
-  u64 used;
+  u64   size;
+  u64   used;
 } MemoryArena;
 
 typedef struct MemoryBlock {
-  usize bytes_allocated;
-  usize bytes_requested;
+  usize               bytes_allocated;
+  usize               bytes_requested;
   struct MemoryBlock *next;
 } MemoryBlock;
 
@@ -186,10 +186,7 @@ typedef struct {
   MemoryBlock *available_large;
 } MemoryAllocator;
 
-typedef enum {
-  ShaderType_Tile,
-  ShaderType_Screen
-} ShaderType;
+typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
 
 typedef struct {
   GLuint program;
@@ -204,13 +201,13 @@ typedef struct {
 
 typedef struct {
   GLuint program;
-  int uniform_texture;
-  int uniform_proj_matrix;
+  int    uniform_texture;
+  int    uniform_proj_matrix;
 } ShaderScreen;
 
 typedef struct {
   ShaderType shader_type;
-  GLuint vao;
+  GLuint     vao;
 
   i32 num_elements; // used in by gl->drawElements
 } Mesh;
@@ -220,7 +217,7 @@ typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;
 typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
 
 typedef struct Entity {
-  EntityType entity_type;
+  EntityType  entity_type;
   EntityState entity_state;
 
   // when looping through entities in a level stop at the first one that doesn't exist
@@ -228,13 +225,13 @@ typedef struct Entity {
   bool exists;
 
   Mesh *mesh;
-  Vec4 colour;
+  Vec4  colour;
 
   Vec2i board_pos;
 
   Vec3 world_pos;
   Vec3 world_target;
-  f32 world_max_speed;
+  f32  world_max_speed;
 } Entity;
 
 typedef enum { Direction_North, Direction_South, Direction_East, Direction_West } Direction;
@@ -248,11 +245,11 @@ typedef struct {
 typedef struct {
   MemoryArena mem;
 
-  i32 max_num_entities;
+  i32     max_num_entities;
   Entity *entities;
 
-  i32 width;
-  i32 height;
+  i32   width;
+  i32   height;
   Tile *tiles;
   Mesh *mesh_floor;
 
@@ -267,6 +264,13 @@ typedef struct {
   Vec2 uv_unit; // size of each sprite in u,v normalized co-ordinates
 } Tileset;
 
+#define RENDER_TEXTURE_WIDTH 640
+#define RENDER_TEXTURE_HEIGHT 360
+#define TILE_WIDTH 16.0
+#define TILE_HEIGHT 16.0
+#define HALF_TILE_WIDTH 8.0
+#define HALF_TILE_HEIGHT 8.0
+
 typedef struct {
   i32 window_width;
   i32 window_height;
@@ -276,7 +280,7 @@ typedef struct {
 
   Tileset tileset;
 
-  ShaderTile tile_shader;
+  ShaderTile   tile_shader;
   ShaderScreen screen_shader;
 
   GLuint tileset_texture_id;
@@ -312,7 +316,7 @@ typedef struct {
 
   Level *level;
 
-  RonaGl *gl;
+  RonaGl *   gl;
   RonaInput *input;
 } GameState;
 

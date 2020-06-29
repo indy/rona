@@ -39,7 +39,7 @@ typedef enum {
 
 typedef struct {
   ColourFormat format;
-  f32 element[4];
+  f32          element[4];
 } Colour;
 
 void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);

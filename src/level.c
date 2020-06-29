@@ -58,6 +58,11 @@ Vec2i vec2i_add_direction(Vec2i *pos, Direction direction) {
   return res;
 }
 
+void world_from_board(Vec3 *dst, i32 x, i32 y, f32 z) {
+  vec3_set(dst, ((f32)x * TILE_WIDTH) + HALF_TILE_WIDTH, ((f32)y * TILE_HEIGHT) + HALF_TILE_HEIGHT,
+           z);
+}
+
 bool try_moving_block(Level *level, Entity *block, Direction direction) {
   Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
 
@@ -102,8 +107,8 @@ bool try_moving_block(Level *level, Entity *block, Direction direction) {
   }
 
   vec2i_set(&block->board_pos, new_pos.x, new_pos.y);
-  vec3_set(&block->world_target, (f32)block->board_pos.x, (f32)block->board_pos.y,
-           block->world_target.z);
+  world_from_board(&block->world_target, block->board_pos.x, block->board_pos.y,
+                   block->world_target.z);
 
   block->entity_state = EntityState_Moving;
 
@@ -129,8 +134,8 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
   Entity *occupants[MAX_OCCUPANTS_ALLOWED];
   i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
-    bool is_occupier_block = false;
-    bool is_occupier_pit = false;
+    bool    is_occupier_block = false;
+    bool    is_occupier_pit = false;
     Entity *block;
     for (i32 i = 0; i < num_occupants; i++) {
       if (occupants[i]->entity_type == EntityType_Block) {
@@ -159,8 +164,7 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
   }
 
   vec2i_set(&hero->board_pos, new_pos.x, new_pos.y);
-  vec3_set(&hero->world_target, (f32)hero->board_pos.x, (f32)hero->board_pos.y,
-           hero->world_target.z);
+  world_from_board(&hero->world_target, hero->board_pos.x, hero->board_pos.y, hero->world_target.z);
 
   hero->entity_state = EntityState_Moving;
 
@@ -170,8 +174,8 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
 // place an entity at the given board positions
 void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
   vec2i_set(&entity->board_pos, board_pos_x, board_pos_y);
-  vec3_set(&entity->world_pos, (f32)board_pos_x, (f32)board_pos_y, z);
-  vec3_set(&entity->world_target, (f32)board_pos_x, (f32)board_pos_y, z);
+  world_from_board(&entity->world_pos, board_pos_x, board_pos_y, z);
+  world_from_board(&entity->world_target, board_pos_x, board_pos_y, z);
 }
 
 void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
@@ -189,7 +193,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   }
 
   bool have_hero = false;
-  i32 next_non_hero_entity_index = 1;
+  i32  next_non_hero_entity_index = 1;
 
   level->mesh_floor = (Mesh *)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
 
@@ -269,12 +273,13 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   gl->bindVertexArray(mesh->vao);
 
   Vec2 sprite = tileset_get_uv(tileset, TS_Debug4Corners);
-  f32 u = sprite.u;
-  f32 v = sprite.v;
-  f32 ud = tileset->uv_unit.u;
-  f32 vd = tileset->uv_unit.v;
+  f32  u = sprite.u;
+  f32  v = sprite.v;
+  f32  ud = tileset->uv_unit.u;
+  f32  vd = tileset->uv_unit.v;
 
-  f32 half_dim = 0.5f;
+  f32 half_dim_x = TILE_WIDTH * 0.5f;
+  f32 half_dim_y = TILE_HEIGHT * 0.5f;
 
   // count the number of floor tiles to generate
   //
@@ -288,8 +293,8 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   mesh->num_elements = 6 * num_floor_tiles;
   i32 num_vert_elements = (4 * (2 + 2)) * num_floor_tiles;
 
-  u32 sizeof_vertices = sizeof(f32) * num_vert_elements;
-  u32 sizeof_indices = sizeof(u32) * mesh->num_elements;
+  u32  sizeof_vertices = sizeof(f32) * num_vert_elements;
+  u32  sizeof_indices = sizeof(u32) * mesh->num_elements;
   f32 *vertices = (f32 *)ARENA_ALLOC(transient, sizeof_vertices);
   u32 *indices = (u32 *)ARENA_ALLOC(transient, sizeof_indices);
 
@@ -303,26 +308,26 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
         i32 e_index = tile_count * 16;
         e = &vertices[e_index];
 
-        *e++ = -half_dim + (f32)i;
-        *e++ = half_dim + (f32)j;
+        *e++ = -half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
+        *e++ = half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u;
         *e++ = v;
 
-        *e++ = -half_dim + (f32)i;
-        *e++ = -half_dim + (f32)j;
+        *e++ = -half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
+        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u;
         *e++ = v + vd;
 
-        *e++ = half_dim + (f32)i;
-        *e++ = -half_dim + (f32)j;
+        *e++ = half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
+        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u + ud;
         *e++ = v + vd;
 
-        *e++ = half_dim + (f32)i;
-        *e++ = half_dim + (f32)j;
+        *e++ = half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
+        *e++ = half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u + ud;
         *e++ = v;

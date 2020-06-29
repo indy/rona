@@ -143,7 +143,7 @@ f32 vec2_length(Vec2 a) { return SQRTF(vec2_length_squared(a)); }
 
 Vec2 vec2_normalize(Vec2 a) {
   Vec2 res = vec2(0.0f, 0.0f);
-  f32 len = vec2_length(a);
+  f32  len = vec2_length(a);
   if (len != 0.0f) {
     res.x = a.x / len;
     res.y = a.y / len;
@@ -229,7 +229,7 @@ f32 vec3_length(Vec3 a) { return SQRTF(vec3_length_squared(a)); }
 
 Vec3 vec3_normalize(Vec3 a) {
   Vec3 res = vec3(0.0f, 0.0f, 0.0f);
-  f32 len = vec3_length(a);
+  f32  len = vec3_length(a);
   if (len != 0.0f) {
     res.x = a.x / len;
     res.y = a.y / len;
@@ -322,7 +322,7 @@ f32 vec4_length(Vec4 a) { return SQRTF(vec4_length_squared(a)); }
 
 Vec4 vec4_normalize(Vec4 a) {
   Vec4 res = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  f32 len = vec4_length(a);
+  f32  len = vec4_length(a);
   if (len != 0.0f) {
     res.x = a.x / len;
     res.y = a.y / len;
@@ -355,9 +355,9 @@ Mat4 mat4_identity() {
 
 Mat4 mat4_ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
   Mat4 m;
-  f32 lr = 1.0f / (left - right);
-  f32 bt = 1.0f / (bottom - top);
-  f32 nf = 1.0f / (near - far);
+  f32  lr = 1.0f / (left - right);
+  f32  bt = 1.0f / (bottom - top);
+  f32  nf = 1.0f / (near - far);
 
   m.v[0] = -2.0f * lr;
   m.v[1] = 0.0f;
@@ -380,7 +380,7 @@ Mat4 mat4_ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
 }
 
 Mat4 mat4_perspective(f32 fov, f32 aspect_ratio, f32 near, f32 far) {
-  Mat4 m;
+  Mat4  m;
   float cotangent = 1.0f / TANF(fov * (PI32 / 360.0f));
 
   m.v[0] = cotangent * aspect_ratio;

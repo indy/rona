@@ -39,21 +39,21 @@
 #define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
 #define RONA_OUT(f_) fprintf(stdout, (f_))
 
-typedef unsigned int GLenum;
-typedef unsigned char GLboolean;
-typedef unsigned int GLbitfield;
-typedef void GLvoid;
-typedef signed char GLbyte;      /* 1-byte signed */
-typedef short GLshort;           /* 2-byte signed */
-typedef int GLint;               /* 4-byte signed */
-typedef unsigned char GLubyte;   /* 1-byte unsigned */
+typedef unsigned int   GLenum;
+typedef unsigned char  GLboolean;
+typedef unsigned int   GLbitfield;
+typedef void           GLvoid;
+typedef signed char    GLbyte;   /* 1-byte signed */
+typedef short          GLshort;  /* 2-byte signed */
+typedef int            GLint;    /* 4-byte signed */
+typedef unsigned char  GLubyte;  /* 1-byte unsigned */
 typedef unsigned short GLushort; /* 2-byte unsigned */
-typedef unsigned int GLuint;     /* 4-byte unsigned */
-typedef int GLsizei;             /* 4-byte signed */
-typedef float GLfloat;           /* single precision float */
-typedef float GLclampf;          /* single precision float in [0,1] */
-typedef double GLdouble;         /* double precision float */
-typedef double GLclampd;         /* double precision float in [0,1] */
+typedef unsigned int   GLuint;   /* 4-byte unsigned */
+typedef int            GLsizei;  /* 4-byte signed */
+typedef float          GLfloat;  /* single precision float */
+typedef float          GLclampf; /* single precision float in [0,1] */
+typedef double         GLdouble; /* double precision float */
+typedef double         GLclampd; /* double precision float in [0,1] */
 
 #define GL_VENDOR 0x1F00
 #define GL_RENDERER 0x1F01
@@ -864,9 +864,9 @@ typedef double GLclampd;         /* double precision float in [0,1] */
 // #include <stddef.h>
 // typedef ptrdiff_t GLsizeiptr;
 // typedef ptrdiff_t GLintptr;
-typedef long int GLsizeiptr;
-typedef long int GLintptr;
-typedef char GLchar;
+typedef long int     GLsizeiptr;
+typedef long int     GLintptr;
+typedef char         GLchar;
 typedef unsigned int GLhandle;
 
 #ifndef GL_CONTEXT_PROFILE_MASK
@@ -1082,65 +1082,65 @@ typedef enum RonaKey {
 typedef struct {
   PFNGLGETUNIFORMLOCATIONPROC getUniformLocation;
 
-  PFNGLUNIFORM1IPROC uniform1i;
-  PFNGLUNIFORM2FPROC uniform2f;
-  PFNGLUNIFORM3FPROC uniform3f;
-  PFNGLUNIFORM4FPROC uniform4f;
+  PFNGLUNIFORM1IPROC        uniform1i;
+  PFNGLUNIFORM2FPROC        uniform2f;
+  PFNGLUNIFORM3FPROC        uniform3f;
+  PFNGLUNIFORM4FPROC        uniform4f;
   PFNGLUNIFORMMATRIX4FVPROC uniformMatrix4fv;
 
-  PFNGLENABLEPROC enable;
-  PFNGLDISABLEPROC disable;
-  PFNGLCLEARPROC clear;
-  PFNGLVIEWPORTPROC viewport;
-  PFNGLDRAWARRAYSPROC drawArrays;
+  PFNGLENABLEPROC       enable;
+  PFNGLDISABLEPROC      disable;
+  PFNGLCLEARPROC        clear;
+  PFNGLVIEWPORTPROC     viewport;
+  PFNGLDRAWARRAYSPROC   drawArrays;
   PFNGLDRAWELEMENTSPROC drawElements;
-  PFNGLCLEARCOLORPROC clearColor;
-  PFNGLGETINTEGERVPROC getIntegerv;
-  PFNGLGETSTRINGPROC getString;
+  PFNGLCLEARCOLORPROC   clearColor;
+  PFNGLGETINTEGERVPROC  getIntegerv;
+  PFNGLGETSTRINGPROC    getString;
 
   PFNGLBLENDEQUATIONPROC blendEquation;
-  PFNGLBLENDFUNCPROC blendFunc;
+  PFNGLBLENDFUNCPROC     blendFunc;
 
-  PFNGLACTIVETEXTUREPROC activeTexture;
+  PFNGLACTIVETEXTUREPROC  activeTexture;
   PFNGLDELETETEXTURESPROC deleteTextures;
-  PFNGLGENTEXTURESPROC genTextures;
+  PFNGLGENTEXTURESPROC    genTextures;
   // PFNGLCREATETEXTUREPROC createTexture;
-  PFNGLBINDTEXTUREPROC bindTexture;
-  PFNGLTEXIMAGE2DPROC texImage2D;
-  PFNGLTEXPARAMETERIPROC texParameteri;
+  PFNGLBINDTEXTUREPROC     bindTexture;
+  PFNGLTEXIMAGE2DPROC      texImage2D;
+  PFNGLTEXPARAMETERIPROC   texParameteri;
   PFNGLGENFRAMEBUFFERSPROC genFramebuffers;
   ;
   // PFNGLCREATEFRAMEBUFFERPROC createFramebuffer;
-  PFNGLBINDFRAMEBUFFERPROC bindFramebuffer;
-  PFNGLFRAMEBUFFERTEXTURE2DPROC framebufferTexture2D;
+  PFNGLBINDFRAMEBUFFERPROC        bindFramebuffer;
+  PFNGLFRAMEBUFFERTEXTURE2DPROC   framebufferTexture2D;
   PFNGLCHECKFRAMEBUFFERSTATUSPROC checkFramebufferStatus;
 
-  PFNGLCREATESHADERPROC createShader;
-  PFNGLSHADERSOURCEPROC shaderSource;
-  PFNGLCOMPILESHADERPROC compileShader;
-  PFNGLGETSHADERIVPROC getShaderiv;
-  PFNGLATTACHSHADERPROC attachShader;
-  PFNGLCREATEPROGRAMPROC createProgram;
-  PFNGLGETSHADERINFOLOGPROC getShaderInfoLog;
-  PFNGLLINKPROGRAMPROC linkProgram;
-  PFNGLVALIDATEPROGRAMPROC validateProgram;
-  PFNGLGETPROGRAMIVPROC getProgramiv;
-  PFNGLGETPROGRAMINFOLOGPROC getProgramInfoLog;
-  PFNGLDELETESHADERPROC deleteShader;
-  PFNGLUSEPROGRAMPROC useProgram;
-  PFNGLGENVERTEXARRAYSPROC genVertexArrays;
-  PFNGLBINDVERTEXARRAYPROC bindVertexArray;
-  PFNGLGENBUFFERSPROC genBuffers;
-  PFNGLBINDBUFFERPROC bindBuffer;
-  PFNGLBUFFERDATAPROC bufferData;
-  PFNGLENABLEVERTEXATTRIBARRAYPROC enableVertexAttribArray;
+  PFNGLCREATESHADERPROC             createShader;
+  PFNGLSHADERSOURCEPROC             shaderSource;
+  PFNGLCOMPILESHADERPROC            compileShader;
+  PFNGLGETSHADERIVPROC              getShaderiv;
+  PFNGLATTACHSHADERPROC             attachShader;
+  PFNGLCREATEPROGRAMPROC            createProgram;
+  PFNGLGETSHADERINFOLOGPROC         getShaderInfoLog;
+  PFNGLLINKPROGRAMPROC              linkProgram;
+  PFNGLVALIDATEPROGRAMPROC          validateProgram;
+  PFNGLGETPROGRAMIVPROC             getProgramiv;
+  PFNGLGETPROGRAMINFOLOGPROC        getProgramInfoLog;
+  PFNGLDELETESHADERPROC             deleteShader;
+  PFNGLUSEPROGRAMPROC               useProgram;
+  PFNGLGENVERTEXARRAYSPROC          genVertexArrays;
+  PFNGLBINDVERTEXARRAYPROC          bindVertexArray;
+  PFNGLGENBUFFERSPROC               genBuffers;
+  PFNGLBINDBUFFERPROC               bindBuffer;
+  PFNGLBUFFERDATAPROC               bufferData;
+  PFNGLENABLEVERTEXATTRIBARRAYPROC  enableVertexAttribArray;
   PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
-  PFNGLVERTEXATTRIBPOINTERPROC vertexAttribPointer;
-  PFNGLDELETEVERTEXARRAYSPROC deleteVertexArrays;
+  PFNGLVERTEXATTRIBPOINTERPROC      vertexAttribPointer;
+  PFNGLDELETEVERTEXARRAYSPROC       deleteVertexArrays;
 } RonaGl;
 
 typedef struct {
-  int idx;
+  int             idx;
   RonaButtonState key[2][NumRonaKeys];
 } RonaInput;
 

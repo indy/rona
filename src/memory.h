@@ -34,9 +34,9 @@ void *arena_alloc(MemoryArena *ma, usize bytes);
   new_arena.size = game_state->storage_transient.size - game_state->storage_transient.used;        \
   new_arena.used = 0;
 
-void memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena);
+void  memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena);
 void *rona_malloc(MemoryAllocator *ma, usize bytes);
-void rona_free(MemoryAllocator *ma, void *mem);
+void  rona_free(MemoryAllocator *ma, void *mem);
 void *rona_realloc(MemoryAllocator *ma, void *mem, usize bytes);
 
 #endif /* MEMORY_H */

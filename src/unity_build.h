@@ -23,6 +23,7 @@
 #include "rona.h"
 
 #include "tileset.h"
+
 #include "colour.h"
 #include "entity.h"
 #include "game.h"
@@ -34,8 +35,6 @@
 #include "mesh_screen.h"
 #include "renderer.h"
 #include "rona_math.h"
-
-
 
 static GameState *g_game_state = 0;
 
@@ -145,6 +144,7 @@ void stb_rona_transient_free(void *mem) {
 #include "stb_image.h"
 
 #include "tileset.c"
+
 #include "colour.c"
 #include "game.c"
 #include "input.c"
