@@ -21,7 +21,7 @@
 bool renderer_startup(RonaGl *gl, RenderStruct *render_struct);
 void renderer_shutdown(RonaGl *gl);
 
-void renderer_lib_load(RonaGl *gl);
+void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct);
 void renderer_lib_unload(RonaGl *gl);
 
 void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen);

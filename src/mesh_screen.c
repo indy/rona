@@ -17,6 +17,10 @@
 
 void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient,
                           RenderStruct *render_struct) {
+
+  mesh->num_elements = 6;
+  mesh->mesh_type = MeshType_Screen;
+
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
@@ -43,8 +47,6 @@ void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient,
     0, 2, 3
   };
   // clang-format on
-
-  mesh->num_elements = 6;
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //

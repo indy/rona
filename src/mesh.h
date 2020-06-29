@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef MESH_PIT_H
-#define MESH_PIT_H
+#ifndef MESH_H
+#define MESH_H
 
-// void mesh_pit_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix);
-void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *tileset);
-void mesh_pit_lib_unload(Mesh *mesh, RonaGl *gl);
+// void mesh_hero_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix);
+void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, TilesetSprite tile_sprite);
+void mesh_lib_unload(Mesh *mesh, RonaGl *gl);
 
-#endif /* MESH_PIT_H */
+#endif /* MESH_H */

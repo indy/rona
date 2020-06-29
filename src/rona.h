@@ -186,7 +186,10 @@ typedef struct {
   MemoryBlock *available_large;
 } MemoryAllocator;
 
-typedef enum { MeshType_Hero } MeshType;
+typedef enum {
+  MeshType_Tile,
+  MeshType_Screen
+} MeshType;
 
 // typedef struct {
 //   union {
@@ -202,9 +205,9 @@ typedef struct {
 
   // commonly used uniforms
   int uniform_texture;
-  int uniform_colour;
+  //int uniform_colour;
   int uniform_proj_matrix;
-  int uniform_pos;
+  //int uniform_pos;
 
   // MeshUniform uniform;                         // discriminated union
 
@@ -271,6 +274,13 @@ typedef struct {
   i32 render_texture_height;
 
   Tileset tileset;
+
+  GLuint tile_shader_program;
+  int tile_uniform_texture;
+  int tile_uniform_colour;
+  int tile_uniform_proj_matrix;
+  int tile_uniform_pos;
+
 
   GLuint tileset_texture_id;
   GLuint render_texture_id;

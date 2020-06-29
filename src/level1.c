@@ -24,17 +24,17 @@
   |   U    | Pit         |
 */
 void level1_startup(Level *level, GameState *game_state) {
-  // // clang-format off
-  // char layout[5][14] = {
-  //   ". . . . . .   ",
-  //   ". . .   U .   ",
-  //   ". . .   . .   ",
-  //   ". H . B B . . ",
-  //   ". . . . . . . "
-  // };
-  // // clang-format on
+// // clang-format off
+// char layout[5][14] = {
+//   ". . . . . .   ",
+//   ". . .   U .   ",
+//   ". . .   . .   ",
+//   ". H . B B . . ",
+//   ". . . . . . . "
+// };
+// // clang-format on
 
-  // clang-format off
+// clang-format off
 
   // declare as: layout[height][width*2]
   #define L1_WIDTH 7

@@ -59,59 +59,46 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     height = width / aspect_ratio;
   }
 
-  GLuint current_shader = 0;
+  // use the RenderStruct's tile_shader_program for all tile based entities
+  //
+  gl->useProgram(render_struct->tile_shader_program);
+  gl->uniform1i(render_struct->tile_uniform_texture, 1);
+  Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
+  gl->uniformMatrix4fv(render_struct->tile_uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
 
   // render level's floor
-
+  //
   Mesh *mesh = level->mesh_floor;
-  if (current_shader != mesh->shader_program) {
-    gl->useProgram(mesh->shader_program);
-
-    gl->uniform1i(mesh->uniform_texture, 1);
-
-    Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
-  }
-
   Colour ground_colour;
   colour_from(&ground_colour, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 70.0f, 1.0f);
-  gl->uniform4f(mesh->uniform_colour, ground_colour.element[0], ground_colour.element[1],
+  gl->uniform4f(render_struct->tile_uniform_colour, ground_colour.element[0], ground_colour.element[1],
                 ground_colour.element[2], ground_colour.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
-  gl->uniform3f(mesh->uniform_pos, world_pos_x, world_pos_y, 2.0f);
+  gl->uniform3f(render_struct->tile_uniform_pos, world_pos_x, world_pos_y, 2.0f);
 
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
 
   // render entities
-
+  //
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {
       break;
     }
     Mesh *mesh = entity->mesh;
-    if (current_shader != mesh->shader_program) {
-      gl->useProgram(mesh->shader_program);
-
-      gl->uniform1i(mesh->uniform_texture, 1);
-
-      Mat4 proj_matrix = mat4_ortho(-1.0, width, -1.0, height, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(mesh->uniform_proj_matrix, 1, false, (GLfloat *)&(proj_matrix.v));
-    }
-
-    gl->uniform4f(mesh->uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
+    gl->uniform4f(render_struct->tile_uniform_colour, entity->colour.r, entity->colour.g, entity->colour.b,
                   entity->colour.a);
-    gl->uniform3f(mesh->uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
+    gl->uniform3f(render_struct->tile_uniform_pos, entity->world_pos.x, entity->world_pos.y, entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
   }
 
   // render texture to screen
-
+  //
   bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
 
   gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -143,9 +130,22 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
 }
 
-void renderer_lib_load(RonaGl *gl) {
+void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct) {
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
+
+
+#include "../target/shader.vert.c"
+  SHADER_AS_STRING(transient, vertexSource, shader_vert);
+
+#include "../target/shader.frag.c"
+  SHADER_AS_STRING(transient, fragmentSource, shader_frag);
+
+  render_struct->tile_shader_program = create_shader_program(gl, vertexSource, fragmentSource);
+  render_struct->tile_uniform_texture = gl->getUniformLocation(render_struct->tile_shader_program, "ourTexture");
+  render_struct->tile_uniform_colour = gl->getUniformLocation(render_struct->tile_shader_program, "colour");
+  render_struct->tile_uniform_proj_matrix = gl->getUniformLocation(render_struct->tile_shader_program, "proj_matrix");
+  render_struct->tile_uniform_pos = gl->getUniformLocation(render_struct->tile_shader_program, "pos");
 
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
@@ -189,8 +189,8 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
 
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                    data);

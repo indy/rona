@@ -43,10 +43,11 @@ void game_lib_load(GameState *game_state) {
   MemoryArena *arena = &(game_state->storage_transient);
   Tileset *tileset = &(game_state->render_struct.tileset);
 
-  renderer_lib_load(gl);
-  mesh_pit_lib_load(game_state->mesh_pit, gl, arena, tileset);
-  mesh_block_lib_load(game_state->mesh_block, gl, arena, tileset);
-  mesh_hero_lib_load(game_state->mesh_hero, gl, arena, tileset);
+  renderer_lib_load(gl, arena, &(game_state->render_struct));
+
+  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated);
+  mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block);
+  mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero);
   mesh_screen_lib_load(game_state->mesh_screen, gl, arena, &(game_state->render_struct));
   level1_lib_load(game_state->level, gl, arena, tileset);
 }
@@ -55,9 +56,9 @@ void game_lib_load(GameState *game_state) {
 void game_lib_unload(GameState *game_state) {
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
-  mesh_hero_lib_unload(game_state->mesh_hero, game_state->gl);
-  mesh_block_lib_unload(game_state->mesh_block, game_state->gl);
-  mesh_pit_lib_unload(game_state->mesh_pit, game_state->gl);
+  mesh_lib_unload(game_state->mesh_hero, game_state->gl);
+  mesh_lib_unload(game_state->mesh_block, game_state->gl);
+  mesh_lib_unload(game_state->mesh_pit, game_state->gl);
   renderer_lib_unload(game_state->gl);
 }
 

@@ -266,20 +266,11 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-#include "../target/shader.vert.c"
-  SHADER_AS_STRING(transient, vertexSource, shader_vert);
-
-#include "../target/shader.frag.c"
-  SHADER_AS_STRING(transient, fragmentSource, shader_frag);
-
-  mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
-
   Vec2 sprite = tileset_get_uv(tileset, TS_Debug4Corners);
   f32 u = sprite.u;
   f32 v = sprite.v;
   f32 ud = tileset->uv_unit.u;
   f32 vd = tileset->uv_unit.v;
-
 
   f32 half_dim = 0.48f;
 
@@ -382,13 +373,6 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof_indices, indices, GL_STATIC_DRAW);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  gl->useProgram(mesh->shader_program);
-
-  mesh->uniform_texture = gl->getUniformLocation(mesh->shader_program, "ourTexture");
-  mesh->uniform_colour = gl->getUniformLocation(mesh->shader_program, "colour");
-  mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
-  mesh->uniform_pos = gl->getUniformLocation(mesh->shader_program, "pos");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);

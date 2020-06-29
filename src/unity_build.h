@@ -22,6 +22,7 @@
 #include "platform.h"
 #include "rona.h"
 
+#include "tileset.h"
 #include "colour.h"
 #include "entity.h"
 #include "game.h"
@@ -29,14 +30,12 @@
 #include "level.h"
 #include "level1.h"
 #include "memory.h"
-#include "mesh_block.h"
-#include "mesh_hero.h"
-#include "mesh_pit.h"
+#include "mesh.h"
 #include "mesh_screen.h"
 #include "renderer.h"
 #include "rona_math.h"
 
-#include "tileset.h"
+
 
 static GameState *g_game_state = 0;
 
@@ -145,16 +144,14 @@ void stb_rona_transient_free(void *mem) {
 #define STBI_FREE(X) RONA_TRANSIENT_FREE(X)
 #include "stb_image.h"
 
+#include "tileset.c"
 #include "colour.c"
 #include "game.c"
 #include "input.c"
 #include "level.c"
 #include "level1.c"
 #include "memory.c"
-#include "mesh_block.c"
-#include "mesh_hero.c"
-#include "mesh_pit.c"
+#include "mesh.c"
 #include "mesh_screen.c"
 #include "renderer.c"
 #include "rona_math.c"
-#include "tileset.c"

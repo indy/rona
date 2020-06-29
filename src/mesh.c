@@ -15,26 +15,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *tileset) {
+void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, TilesetSprite tile_sprite) {
+
+  mesh->num_elements = 6;
+  mesh->mesh_type = MeshType_Tile;
+
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-#include "../target/shader.vert.c"
-  SHADER_AS_STRING(transient, vertexSource, shader_vert);
-
-#include "../target/shader.frag.c"
-  SHADER_AS_STRING(transient, fragmentSource, shader_frag);
-
-  mesh->shader_program = create_shader_program(gl, vertexSource, fragmentSource);
-
-  Vec2 sprite = tileset_get_uv(tileset, TS_PressurePadActivated);
+  Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
   f32 u = sprite.u;
   f32 v = sprite.v;
   f32 ud = tileset->uv_unit.u;
   f32 vd = tileset->uv_unit.v;
 
   // clang-format off
-  f32 half_dim = 0.43f;
+  f32 half_dim = 0.35f;
   f32 vertices[] = {
     // positions                     colours                uv
     -half_dim,  half_dim,     1.0f, 1.0f, 1.0f, 1.0f,   u,    v,
@@ -48,7 +44,7 @@ void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *
   };
   // clang-format on
 
-  mesh->num_elements = 6;
+
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
@@ -64,13 +60,6 @@ void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  gl->useProgram(mesh->shader_program);
-
-  mesh->uniform_texture = gl->getUniformLocation(mesh->shader_program, "ourTexture");
-  mesh->uniform_colour = gl->getUniformLocation(mesh->shader_program, "colour");
-  mesh->uniform_proj_matrix = gl->getUniformLocation(mesh->shader_program, "proj_matrix");
-  mesh->uniform_pos = gl->getUniformLocation(mesh->shader_program, "pos");
 
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
@@ -89,4 +78,4 @@ void mesh_pit_lib_load(Mesh *mesh, RonaGl *gl, MemoryArena *transient, Tileset *
   gl->bindVertexArray(0);
 }
 
-void mesh_pit_lib_unload(Mesh *mesh, RonaGl *gl) { gl->deleteVertexArrays(1, &mesh->vao); }
+void mesh_lib_unload(Mesh *mesh, RonaGl *gl) { gl->deleteVertexArrays(1, &mesh->vao); }

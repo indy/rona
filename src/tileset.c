@@ -17,7 +17,6 @@
 
 Dim2 get_sprite_location(TilesetSprite sprite);
 
-
 void tileset_calc_uv_units(Tileset *tileset) {
   tileset->uv_unit.u = 1.0f / (f32)(tileset->image_dim.width / tileset->sprite_dim.width);
   tileset->uv_unit.v = 1.0f / (f32)(tileset->image_dim.height / tileset->sprite_dim.height);
