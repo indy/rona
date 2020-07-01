@@ -5,4 +5,5 @@ ColumnLimit:     100
 UseTab:          Never
 AlignConsecutiveDeclarations: true
 AlignOperands: true
+PointerAlignment: Right
 ...

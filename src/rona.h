@@ -46,7 +46,7 @@ typedef struct {
       usize col;
       usize row;
     };
-    usize v[2];
+    usize e[2];
   };
 } Dim2;
 
@@ -60,7 +60,7 @@ typedef struct {
       i32 width;
       i32 height;
     };
-    i32 v[2];
+    i32 e[2];
   };
 } Vec2i;
 
@@ -78,7 +78,7 @@ typedef struct {
       f32 width;
       f32 height;
     };
-    //    f32 v[2];
+    //    f32 e[2];
   };
 } Vec2;
 
@@ -89,7 +89,7 @@ typedef struct {
       f32 y;
       f32 z;
     };
-    f32 v[3];
+    f32 e[3];
   };
 } Vec3;
 
@@ -107,7 +107,7 @@ typedef struct {
       f32 b;
       f32 a;
     };
-    f32 v[4];
+    f32 e[4];
   };
 } Vec4;
 

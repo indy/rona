@@ -80,6 +80,17 @@ void colour_from(Colour *out, ColourFormat out_format, ColourFormat in_format, f
   colour_clone_as(out, &in_col, out_format);
 }
 
+Colour colour_make(ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
+  Colour res;
+  res.format = format;
+  res.element[0] = e0;
+  res.element[1] = e1;
+  res.element[2] = e2;
+  res.element[3] = alpha;
+
+  return res;
+}
+
 void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
   out->format = format;
   out->element[0] = e0;
@@ -828,4 +839,11 @@ Colour *colour_clone_as(Colour *out, Colour *in, ColourFormat new_format) {
   colour_from_colour64(out, &c64);
 
   return out;
+}
+
+void vec4_from_colour(Vec4 *out, Colour *in) {
+  out->r = in->element[0];
+  out->g = in->element[1];
+  out->b = in->element[2];
+  out->a = in->element[3];
 }

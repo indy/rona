@@ -45,9 +45,12 @@ void game_lib_load(GameState *game_state) {
 
   renderer_lib_load(gl, arena, &(game_state->render_struct));
 
-  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated);
-  mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block);
-  mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero);
+  Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
+  Colour red = colour_make(ColourFormat_RGB, 1.0f, 0.0f, 0.0f, 1.0f);
+
+  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated, red, transparent);
+  mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block, red, transparent);
+  mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
   mesh_screen_lib_load(game_state->mesh_screen, gl, &(game_state->render_struct));
   level1_lib_load(game_state->level, gl, arena, tileset);
 }

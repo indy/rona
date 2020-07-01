@@ -82,7 +82,6 @@ Vec3 vec3_normalize_np(Vec3 a);
 Vec4 vec4(f32 x, f32 y, f32 z, f32 w);
 Vec4 vec4_clone(Vec4 *v4);
 void vec4_set(Vec4 *dest, f32 x, f32 y, f32 z, f32 w);
-void vec4_from_colour(Vec4 *dest, Colour *c);
 Vec4 vec4_add(Vec4 a, Vec4 b);
 Vec4 vec4_sub(Vec4 a, Vec4 b);
 Vec4 vec4_mul(Vec4 a, Vec4 b);

@@ -267,13 +267,6 @@ void vec4_set(Vec4 *dest, f32 x, f32 y, f32 z, f32 w) {
   dest->w = w;
 }
 
-void vec4_from_colour(Vec4 *dest, Colour *c) {
-  dest->r = c->element[0];
-  dest->g = c->element[1];
-  dest->b = c->element[2];
-  dest->a = c->element[3];
-}
-
 Vec4 vec4_add(Vec4 a, Vec4 b) {
   Vec4 res;
   res.x = a.x + b.x;

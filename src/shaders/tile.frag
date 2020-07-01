@@ -1,16 +1,16 @@
 #version 330 core
 
-in vec2 outTexCoord;
-
 uniform sampler2D tilesheet;
-uniform vec4 colour_fg;
-uniform vec4 colour_bg;
 
-out vec4 frag_colour;
+in vec2 frag_tex_coord;
+in vec4 frag_colour_fg;
+in vec4 frag_colour_bg;
+
+out vec4 out_colour;
 
 void main() {
-  vec4 texture_colour = texture(tilesheet, outTexCoord);
+  vec4 texture_colour = texture(tilesheet, frag_tex_coord);
 
-  vec4 res = mix(colour_bg, colour_fg, texture_colour.aaaa);
-  frag_colour = res;
+  vec4 res = mix(frag_colour_bg, frag_colour_fg, texture_colour.aaaa);
+  out_colour = res;
 }

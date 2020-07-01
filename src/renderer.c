@@ -52,19 +52,10 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
                        (GLfloat *)&(proj_matrix.v));
 
+
   // render level's floor
   //
   Mesh * mesh = level->mesh_floor;
-  Colour ground_colour_fg;
-  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 60.0f, 80.0f, 90.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, ground_colour_fg.element[0],
-                ground_colour_fg.element[1], ground_colour_fg.element[2],
-                ground_colour_fg.element[3]);
-  Colour ground_colour_bg;
-  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 260.0f, 80.0f, 50.0f, 1.0f);
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, ground_colour_bg.element[0],
-                ground_colour_bg.element[1], ground_colour_bg.element[2],
-                ground_colour_bg.element[3]);
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
@@ -75,18 +66,13 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
 
   // render entities
   //
-  gl->uniform4f(render_struct->tile_shader.uniform_colour_bg, 0.0f, 0.0f, 0.0f,
-                0.0f); // transparent bg
-
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity *entity = &(level->entities[i]);
     if (!entity->exists) {
       break;
     }
     Mesh *mesh = entity->mesh;
-    gl->uniform4f(render_struct->tile_shader.uniform_colour_fg, entity->colour.r, entity->colour.g,
-                  entity->colour.b, entity->colour.a);
-    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
+      gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
                   entity->world_pos.z);
 
     gl->bindVertexArray(mesh->vao);

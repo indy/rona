@@ -16,7 +16,12 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
-                               TilesetSprite tile_sprite) {
+                               TilesetSprite tile_sprite, Colour fg_col, Colour bg_col) {
+
+  Vec4 fg, bg;
+  Colour c;
+  vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
+  vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
 
   mesh->num_elements = 6;
   mesh->shader_type = ShaderType_Tile;
@@ -34,11 +39,11 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
   f32 half_dim_x = TILE_WIDTH * 0.5f;
   f32 half_dim_y = TILE_HEIGHT * 0.5f;
   f32 vertices[] = {
-    //      positions                uv
-    -half_dim_x,  half_dim_y,     u,    v,
-    -half_dim_x, -half_dim_y,     u,    v+vd,
-     half_dim_x, -half_dim_y,     u+ud, v+vd,
-     half_dim_x,  half_dim_y,     u+ud, v
+    //      positions                uv             foreground colour            background colour
+    -half_dim_x,  half_dim_y,     u,    v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+    -half_dim_x, -half_dim_y,     u,    v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+     half_dim_x, -half_dim_y,     u+ud, v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+     half_dim_x,  half_dim_y,     u+ud, v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3]
   };
   u32 indices[] = {
     0, 1, 2,
@@ -64,11 +69,17 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
+  gl->enableVertexAttribArray(3);
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(0 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(0 * sizeof(float)));
   // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (void *)(2 * sizeof(float)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(2 * sizeof(float)));
+  // fg colour
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(4 * sizeof(float)));
+  // bg colour
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(8 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
