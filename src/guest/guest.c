@@ -25,9 +25,9 @@
 // from where they were.
 static unsigned int CR_STATE version = 1;
 
-CR_EXPORT int cr_main(struct cr_plugin *ctx, enum cr_op operation) {
+CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation) {
   RONA_ASSERT(ctx);
-  g_game_state = (GameState *)ctx->userdata;
+  g_game_state = (GameState*)ctx->userdata;
 
   // crash protection may cause the version to decrement. So we can test current version against one
   // tracked between instances with CR_STATE to signal that we're not running the most recent

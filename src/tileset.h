@@ -324,11 +324,14 @@ typedef enum {
   TS_South,
   TS_SouthWest,
   TS_West,
-  TS_NorthWest
+  TS_NorthWest,
+
+  TS_NumTilesetSprites
 } TilesetSprite;
 
 // image_dim and sprite_dim should be valid
-void tileset_calc_uv_units(Tileset *tileset);
-Vec2 tileset_get_uv(Tileset *tileset, TilesetSprite sprite);
-
+void tileset_calc_uv_units(Tileset* tileset);
+Vec2 tileset_get_uv(Tileset* tileset, TilesetSprite sprite);
+Vec2 tileset_get_uv_char(Tileset* tileset, char c);
+void tileset_add_char(RenderStruct* render_struct, char c, Vec2* pos, Vec4* fg, Vec4* bg);
 #endif /* TILESET_H  */

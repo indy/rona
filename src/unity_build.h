@@ -36,7 +36,7 @@
 #include "renderer.h"
 #include "rona_math.h"
 
-static GameState *g_game_state = 0;
+static GameState* g_game_state = 0;
 
 // #define SYS_MALLOC
 // #define DEBUG_MALLOC
@@ -45,8 +45,8 @@ static GameState *g_game_state = 0;
 #include "stdlib.h"
 #endif
 
-void *stb_rona_permanent_malloc(usize bytes) {
-  void *addr;
+void* stb_rona_permanent_malloc(usize bytes) {
+  void* addr;
 #ifdef SYS_MALLOC
   addr = malloc(bytes);
 #else
@@ -60,8 +60,8 @@ void *stb_rona_permanent_malloc(usize bytes) {
   return addr;
 }
 
-void *stb_rona_permanent_realloc(void *mem, usize bytes) {
-  void *addr;
+void* stb_rona_permanent_realloc(void* mem, usize bytes) {
+  void* addr;
 #ifdef SYS_MALLOC
   addr = realloc(mem, bytes);
 #else
@@ -75,7 +75,7 @@ void *stb_rona_permanent_realloc(void *mem, usize bytes) {
   return addr;
 }
 
-void stb_rona_permanent_free(void *mem) {
+void stb_rona_permanent_free(void* mem) {
 #ifdef DEBUG_MALLOC
   RONA_LOG("called free %p\n", mem);
 #endif
@@ -86,8 +86,8 @@ void stb_rona_permanent_free(void *mem) {
 #endif
 }
 
-void *stb_rona_transient_malloc(usize bytes) {
-  void *addr;
+void* stb_rona_transient_malloc(usize bytes) {
+  void* addr;
 #ifdef SYS_MALLOC
   addr = malloc(bytes);
 #else
@@ -101,8 +101,8 @@ void *stb_rona_transient_malloc(usize bytes) {
   return addr;
 }
 
-void *stb_rona_transient_realloc(void *mem, usize bytes) {
-  void *addr;
+void* stb_rona_transient_realloc(void* mem, usize bytes) {
+  void* addr;
 #ifdef SYS_MALLOC
   addr = realloc(mem, bytes);
 #else
@@ -116,7 +116,7 @@ void *stb_rona_transient_realloc(void *mem, usize bytes) {
   return addr;
 }
 
-void stb_rona_transient_free(void *mem) {
+void stb_rona_transient_free(void* mem) {
 #ifdef DEBUG_MALLOC
   RONA_LOG("called free %p\n", mem);
 #endif

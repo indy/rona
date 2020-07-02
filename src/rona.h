@@ -165,7 +165,7 @@ typedef struct Mat4 {
 } Mat4;
 
 typedef struct {
-  void *base;
+  void* base;
   u64   size;
   u64   used;
 } MemoryArena;
@@ -173,17 +173,17 @@ typedef struct {
 typedef struct MemoryBlock {
   usize               bytes_allocated;
   usize               bytes_requested;
-  struct MemoryBlock *next;
+  struct MemoryBlock* next;
 } MemoryBlock;
 
 // lifetimes: MemoryArena > MemoryAllocator > MemoryBlock
 //
 typedef struct {
-  MemoryArena *arena;
+  MemoryArena* arena;
 
-  MemoryBlock *available_one_kilobyte;
-  MemoryBlock *available_one_megabyte;
-  MemoryBlock *available_large;
+  MemoryBlock* available_one_kilobyte;
+  MemoryBlock* available_one_megabyte;
+  MemoryBlock* available_large;
 } MemoryAllocator;
 
 typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
@@ -224,7 +224,7 @@ typedef struct Entity {
   // there will be no more entites where exists == true
   bool exists;
 
-  Mesh *mesh;
+  Mesh* mesh;
   Vec4  colour;
 
   Vec2i board_pos;
@@ -246,12 +246,12 @@ typedef struct {
   MemoryArena mem;
 
   i32     max_num_entities;
-  Entity *entities;
+  Entity* entities;
 
   i32   width;
   i32   height;
-  Tile *tiles;
-  Mesh *mesh_floor;
+  Tile* tiles;
+  Mesh* mesh_floor;
 
   // history/replay data goes here as well
 } Level;
@@ -268,8 +268,23 @@ typedef struct {
 #define RENDER_TEXTURE_HEIGHT 360
 #define TILE_WIDTH 16.0
 #define TILE_HEIGHT 16.0
+#define TILE_CHAR_WIDTH 8
+#define TILE_CHAR_HEIGHT 16
 #define HALF_TILE_WIDTH 8.0
 #define HALF_TILE_HEIGHT 8.0
+
+#define TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY 12
+
+// number of floats for each quad of geometry
+#define TILED_QUAD_GEOMETRY_SIZEOF_1 (TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY * 4)
+// number of u32 for each quad
+#define TILED_QUAD_INDICES_SIZEOF_1 6
+
+// (x, y, u, v, fg-rgba, bg-rgba) == 12 bytes
+// 12 * 4 bytes per float * 4 vertices per tiled quad == 192
+#define TILED_QUAD_GEOMETRY_BYTES (TILED_QUAD_GEOMETRY_SIZEOF_1 * 4)
+// 3 verts per triangle * 2 triangles * 4 bytes per i32 == 24
+#define TILED_QUAD_INDICES_BYTES (TILED_QUAD_INDICES_SIZEOF_1 * 4)
 
 typedef struct {
   i32 window_width;
@@ -287,6 +302,18 @@ typedef struct {
   GLuint render_texture_id;
   GLuint depth_texture_id;
   GLuint framebuffer_id;
+
+  // text rendering
+  //
+  usize  max_characters_per_frame;
+  usize  num_characters;
+  f32*   text_vertices;
+  u32*   text_indices;
+  usize  text_vertices_mem_allocated;
+  usize  text_indices_mem_allocated;
+  GLuint text_vao;
+  GLuint text_vbo;
+  GLuint text_ebo;
 
 } RenderStruct;
 
@@ -309,15 +336,15 @@ typedef struct {
   MemoryAllocator allocator_permanent;
   MemoryAllocator allocator_transient;
 
-  Mesh *mesh_screen;
-  Mesh *mesh_hero;
-  Mesh *mesh_block;
-  Mesh *mesh_pit;
+  Mesh* mesh_screen;
+  Mesh* mesh_hero;
+  Mesh* mesh_block;
+  Mesh* mesh_pit;
 
-  Level *level;
+  Level* level;
 
-  RonaGl *   gl;
-  RonaInput *input;
+  RonaGl*    gl;
+  RonaInput* input;
 } GameState;
 
 #endif /* RONA_H */

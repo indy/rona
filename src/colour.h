@@ -43,11 +43,11 @@ typedef struct {
 } Colour;
 
 Colour colour_make(ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
-void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
-void colour_from(Colour *out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
-                 f32 e2, f32 alpha);
+void   colour_set(Colour* out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
+void   colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
+                   f32 e2, f32 alpha);
 
-Colour *colour_clone_as(Colour *out, Colour *in, ColourFormat new_format);
-void vec4_from_colour(Vec4 *out, Colour *in);
+Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format);
+void    vec4_from_colour(Vec4* out, Colour* in);
 
 #endif /* COLOUR_H */

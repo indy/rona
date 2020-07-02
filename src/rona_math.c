@@ -30,7 +30,7 @@ Vec2i vec2i(i32 x, i32 y) {
   return res;
 }
 
-Vec2i vec2i_clone(Vec2i *v2i) {
+Vec2i vec2i_clone(Vec2i* v2i) {
   Vec2i res;
 
   res.x = v2i->x;
@@ -39,7 +39,7 @@ Vec2i vec2i_clone(Vec2i *v2i) {
   return res;
 }
 
-void vec2i_set(Vec2i *dest, i32 x, i32 y) {
+void vec2i_set(Vec2i* dest, i32 x, i32 y) {
   dest->x = x;
   dest->y = y;
 }
@@ -89,7 +89,7 @@ Vec2 vec2(f32 x, f32 y) {
   return res;
 }
 
-Vec2 vec2_clone(Vec2 *v2) {
+Vec2 vec2_clone(Vec2* v2) {
   Vec2 res;
 
   res.x = v2->x;
@@ -98,7 +98,7 @@ Vec2 vec2_clone(Vec2 *v2) {
   return res;
 }
 
-void vec2_set(Vec2 *dest, f32 x, f32 y) {
+void vec2_set(Vec2* dest, f32 x, f32 y) {
   dest->x = x;
   dest->y = y;
 }
@@ -161,7 +161,7 @@ Vec3 vec3(f32 x, f32 y, f32 z) {
   return res;
 }
 
-Vec3 vec3_clone(Vec3 *v3) {
+Vec3 vec3_clone(Vec3* v3) {
   Vec3 res;
 
   res.x = v3->x;
@@ -171,7 +171,7 @@ Vec3 vec3_clone(Vec3 *v3) {
   return res;
 }
 
-void vec3_set(Vec3 *dest, f32 x, f32 y, f32 z) {
+void vec3_set(Vec3* dest, f32 x, f32 y, f32 z) {
   dest->x = x;
   dest->y = y;
   dest->z = z;
@@ -249,7 +249,7 @@ Vec4 vec4(f32 x, f32 y, f32 z, f32 w) {
   return res;
 }
 
-Vec4 vec4_clone(Vec4 *v4) {
+Vec4 vec4_clone(Vec4* v4) {
   Vec4 res;
 
   res.x = v4->x;
@@ -260,7 +260,7 @@ Vec4 vec4_clone(Vec4 *v4) {
   return res;
 }
 
-void vec4_set(Vec4 *dest, f32 x, f32 y, f32 z, f32 w) {
+void vec4_set(Vec4* dest, f32 x, f32 y, f32 z, f32 w) {
   dest->x = x;
   dest->y = y;
   dest->z = z;
@@ -396,7 +396,7 @@ Mat4 mat4_perspective(f32 fov, f32 aspect_ratio, f32 near, f32 far) {
   return m;
 }
 
-Mat4 mat4_multiply(Mat4 *a, Mat4 *b) {
+Mat4 mat4_multiply(Mat4* a, Mat4* b) {
   Mat4 out;
 
   f32 a00 = a->v[0];
@@ -463,7 +463,7 @@ Mat4 mat4_multiply(Mat4 *a, Mat4 *b) {
 }
 
 // a = a * b
-void mat4_multiply_inplace(Mat4 *a, Mat4 *b) {
+void mat4_multiply_inplace(Mat4* a, Mat4* b) {
   f32 a00 = a->v[0];
   f32 a01 = a->v[1];
   f32 a02 = a->v[2];
@@ -525,7 +525,7 @@ void mat4_multiply_inplace(Mat4 *a, Mat4 *b) {
   }
 }
 
-Mat4 mat4_copy(Mat4 *b) {
+Mat4 mat4_copy(Mat4* b) {
   Mat4 a;
   a.v[0] = b->v[0];
   a.v[1] = b->v[1];
@@ -547,7 +547,7 @@ Mat4 mat4_copy(Mat4 *b) {
   return a;
 }
 
-void mat4_copy_inplace(Mat4 *a, Mat4 *b) {
+void mat4_copy_inplace(Mat4* a, Mat4* b) {
   a->v[0] = b->v[0];
   a->v[1] = b->v[1];
   a->v[2] = b->v[2];

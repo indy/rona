@@ -18,11 +18,11 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-bool try_moving_hero(Level *level, Entity *hero, Direction direction);
-void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
+bool try_moving_hero(Level* level, Entity* hero, Direction direction);
+void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]);
 
-void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tileset *tileset);
-void mesh_floor_lib_unload(Level *level, RonaGl *gl);
+void mesh_floor_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset);
+void mesh_floor_lib_unload(Level* level, RonaGl* gl);
 
 #endif /* LEVEL_H */

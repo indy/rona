@@ -18,13 +18,13 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-bool renderer_startup(RonaGl *gl, RenderStruct *render_struct);
-void renderer_shutdown(RonaGl *gl);
+bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* arena);
+void renderer_shutdown(RonaGl* gl);
 
-void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct);
-void renderer_lib_unload(RonaGl *gl);
+void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct);
+void renderer_lib_unload(RonaGl* gl);
 
-void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen);
+void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh* screen);
 /*
   This is a convoluted way of including text files into c source code
 
@@ -35,10 +35,14 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   The benefit of all this is that hot reloading works on shaders
 */
 #define SHADER_AS_STRING(ARENA, NAME, SHADER)                                                      \
-  char *NAME = (char *)ARENA_ALLOC(ARENA, (src_shaders_##SHADER##_len + 1));                       \
+  char* NAME = (char*)ARENA_ALLOC(ARENA, (src_shaders_##SHADER##_len + 1));                        \
   memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                  \
   NAME[src_shaders_##SHADER##_len] = 0;
 
-GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *fragmentSource);
+GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* fragmentSource);
+
+void text_render_reset(RenderStruct* render_struct);
+void text_render_paragraph(RenderStruct* render_struct, char* text, Vec2 pos, Vec4 fg, Vec4 bg);
+void text_render_to_gpu(RonaGl* gl, RenderStruct* render_struct);
 
 #endif /* RENDERER_H */

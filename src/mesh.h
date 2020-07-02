@@ -19,7 +19,8 @@
 #define MESH_H
 
 // void mesh_hero_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix);
-void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset, TilesetSprite tile_sprite, Colour fg_col, Colour bg_col);
-void mesh_lib_unload(Mesh *mesh, RonaGl *gl);
+void mesh_lib_load_single_tile(Mesh* mesh, RonaGl* gl, Tileset* tileset, TilesetSprite tile_sprite,
+                               Colour fg_col, Colour bg_col);
+void mesh_lib_unload(Mesh* mesh, RonaGl* gl);
 
 #endif /* MESH_H */

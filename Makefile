@@ -78,6 +78,7 @@ fmt: $(GAME_SRC) $(GAME_HEADERS)
 
 clean:
 	rm target/*
+
 all: guest host
 
 run: $(GUEST_OUT) $(HOST_OUT)

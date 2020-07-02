@@ -15,17 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-GLuint create_framebuffer(RonaGl *gl);
-GLuint create_texture(RonaGl *gl, u32 width, u32 height);
-GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height);
-void   delete_texture(RonaGl *gl, GLuint texture_id);
-void   attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
+GLuint create_framebuffer(RonaGl* gl);
+GLuint create_texture(RonaGl* gl, u32 width, u32 height);
+GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height);
+void   delete_texture(RonaGl* gl, GLuint texture_id);
+void   attach_textures_to_framebuffer(RonaGl* gl, GLuint framebuffer_id, GLuint texture_id,
                                       GLuint depth_texture_id);
-bool   is_framebuffer_ok(RonaGl *gl);
-void   update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height);
-void   bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
+bool   is_framebuffer_ok(RonaGl* gl);
+void   update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height);
+void   bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
-void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh *screen) {
+void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh* screen) {
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
                    render_struct->render_texture_height);
 
@@ -50,34 +50,43 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   Mat4 proj_matrix =
       mat4_ortho(-10.0, render_texture_width, 0.0, render_texture_height, 10.0f, -10.0f);
   gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
-                       (GLfloat *)&(proj_matrix.v));
-
+                       (GLfloat*)&(proj_matrix.v));
 
   // render level's floor
   //
-  Mesh * mesh = level->mesh_floor;
+  Mesh* mesh = level->mesh_floor;
 
   f32 world_pos_x = 0.0f;
   f32 world_pos_y = 0.0f;
   gl->uniform3f(render_struct->tile_shader.uniform_pos, world_pos_x, world_pos_y, 2.0f);
 
+  // RONA_LOG("level vao %d\n", mesh->vao);
   gl->bindVertexArray(mesh->vao);
   gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
 
   // render entities
   //
   for (i32 i = 0; i < level->max_num_entities; i++) {
-    Entity *entity = &(level->entities[i]);
+    Entity* entity = &(level->entities[i]);
     if (!entity->exists) {
       break;
     }
-    Mesh *mesh = entity->mesh;
-      gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
+    Mesh* mesh = entity->mesh;
+    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
                   entity->world_pos.z);
 
+    // RONA_LOG("entity vao %d\n", mesh->vao);
     gl->bindVertexArray(mesh->vao);
+
     gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
   }
+
+  // render text
+  //
+  gl->uniform3f(render_struct->tile_shader.uniform_pos, 0.0f, 0.0f, 0.0f);
+  gl->bindVertexArray(render_struct->text_vao);
+  gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
+                   GL_UNSIGNED_INT, 0);
 
   // render texture to screen
   //
@@ -97,14 +106,14 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
     f32  v_pad = (v - render_texture_height) / 2.0f;
     Mat4 m = mat4_ortho(0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
     gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
-                         (GLfloat *)&(m.v));
+                         (GLfloat*)&(m.v));
   } else {
     // window is more elongated horizontally than desired
     f32  h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
     f32  h_pad = (h - render_texture_width) / 2.0f;
     Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
     gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
-                         (GLfloat *)&(m.v));
+                         (GLfloat*)&(m.v));
   }
 
   gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
@@ -115,7 +124,7 @@ void renderer_render(RonaGl *gl, Level *level, RenderStruct *render_struct, Mesh
   gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
 }
 
-void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_struct) {
+void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct) {
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
@@ -125,7 +134,7 @@ void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_
 #include "../target/tile.frag.c"
   SHADER_AS_STRING(transient, tileFragmentSource, tile_frag);
 
-  ShaderTile *tile_shader = &(render_struct->tile_shader);
+  ShaderTile* tile_shader = &(render_struct->tile_shader);
   tile_shader->program = create_shader_program(gl, tileVertexSource, tileFragmentSource);
   tile_shader->uniform_texture = gl->getUniformLocation(tile_shader->program, "tilesheet");
   tile_shader->uniform_colour_fg = gl->getUniformLocation(tile_shader->program, "colour_fg");
@@ -139,7 +148,7 @@ void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_
 #include "../target/screen.frag.c"
   SHADER_AS_STRING(transient, screenFragmentSource, screen_frag);
 
-  ShaderScreen *screen_shader = &(render_struct->screen_shader);
+  ShaderScreen* screen_shader = &(render_struct->screen_shader);
   screen_shader->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
   screen_shader->uniform_texture = gl->getUniformLocation(screen_shader->program, "screen_texture");
   screen_shader->uniform_proj_matrix =
@@ -148,22 +157,22 @@ void renderer_lib_load(RonaGl *gl, MemoryArena *transient, RenderStruct *render_
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
 
-void renderer_lib_unload(RonaGl *gl) {
+void renderer_lib_unload(RonaGl* gl) {
   gl->disableVertexAttribArray(0);
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   gl->bindVertexArray(0);
 }
 
-bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
-  const char *version = (const char *)gl->getString(GL_VERSION);
-  const char *vendor = (const char *)gl->getString(GL_VENDOR);
-  const char *renderer = (const char *)gl->getString(GL_RENDERER);
+bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* arena) {
+  const char* version = (const char*)gl->getString(GL_VERSION);
+  const char* vendor = (const char*)gl->getString(GL_VENDOR);
+  const char* renderer = (const char*)gl->getString(GL_RENDERER);
   RONA_INFO("OpenGL version: %s\n", version);
   RONA_INFO("OpenGL vendor: %s\n", vendor);
   RONA_INFO("OpenGL renderer: %s\n", renderer);
 
-  const char *glslVersion = (const char *)gl->getString(GL_SHADING_LANGUAGE_VERSION);
+  const char* glslVersion = (const char*)gl->getString(GL_SHADING_LANGUAGE_VERSION);
   RONA_INFO("OpenGL GLSL Version %s:\n", glslVersion);
 
   // int profileMask;
@@ -178,8 +187,8 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   // load textures
   gl->genTextures(1, &(render_struct->tileset_texture_id));
   int            tex_width, tex_height, num_channels;
-  char *         tileset_filename = "assets/tileset.png";
-  unsigned char *data = stbi_load(tileset_filename, &tex_width, &tex_height, &num_channels, 0);
+  char*          tileset_filename = "assets/tileset.png";
+  unsigned char* data = stbi_load(tileset_filename, &tex_width, &tex_height, &num_channels, 0);
 
   if (data) {
     gl->activeTexture(GL_TEXTURE1);
@@ -195,7 +204,7 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
     // gl->generateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
-    Tileset *tileset = &(render_struct->tileset);
+    Tileset* tileset = &(render_struct->tileset);
     tileset->image_dim.width = tex_width;
     tileset->image_dim.height = tex_height;
     tileset->sprite_dim.width = 16;
@@ -225,14 +234,85 @@ bool renderer_startup(RonaGl *gl, RenderStruct *render_struct) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
   gl->viewport(0, 0, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
 
+  // play with text rendering
+  //
+  // allocate some memory for text rendering
+  render_struct->max_characters_per_frame = 5000;
+  render_struct->text_vertices_mem_allocated =
+      render_struct->max_characters_per_frame * TILED_QUAD_GEOMETRY_BYTES;
+  render_struct->text_vertices =
+      (f32*)ARENA_ALLOC(arena, render_struct->text_vertices_mem_allocated);
+  render_struct->text_indices_mem_allocated =
+      render_struct->max_characters_per_frame * TILED_QUAD_INDICES_BYTES;
+  render_struct->text_indices = (u32*)ARENA_ALLOC(arena, render_struct->text_indices_mem_allocated);
+
+  gl->genVertexArrays(1, &(render_struct->text_vao));
+  gl->bindVertexArray(render_struct->text_vao);
+  gl->genBuffers(1, &(render_struct->text_vbo));
+  gl->bindBuffer(GL_ARRAY_BUFFER, render_struct->text_vbo);
+
+  gl->enableVertexAttribArray(0);
+  gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
+  gl->enableVertexAttribArray(3);
+
+  // positions
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(0 * sizeof(float)));
+  // uv
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(2 * sizeof(float)));
+  // fg colour
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(4 * sizeof(float)));
+  // bg colour
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(8 * sizeof(float)));
+
+  gl->genBuffers(1, &(render_struct->text_ebo));
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_struct->text_ebo);
+
+  gl->bindVertexArray(0);
+
   RONA_OUT("Running modern opengl\n");
 
   return true;
 }
 
-void renderer_shutdown(RonaGl *gl) {}
+void text_render_reset(RenderStruct* render_struct) { render_struct->num_characters = 0; }
 
-GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
+void text_render_paragraph(RenderStruct* render_struct, char* text, Vec2 pos, Vec4 fg, Vec4 bg) {
+  char* c = text;
+
+  f32 basex = pos.x;
+  i32 width_count = 0;
+
+  while (*c) {
+    if (*c == '\n') {
+      pos.y -= TILE_CHAR_HEIGHT;
+      width_count = 0;
+    } else {
+      pos.x = basex + ((f32)(width_count * TILE_CHAR_WIDTH));
+      tileset_add_char(render_struct, *c, &pos, &fg, &bg);
+      width_count++;
+    }
+    c++;
+  }
+}
+
+void text_render_to_gpu(RonaGl* gl, RenderStruct* render_struct) {
+  gl->bindVertexArray(render_struct->text_vao);
+
+  gl->bindBuffer(GL_ARRAY_BUFFER, render_struct->text_vbo);
+  gl->bufferData(GL_ARRAY_BUFFER, render_struct->num_characters * TILED_QUAD_GEOMETRY_BYTES,
+                 render_struct->text_vertices, GL_DYNAMIC_DRAW);
+
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_struct->text_ebo);
+  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, render_struct->num_characters * TILED_QUAD_INDICES_BYTES,
+                 render_struct->text_indices, GL_DYNAMIC_DRAW);
+
+  gl->bindVertexArray(0);
+}
+
+void renderer_shutdown(RonaGl* gl) {}
+
+GLuint create_shader_type(RonaGl* gl, GLenum type, const char* source) {
   GLuint shaderId = gl->createShader(type);
 
   gl->shaderSource(shaderId, 1, &source, NULL);
@@ -258,7 +338,7 @@ GLuint create_shader_type(RonaGl *gl, GLenum type, const char *source) {
   return (shaderId);
 }
 
-GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *fragmentSource) {
+GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* fragmentSource) {
   GLuint programId = gl->createProgram();
 
   GLuint vertexShader = create_shader_type(gl, GL_VERTEX_SHADER, vertexSource);
@@ -291,14 +371,14 @@ GLuint create_shader_program(RonaGl *gl, const char *vertexSource, const char *f
   return (programId);
 }
 
-GLuint create_framebuffer(RonaGl *gl) {
+GLuint create_framebuffer(RonaGl* gl) {
   GLuint framebuffer;
   gl->genFramebuffers(1, &framebuffer);
 
   return framebuffer;
 }
 
-GLuint create_texture(RonaGl *gl, u32 width, u32 height) {
+GLuint create_texture(RonaGl* gl, u32 width, u32 height) {
   GLuint texture_id;
 
   gl->genTextures(1, &texture_id);
@@ -317,7 +397,7 @@ GLuint create_texture(RonaGl *gl, u32 width, u32 height) {
   return texture_id;
 }
 
-GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height) {
+GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height) {
   GLuint texture_id;
 
   gl->genTextures(1, &texture_id);
@@ -331,16 +411,16 @@ GLuint create_depth_texture(RonaGl *gl, u32 width, u32 height) {
   return texture_id;
 }
 
-void delete_texture(RonaGl *gl, GLuint texture_id) { gl->deleteTextures(1, &texture_id); }
+void delete_texture(RonaGl* gl, GLuint texture_id) { gl->deleteTextures(1, &texture_id); }
 
-void attach_textures_to_framebuffer(RonaGl *gl, GLuint framebuffer_id, GLuint texture_id,
+void attach_textures_to_framebuffer(RonaGl* gl, GLuint framebuffer_id, GLuint texture_id,
                                     GLuint depth_texture_id) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture_id, 0);
 }
 
-bool is_framebuffer_ok(RonaGl *gl) {
+bool is_framebuffer_ok(RonaGl* gl) {
   if (gl->checkFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     RONA_ERROR("Framebuffer is not complete\n");
     return false;
@@ -348,11 +428,11 @@ bool is_framebuffer_ok(RonaGl *gl) {
   return true;
 }
 
-void update_viewport(RonaGl *gl, u32 viewport_width, u32 viewport_height) {
+void update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height) {
   gl->viewport(0, 0, viewport_width, viewport_height);
 }
 
-void bind_framebuffer(RonaGl *gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height) {
+void bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   update_viewport(gl, viewport_width, viewport_height);
 }

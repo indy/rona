@@ -21,32 +21,32 @@ usize megabytes(usize s) { return kilobytes(s * 1024); }
 
 usize gigabytes(usize s) { return megabytes(s * 1024); }
 
-void *arena_alloc(MemoryArena *ma, usize bytes) {
+void* arena_alloc(MemoryArena* ma, usize bytes) {
   RONA_ASSERT((ma->used + bytes) <= ma->size)
 
-  void *res = ma->base + ma->used;
+  void* res = ma->base + ma->used;
   ma->used += bytes;
 
   return res;
 }
 
-void *memory_block(MemoryArena *arena, usize bytes_to_allocate, usize bytes_requested) {
-  MemoryBlock *block = (MemoryBlock *)ARENA_ALLOC(arena, bytes_to_allocate);
+void* memory_block(MemoryArena* arena, usize bytes_to_allocate, usize bytes_requested) {
+  MemoryBlock* block = (MemoryBlock*)ARENA_ALLOC(arena, bytes_to_allocate);
   block->bytes_allocated = bytes_to_allocate;
   block->bytes_requested = bytes_requested;
   block->next = NULL;
   return block;
 }
 
-void memory_allocator_reset(MemoryAllocator *ma, MemoryArena *arena) {
+void memory_allocator_reset(MemoryAllocator* ma, MemoryArena* arena) {
   ma->arena = arena;
   ma->available_one_kilobyte = NULL;
   ma->available_one_megabyte = NULL;
   ma->available_large = NULL;
 }
 
-void *rona_malloc(MemoryAllocator *ma, usize bytes) {
-  MemoryBlock *block;
+void* rona_malloc(MemoryAllocator* ma, usize bytes) {
+  MemoryBlock* block;
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
 
@@ -80,15 +80,15 @@ void *rona_malloc(MemoryAllocator *ma, usize bytes) {
     }
   }
 
-  return (void *)((byte *)block + sizeof(MemoryBlock));
+  return (void*)((byte*)block + sizeof(MemoryBlock));
 }
 
-void *rona_realloc(MemoryAllocator *ma, void *mem, usize bytes) {
+void* rona_realloc(MemoryAllocator* ma, void* mem, usize bytes) {
   if (!mem) {
     return rona_malloc(ma, bytes);
   }
 
-  MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
+  MemoryBlock* block = (MemoryBlock*)((byte*)mem - sizeof(MemoryBlock));
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
 
@@ -98,7 +98,7 @@ void *rona_realloc(MemoryAllocator *ma, void *mem, usize bytes) {
     return mem;
   }
 
-  void *new_mem = rona_malloc(ma, bytes);
+  void* new_mem = rona_malloc(ma, bytes);
   memcpy(new_mem, mem, block->bytes_requested);
 
   rona_free(ma, mem);
@@ -106,11 +106,11 @@ void *rona_realloc(MemoryAllocator *ma, void *mem, usize bytes) {
   return new_mem;
 }
 
-void rona_free(MemoryAllocator *ma, void *mem) {
+void rona_free(MemoryAllocator* ma, void* mem) {
   if (!mem) {
     return;
   }
-  MemoryBlock *block = (MemoryBlock *)((byte *)mem - sizeof(MemoryBlock));
+  MemoryBlock* block = (MemoryBlock*)((byte*)mem - sizeof(MemoryBlock));
 
   if (block->bytes_allocated <= kilobytes(1)) {
     block->next = ma->available_one_kilobyte;

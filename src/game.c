@@ -15,48 +15,63 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void game_startup(GameState *game_state) {
-  game_state->mesh_screen = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_hero = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_block = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_pit = (Mesh *)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+void game_startup(GameState* game_state) {
+  game_state->mesh_screen = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+  game_state->mesh_hero = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+  game_state->mesh_block = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+  game_state->mesh_pit = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
 
   u64 level_memory_arena_size = megabytes(64);
-  game_state->level = (Level *)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
+  game_state->level = (Level*)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
   game_state->level->mem.base = game_state->level + sizeof(Level);
   game_state->level->mem.size = level_memory_arena_size - sizeof(Level);
   game_state->level->mem.used = 0;
 
   level1_startup(game_state->level, game_state);
 
-  renderer_startup(game_state->gl, &(game_state->render_struct));
+  renderer_startup(game_state->gl, &(game_state->render_struct), &(game_state->storage_permanent));
 }
 
-void game_shutdown(GameState *game_state) {
+void game_shutdown(GameState* game_state) {
   level1_shutdown(game_state->level);
   renderer_shutdown(game_state->gl);
 }
 
 // changes have been made to the game client and it has now been automatically loaded
-void game_lib_load(GameState *game_state) {
-  RonaGl *     gl = game_state->gl;
-  MemoryArena *arena = &(game_state->storage_transient);
-  Tileset *    tileset = &(game_state->render_struct.tileset);
+void game_lib_load(GameState* game_state) {
+  RonaGl*       gl = game_state->gl;
+  MemoryArena*  arena = &(game_state->storage_transient);
+  Tileset*      tileset = &(game_state->render_struct.tileset);
+  RenderStruct* render_struct = &(game_state->render_struct);
 
-  renderer_lib_load(gl, arena, &(game_state->render_struct));
+  renderer_lib_load(gl, arena, render_struct);
 
   Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
-  Colour red = colour_make(ColourFormat_RGB, 1.0f, 0.0f, 0.0f, 1.0f);
+  Colour red = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
 
-  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated, red, transparent);
+  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated, red,
+                            transparent);
   mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block, red, transparent);
   mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
-  mesh_screen_lib_load(game_state->mesh_screen, gl, &(game_state->render_struct));
+  mesh_screen_lib_load(game_state->mesh_screen, gl, render_struct);
   level1_lib_load(game_state->level, gl, arena, tileset);
+
+  Vec4   fg, bg;
+  Colour ground_colour_fg;
+  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
+  Colour ground_colour_bg;
+  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
+  vec4_from_colour(&fg, &ground_colour_fg);
+  vec4_from_colour(&bg, &ground_colour_bg);
+
+  text_render_reset(render_struct);
+  text_render_paragraph(render_struct, "is this changing\nnewline hooha", vec2(0.0f, 140.0f), fg,
+                        bg);
+  text_render_to_gpu(gl, render_struct);
 }
 
 // changes have been made to the game client, this old version will be unloaded
-void game_lib_unload(GameState *game_state) {
+void game_lib_unload(GameState* game_state) {
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
   mesh_lib_unload(game_state->mesh_hero, game_state->gl);
@@ -65,10 +80,10 @@ void game_lib_unload(GameState *game_state) {
   renderer_lib_unload(game_state->gl);
 }
 
-Entity *get_hero(Level *level) {
+Entity* get_hero(Level* level) {
   RONA_ASSERT(level);
 
-  Entity *e = level->entities;
+  Entity* e = level->entities;
   while (e->exists) {
     if (e->entity_type == EntityType_Hero) {
       return e;
@@ -79,7 +94,7 @@ Entity *get_hero(Level *level) {
   return NULL;
 }
 
-void game_step(GameState *game_state) {
+void game_step(GameState* game_state) {
   game_state->storage_transient.used = 0;
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
@@ -91,8 +106,8 @@ void game_step(GameState *game_state) {
     fflush(stdout);
   }
 
-  Level *   level = game_state->level;
-  Entity *  hero = get_hero(level);
+  Level*    level = game_state->level;
+  Entity*   hero = get_hero(level);
   Direction direction;
   bool      moved = false;
 
@@ -118,7 +133,7 @@ void game_step(GameState *game_state) {
   f32 time_delta = (f32)game_state->time_delta / 1000.0f;
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
-    Entity *e = &(level->entities[i]);
+    Entity* e = &(level->entities[i]);
     if (e->exists == false) {
       break;
     }

@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, RenderStruct *render_struct) {
+void mesh_screen_lib_load(Mesh* mesh, RonaGl* gl, RenderStruct* render_struct) {
 
   mesh->num_elements = 6;
   mesh->shader_type = ShaderType_Screen;
@@ -63,11 +63,11 @@ void mesh_screen_lib_load(Mesh *mesh, RonaGl *gl, RenderStruct *render_struct) {
 
   // texture coords
   gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4,
-                          (GLvoid *)((sizeof(float) * 2)));
+                          (GLvoid*)((sizeof(float) * 2)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
   gl->bindVertexArray(0);
 }
 
-void mesh_screen_lib_unload(Mesh *mesh, RonaGl *gl) { gl->deleteVertexArrays(1, &mesh->vao); }
+void mesh_screen_lib_unload(Mesh* mesh, RonaGl* gl) { gl->deleteVertexArrays(1, &mesh->vao); }

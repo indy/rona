@@ -19,14 +19,14 @@
 
 // how many entities are there on the level at the given position?
 // returns the amount and fills in the entities array
-i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level *level, Vec2i *pos) {
+i32 enitites_at_board_position(Entity** occupants, i32 max_allowed, Level* level, Vec2i* pos) {
   i32 num_occupants = 0;
   for (i32 i = 0; i < level->max_num_entities; i++) {
     if (level->entities[i].exists == false) {
       return num_occupants;
     }
 
-    Entity *e = &(level->entities[i]);
+    Entity* e = &(level->entities[i]);
     if (e->board_pos.x == pos->x && e->board_pos.y == pos->y) {
       RONA_ASSERT(num_occupants < max_allowed);
 
@@ -38,7 +38,7 @@ i32 enitites_at_board_position(Entity **occupants, i32 max_allowed, Level *level
   return num_occupants;
 }
 
-Vec2i vec2i_add_direction(Vec2i *pos, Direction direction) {
+Vec2i vec2i_add_direction(Vec2i* pos, Direction direction) {
   Vec2i res = vec2i_clone(pos);
   switch (direction) {
   case Direction_North:
@@ -58,12 +58,12 @@ Vec2i vec2i_add_direction(Vec2i *pos, Direction direction) {
   return res;
 }
 
-void world_from_board(Vec3 *dst, i32 x, i32 y, f32 z) {
+void world_from_board(Vec3* dst, i32 x, i32 y, f32 z) {
   vec3_set(dst, ((f32)x * TILE_WIDTH) + HALF_TILE_WIDTH, ((f32)y * TILE_HEIGHT) + HALF_TILE_HEIGHT,
            z);
 }
 
-bool try_moving_block(Level *level, Entity *block, Direction direction) {
+bool try_moving_block(Level* level, Entity* block, Direction direction) {
   Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
 
   if (new_pos.x < 0 || new_pos.x >= level->width) {
@@ -79,7 +79,7 @@ bool try_moving_block(Level *level, Entity *block, Direction direction) {
   }
 
   // check if this will push any other entities
-  Entity *occupants[MAX_OCCUPANTS_ALLOWED];
+  Entity* occupants[MAX_OCCUPANTS_ALLOWED];
   i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
 
@@ -115,7 +115,7 @@ bool try_moving_block(Level *level, Entity *block, Direction direction) {
   return true;
 }
 
-bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
+bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
   if (new_pos.x < 0 || new_pos.x >= level->width) {
@@ -131,12 +131,12 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
   }
 
   // check if this will push any other entities
-  Entity *occupants[MAX_OCCUPANTS_ALLOWED];
+  Entity* occupants[MAX_OCCUPANTS_ALLOWED];
   i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
     bool    is_occupier_block = false;
     bool    is_occupier_pit = false;
-    Entity *block;
+    Entity* block;
     for (i32 i = 0; i < num_occupants; i++) {
       if (occupants[i]->entity_type == EntityType_Block) {
         block = occupants[i];
@@ -172,22 +172,22 @@ bool try_moving_hero(Level *level, Entity *hero, Direction direction) {
 }
 
 // place an entity at the given board positions
-void entity_place(Level *level, Entity *entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
+void entity_place(Level* level, Entity* entity, i32 board_pos_x, i32 board_pos_y, f32 z) {
   vec2i_set(&entity->board_pos, board_pos_x, board_pos_y);
   world_from_board(&entity->world_pos, board_pos_x, board_pos_y, z);
   world_from_board(&entity->world_target, board_pos_x, board_pos_y, z);
 }
 
-void entity_colour_as_hsluv(Entity *entity, f32 h, f32 s, f32 l) {
+void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
   Colour c;
   colour_from(&c, ColourFormat_RGB, ColourFormat_HSLuv, h, s, l, 1.0f);
   vec4_from_colour(&entity->colour, &c);
 }
 
-void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
+void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]) {
   level->max_num_entities = 10;
-  level->entities = (Entity *)ARENA_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
+  level->entities = (Entity*)ARENA_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }
@@ -195,19 +195,19 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   bool have_hero = false;
   i32  next_non_hero_entity_index = 1;
 
-  level->mesh_floor = (Mesh *)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
+  level->mesh_floor = (Mesh*)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
 
   i32 width = dbl_width / 2;
   level->width = width;
   level->height = height;
   i32 num_tiles = level->width * level->height;
-  level->tiles = (Tile *)ARENA_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
+  level->tiles = (Tile*)ARENA_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
 
   const f32 max_speed = 9.0f;
 
   for (i32 j = 0; j < height; j++) {
 
-    char *plan_line = layout[height - 1 - j];
+    char* plan_line = layout[height - 1 - j];
 
     for (i32 i = 0; i < dbl_width; i += 2) {
       i32 tile_index = (i / 2) + (j * width);
@@ -218,7 +218,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
         level->tiles[tile_index].tile_type = TileType_Floor;
 
         if (plan_line[i] == 'H') { // hero
-          Entity *hero = &(level->entities[0]);
+          Entity* hero = &(level->entities[0]);
 
           have_hero = true;
           hero->exists = true;
@@ -232,7 +232,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
         } else if (plan_line[i] == 'B') { // block
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          Entity *block = &(level->entities[next_non_hero_entity_index++]);
+          Entity* block = &(level->entities[next_non_hero_entity_index++]);
 
           block->exists = true;
           block->entity_type = EntityType_Block;
@@ -245,7 +245,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
         } else if (plan_line[i] == 'U') { // pit
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          Entity *pit = &(level->entities[next_non_hero_entity_index++]);
+          Entity* pit = &(level->entities[next_non_hero_entity_index++]);
 
           pit->exists = true;
           pit->entity_type = EntityType_Pit;
@@ -266,7 +266,7 @@ void level_build(GameState *game_state, Level *level, i32 dbl_width, i32 height,
   }
 }
 
-void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tileset *tileset) {
+void mesh_floor_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset) {
 
   Vec4 fg, bg;
 
@@ -279,7 +279,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   vec4_from_colour(&fg, &ground_colour_fg);
   vec4_from_colour(&bg, &ground_colour_bg);
 
-  Mesh *mesh = level->mesh_floor;
+  Mesh* mesh = level->mesh_floor;
 
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
@@ -303,17 +303,18 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   }
 
   mesh->num_elements = 6 * num_floor_tiles;
-  i32 stride = 4 * (2 + 2 + 4 + 4);
+  i32 stride = TILED_QUAD_GEOMETRY_SIZEOF_1;
   i32 num_vert_elements = stride * num_floor_tiles;
 
   u32  sizeof_vertices = sizeof(f32) * num_vert_elements;
   u32  sizeof_indices = sizeof(u32) * mesh->num_elements;
-  f32 *vertices = (f32 *)ARENA_ALLOC(transient, sizeof_vertices);
-  u32 *indices = (u32 *)ARENA_ALLOC(transient, sizeof_indices);
+  f32* vertices = (f32*)ARENA_ALLOC(transient, sizeof_vertices);
+  u32* indices = (u32*)ARENA_ALLOC(transient, sizeof_indices);
 
   // build geometry
   i32 tile_count = 0;
 
+  // clang-format off
   f32 *e;
   for (i32 j = 0; j < level->height; j++) {
     for (i32 i = 0; i < level->width; i++) {
@@ -370,6 +371,7 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
       }
     }
   }
+  // clang-format on
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
@@ -393,18 +395,18 @@ void mesh_floor_lib_load(Level *level, RonaGl *gl, MemoryArena *transient, Tiles
   gl->enableVertexAttribArray(3);
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(0 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(0 * sizeof(float)));
   // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(2 * sizeof(float)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(2 * sizeof(float)));
 
-  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(4 * sizeof(float)));
-  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(8 * sizeof(float)));
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(4 * sizeof(float)));
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(8 * sizeof(float)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
   gl->bindVertexArray(0);
 }
 
-void mesh_floor_lib_unload(Level *level, RonaGl *gl) {
+void mesh_floor_lib_unload(Level* level, RonaGl* gl) {
   gl->deleteVertexArrays(1, &level->mesh_floor->vao);
 }

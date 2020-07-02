@@ -74,7 +74,7 @@ f64 gamma_correction(f64 a) {
   }
 }
 
-void colour_from(Colour *out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
+void colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
                  f32 e2, f32 alpha) {
   Colour in_col = {in_format, {e0, e1, e2, alpha}};
   colour_clone_as(out, &in_col, out_format);
@@ -91,7 +91,7 @@ Colour colour_make(ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
   return res;
 }
 
-void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
+void colour_set(Colour* out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha) {
   out->format = format;
   out->element[0] = e0;
   out->element[1] = e1;
@@ -99,7 +99,7 @@ void colour_set(Colour *out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 al
   out->element[3] = alpha;
 }
 
-Colour64 *colour64_from_colour(Colour64 *out, Colour *in) {
+Colour64* colour64_from_colour(Colour64* out, Colour* in) {
   out->format = in->format;
   out->element[0] = (f64)(in->element[0]);
   out->element[1] = (f64)(in->element[1]);
@@ -109,7 +109,7 @@ Colour64 *colour64_from_colour(Colour64 *out, Colour *in) {
   return out;
 }
 
-Colour *colour_from_colour64(Colour *out, Colour64 *in) {
+Colour* colour_from_colour64(Colour* out, Colour64* in) {
   out->format = in->format;
   out->element[0] = (f32)(in->element[0]);
   out->element[1] = (f32)(in->element[1]);
@@ -119,7 +119,7 @@ Colour *colour_from_colour64(Colour *out, Colour64 *in) {
   return out;
 }
 
-Colour *colour_clone(Colour *out, Colour *in) {
+Colour* colour_clone(Colour* out, Colour* in) {
   out->format = in->format;
   out->element[0] = in->element[0];
   out->element[1] = in->element[1];
@@ -129,7 +129,7 @@ Colour *colour_clone(Colour *out, Colour *in) {
   return out;
 }
 
-Colour64 *xyz_from_rgb(Colour64 *col) {
+Colour64* xyz_from_rgb(Colour64* col) {
   f64 r = col->element[0];
   f64 g = col->element[1];
   f64 b = col->element[2];
@@ -149,7 +149,7 @@ Colour64 *xyz_from_rgb(Colour64 *col) {
   return col;
 }
 
-Colour64 *rgb_from_xyz(Colour64 *col) {
+Colour64* rgb_from_xyz(Colour64* col) {
   f64 xx = col->element[0];
   f64 yy = col->element[1];
   f64 zz = col->element[2];
@@ -177,7 +177,7 @@ f64 axis_to_LAB_component(f64 a) {
   }
 }
 
-Colour64 *lab_from_xyz(Colour64 *col) {
+Colour64* lab_from_xyz(Colour64* col) {
   f64 xr = col->element[0] / WHITEPOINT_0;
   f64 yr = col->element[1] / WHITEPOINT_1;
   f64 zr = col->element[2] / WHITEPOINT_2;
@@ -194,18 +194,18 @@ Colour64 *lab_from_xyz(Colour64 *col) {
   return col;
 }
 
-i32 max_channel(Colour64 *colour) {
+i32 max_channel(Colour64* colour) {
   i32 hi = colour->element[0] > colour->element[1] ? 0 : 1;
   return colour->element[2] > colour->element[hi] ? 2 : hi;
 }
 
-i32 min_channel(Colour64 *colour) {
+i32 min_channel(Colour64* colour) {
   i32 low = colour->element[0] < colour->element[1] ? 0 : 1;
   return colour->element[2] < colour->element[low] ? 2 : low;
 }
 
 // http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
-f64 hue(Colour64 *colour, i32 max_chan, f64 chroma) {
+f64 hue(Colour64* colour, i32 max_chan, f64 chroma) {
   if (chroma == 0.0) {
     return 0.0; // invalid hue
   }
@@ -236,7 +236,7 @@ f64 hue(Colour64 *colour, i32 max_chan, f64 chroma) {
 f64 abso(f64 in) { return in < 0.0 ? -in : in; }
 
 // http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
-Colour64 *hsl_from_rgb(Colour64 *col) {
+Colour64* hsl_from_rgb(Colour64* col) {
   i32 min_ch = min_channel(col);
   f64 min_val = col->element[min_ch];
 
@@ -264,7 +264,7 @@ Colour64 *hsl_from_rgb(Colour64 *col) {
   return col;
 }
 
-Colour64 *hsv_from_rgb(Colour64 *col) {
+Colour64* hsv_from_rgb(Colour64* col) {
   i32 min_ch = min_channel(col);
   f64 min_val = col->element[min_ch];
 
@@ -295,7 +295,7 @@ Colour64 *hsv_from_rgb(Colour64 *col) {
   return col;
 }
 
-Colour64 *rgb_from_chm(Colour64 *col, f64 chroma, f64 h, f64 m) {
+Colour64* rgb_from_chm(Colour64* col, f64 chroma, f64 h, f64 m) {
   // todo: validhue test
   //
   // if (c.get('validHue') === undefined) {
@@ -342,7 +342,7 @@ Colour64 *rgb_from_chm(Colour64 *col, f64 chroma, f64 h, f64 m) {
   return col;
 }
 
-Colour64 *rgb_from_hsl(Colour64 *col) {
+Colour64* rgb_from_hsl(Colour64* col) {
   f64 h = col->element[0];
   f64 s = col->element[1];
   f64 l = col->element[2];
@@ -363,7 +363,7 @@ f64 lab_component_to_axis(f64 l) {
   }
 }
 
-Colour64 *xyz_from_lab(Colour64 *col) {
+Colour64* xyz_from_lab(Colour64* col) {
   f64 fy = (col->element[0] + 16.0) / 116.0;
   f64 fz = fy - (col->element[2] / 200.0);
   f64 fx = (col->element[1] / 500.0) + fy;
@@ -386,7 +386,7 @@ Colour64 *xyz_from_lab(Colour64 *col) {
   return col;
 }
 
-Colour64 *rgb_from_hsv(Colour64 *col) {
+Colour64* rgb_from_hsv(Colour64* col) {
   f64 h = col->element[0];
   f64 s = col->element[1];
   f64 v = col->element[2];
@@ -463,13 +463,13 @@ void get_bounds(f64 l, Bounds bounds[6]) {
   }
 }
 
-f64 intersect_line_line(const Bounds *line1, const Bounds *line2) {
+f64 intersect_line_line(const Bounds* line1, const Bounds* line2) {
   return (line1->b - line2->b) / (line2->a - line1->a);
 }
 
 f64 dist_from_pole(f64 x, f64 y) { return sqrt(x * x + y * y); }
 
-f64 ray_length_until_intersect(f64 theta, const Bounds *line) {
+f64 ray_length_until_intersect(f64 theta, const Bounds* line) {
   return line->b / (sin(theta) - line->a * cos(theta));
 }
 
@@ -535,7 +535,7 @@ f64 l2y(f64 l) {
   }
 }
 
-Colour64 *luv_from_xyz(Colour64 *col) {
+Colour64* luv_from_xyz(Colour64* col) {
   f64 var_u = (4.0 * col->element[0]) /
               (col->element[0] + (15.0 * col->element[1]) + (3.0 * col->element[2]));
   f64 var_v = (9.0 * col->element[1]) /
@@ -562,7 +562,7 @@ Colour64 *luv_from_xyz(Colour64 *col) {
   return col;
 }
 
-Colour64 *xyz_from_luv(Colour64 *col) {
+Colour64* xyz_from_luv(Colour64* col) {
   if (col->element[0] <= 0.00000001) {
     col->element[0] = 0.0;
     col->element[1] = 0.0;
@@ -583,7 +583,7 @@ Colour64 *xyz_from_luv(Colour64 *col) {
   return col;
 }
 
-Colour64 *lch_from_luv(Colour64 *col) {
+Colour64* lch_from_luv(Colour64* col) {
   f64 l = col->element[0];
   f64 u = col->element[1];
   f64 v = col->element[2];
@@ -608,7 +608,7 @@ Colour64 *lch_from_luv(Colour64 *col) {
   return col;
 }
 
-Colour64 *luv_from_lch(Colour64 *col) {
+Colour64* luv_from_lch(Colour64* col) {
   f64 hrad = col->element[2] * 0.01745329251994329577f; /* (pi / 180.0) */
   f64 u = cosf((float)hrad) * col->element[1];
   f64 v = sinf((float)hrad) * col->element[1];
@@ -619,7 +619,7 @@ Colour64 *luv_from_lch(Colour64 *col) {
   return col;
 }
 
-Colour64 *lch_from_hsluv(Colour64 *col) {
+Colour64* lch_from_hsluv(Colour64* col) {
   f64 h = col->element[0];
   f64 s = col->element[1];
   f64 l = col->element[2];
@@ -640,7 +640,7 @@ Colour64 *lch_from_hsluv(Colour64 *col) {
   return col;
 }
 
-Colour64 *hsluv_from_lch(Colour64 *col) {
+Colour64* hsluv_from_lch(Colour64* col) {
   f64 l = col->element[0];
   f64 c = col->element[1];
   f64 h = col->element[2];
@@ -662,13 +662,13 @@ Colour64 *hsluv_from_lch(Colour64 *col) {
   return col;
 }
 
-Colour64 *xyz_from_hsluv(Colour64 *hsluv) {
+Colour64* xyz_from_hsluv(Colour64* hsluv) {
   return xyz_from_luv(luv_from_lch(lch_from_hsluv(hsluv)));
 }
 
-Colour64 *hsluv_from_xyz(Colour64 *xyz) { return hsluv_from_lch(lch_from_luv(luv_from_xyz(xyz))); }
+Colour64* hsluv_from_xyz(Colour64* xyz) { return hsluv_from_lch(lch_from_luv(luv_from_xyz(xyz))); }
 
-Colour64 *linear_from_srgb(Colour64 *srgb) {
+Colour64* linear_from_srgb(Colour64* srgb) {
   srgb->format = ColourFormat_RGB;
   srgb->element[0] = gamma_expansion(srgb->element[0]);
   srgb->element[1] = gamma_expansion(srgb->element[1]);
@@ -677,7 +677,7 @@ Colour64 *linear_from_srgb(Colour64 *srgb) {
   return srgb;
 }
 
-Colour64 *srgb_from_linear(Colour64 *rgb) {
+Colour64* srgb_from_linear(Colour64* rgb) {
   rgb->format = ColourFormat_sRGB;
   rgb->element[0] = gamma_correction(rgb->element[0]);
   rgb->element[1] = gamma_correction(rgb->element[1]);
@@ -686,7 +686,7 @@ Colour64 *srgb_from_linear(Colour64 *rgb) {
   return rgb;
 }
 
-Colour *colour_clone_as(Colour *out, Colour *in, ColourFormat new_format) {
+Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
   if (out != in) {
     colour_clone(out, in);
   }
@@ -841,7 +841,7 @@ Colour *colour_clone_as(Colour *out, Colour *in, ColourFormat new_format) {
   return out;
 }
 
-void vec4_from_colour(Vec4 *out, Colour *in) {
+void vec4_from_colour(Vec4* out, Colour* in) {
   out->r = in->element[0];
   out->g = in->element[1];
   out->b = in->element[2];

@@ -15,10 +15,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
-                               TilesetSprite tile_sprite, Colour fg_col, Colour bg_col) {
+void mesh_lib_load_single_tile(Mesh* mesh, RonaGl* gl, Tileset* tileset, TilesetSprite tile_sprite,
+                               Colour fg_col, Colour bg_col) {
 
-  Vec4 fg, bg;
+  Vec4   fg, bg;
   Colour c;
   vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
   vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
@@ -27,6 +27,9 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
   mesh->shader_type = ShaderType_Tile;
 
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
+
+  // RONA_LOG("mesh vao %d\n", mesh->vao);
+
   gl->bindVertexArray(mesh->vao);
 
   Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
@@ -58,32 +61,33 @@ void mesh_lib_load_single_tile(Mesh *mesh, RonaGl *gl, Tileset *tileset,
   gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW); // the data is set only once and used many times.
-  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
-  GLuint ebo;
-  gl->genBuffers(1, &ebo);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
   gl->enableVertexAttribArray(2);
   gl->enableVertexAttribArray(3);
 
-  // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(0 * sizeof(float)));
-  // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(2 * sizeof(float)));
-  // fg colour
-  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(4 * sizeof(float)));
-  // bg colour
-  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void *)(8 * sizeof(float)));
+  u32 num_floats = TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY;
 
+  // positions
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
+                          (void*)(0 * sizeof(float)));
+  // uv
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
+                          (void*)(2 * sizeof(float)));
+  // fg colour
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
+                          (void*)(4 * sizeof(float)));
+  // bg colour
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
+                          (void*)(8 * sizeof(float)));
+
+  GLuint ebo;
+  gl->genBuffers(1, &ebo);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   gl->bindVertexArray(0);
 }
 
-void mesh_lib_unload(Mesh *mesh, RonaGl *gl) { gl->deleteVertexArrays(1, &mesh->vao); }
+void mesh_lib_unload(Mesh* mesh, RonaGl* gl) { gl->deleteVertexArrays(1, &mesh->vao); }
