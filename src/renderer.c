@@ -275,7 +275,9 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
   return true;
 }
 
-void text_render_reset(RenderStruct* render_struct) { render_struct->num_characters = 0; }
+void text_render_reset(RenderStruct* render_struct) {
+  render_struct->num_characters = 0;
+}
 
 void text_render_paragraph(RenderStruct* render_struct, char* text, Vec2 pos, Vec4 fg, Vec4 bg) {
   char* c = text;
@@ -310,7 +312,8 @@ void text_render_to_gpu(RonaGl* gl, RenderStruct* render_struct) {
   gl->bindVertexArray(0);
 }
 
-void renderer_shutdown(RonaGl* gl) {}
+void renderer_shutdown(RonaGl* gl) {
+}
 
 GLuint create_shader_type(RonaGl* gl, GLenum type, const char* source) {
   GLuint shaderId = gl->createShader(type);
@@ -411,7 +414,9 @@ GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height) {
   return texture_id;
 }
 
-void delete_texture(RonaGl* gl, GLuint texture_id) { gl->deleteTextures(1, &texture_id); }
+void delete_texture(RonaGl* gl, GLuint texture_id) {
+  gl->deleteTextures(1, &texture_id);
+}
 
 void attach_textures_to_framebuffer(RonaGl* gl, GLuint framebuffer_id, GLuint texture_id,
                                     GLuint depth_texture_id) {

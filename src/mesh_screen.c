@@ -70,4 +70,6 @@ void mesh_screen_lib_load(Mesh* mesh, RonaGl* gl, RenderStruct* render_struct) {
   gl->bindVertexArray(0);
 }
 
-void mesh_screen_lib_unload(Mesh* mesh, RonaGl* gl) { gl->deleteVertexArrays(1, &mesh->vao); }
+void mesh_screen_lib_unload(Mesh* mesh, RonaGl* gl) {
+  gl->deleteVertexArrays(1, &mesh->vao);
+}

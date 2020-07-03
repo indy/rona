@@ -4,4 +4,5 @@ BasedOnStyle:  LLVM
 ColumnLimit:     100
 AlignConsecutiveDeclarations: true
 PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: None
 ...

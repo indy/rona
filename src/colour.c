@@ -233,7 +233,9 @@ f64 hue(Colour64* colour, i32 max_chan, f64 chroma) {
   return angle;
 }
 
-f64 abso(f64 in) { return in < 0.0 ? -in : in; }
+f64 abso(f64 in) {
+  return in < 0.0 ? -in : in;
+}
 
 // http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
 Colour64* hsl_from_rgb(Colour64* col) {
@@ -467,7 +469,9 @@ f64 intersect_line_line(const Bounds* line1, const Bounds* line2) {
   return (line1->b - line2->b) / (line2->a - line1->a);
 }
 
-f64 dist_from_pole(f64 x, f64 y) { return sqrt(x * x + y * y); }
+f64 dist_from_pole(f64 x, f64 y) {
+  return sqrt(x * x + y * y);
+}
 
 f64 ray_length_until_intersect(f64 theta, const Bounds* line) {
   return line->b / (sin(theta) - line->a * cos(theta));
@@ -666,7 +670,9 @@ Colour64* xyz_from_hsluv(Colour64* hsluv) {
   return xyz_from_luv(luv_from_lch(lch_from_hsluv(hsluv)));
 }
 
-Colour64* hsluv_from_xyz(Colour64* xyz) { return hsluv_from_lch(lch_from_luv(luv_from_xyz(xyz))); }
+Colour64* hsluv_from_xyz(Colour64* xyz) {
+  return hsluv_from_lch(lch_from_luv(luv_from_xyz(xyz)));
+}
 
 Colour64* linear_from_srgb(Colour64* srgb) {
   srgb->format = ColourFormat_RGB;

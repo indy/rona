@@ -24,7 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-  // clang-format off
+// clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 7
   #define L1_HEIGHT 7
@@ -42,7 +42,9 @@ void level1_startup(Level* level, GameState* game_state) {
   level_build(game_state, level, L1_WIDTH * 2, L1_HEIGHT, layout);
 }
 
-void level1_shutdown(Level* level) { level->mem.used = 0; }
+void level1_shutdown(Level* level) {
+  level->mem.used = 0;
+}
 
 void level1_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset) {
   mesh_floor_lib_load(level, gl, transient, tileset);
@@ -56,4 +58,6 @@ void level1_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* 
   // hero->colour.b = hero_colour.element[2];
   // hero->colour.a = hero_colour.element[3];
 }
-void level1_lib_unload(Level* level, RonaGl* gl) { mesh_floor_lib_unload(level, gl); }
+void level1_lib_unload(Level* level, RonaGl* gl) {
+  mesh_floor_lib_unload(level, gl);
+}

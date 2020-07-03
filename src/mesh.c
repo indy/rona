@@ -90,4 +90,6 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGl* gl, Tileset* tileset, Tileset
   gl->bindVertexArray(0);
 }
 
-void mesh_lib_unload(Mesh* mesh, RonaGl* gl) { gl->deleteVertexArrays(1, &mesh->vao); }
+void mesh_lib_unload(Mesh* mesh, RonaGl* gl) {
+  gl->deleteVertexArrays(1, &mesh->vao);
+}

@@ -15,11 +15,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-f32 to_radians(f32 degrees) { return degrees * (TAU32 / 360.0f); }
+f32 to_radians(f32 degrees) {
+  return degrees * (TAU32 / 360.0f);
+}
 
-f32 lerp(f32 a, f32 t, f32 b) { return ((b - a) * t) + a; }
+f32 lerp(f32 a, f32 t, f32 b) {
+  return ((b - a) * t) + a;
+}
 
-f32 clamp(f32 min, f32 val, f32 max) { return val < min ? min : val > max ? max : val; }
+f32 clamp(f32 min, f32 val, f32 max) {
+  return val < min ? min : val > max ? max : val;
+}
 
 Vec2i vec2i(i32 x, i32 y) {
   Vec2i res;
@@ -78,7 +84,9 @@ i32 vec2i_dot(Vec2i a, Vec2i b) {
   return res;
 }
 
-i32 vec2i_length_squared(Vec2i a) { return vec2i_dot(a, a); }
+i32 vec2i_length_squared(Vec2i a) {
+  return vec2i_dot(a, a);
+}
 
 Vec2 vec2(f32 x, f32 y) {
   Vec2 res;
@@ -137,9 +145,13 @@ f32 vec2_dot(Vec2 a, Vec2 b) {
   return res;
 }
 
-f32 vec2_length_squared(Vec2 a) { return vec2_dot(a, a); }
+f32 vec2_length_squared(Vec2 a) {
+  return vec2_dot(a, a);
+}
 
-f32 vec2_length(Vec2 a) { return SQRTF(vec2_length_squared(a)); }
+f32 vec2_length(Vec2 a) {
+  return SQRTF(vec2_length_squared(a));
+}
 
 Vec2 vec2_normalize(Vec2 a) {
   Vec2 res = vec2(0.0f, 0.0f);
@@ -223,9 +235,13 @@ Vec3 vec3_cross(Vec3 a, Vec3 b) {
   return res;
 }
 
-f32 vec3_length_squared(Vec3 a) { return vec3_dot(a, a); }
+f32 vec3_length_squared(Vec3 a) {
+  return vec3_dot(a, a);
+}
 
-f32 vec3_length(Vec3 a) { return SQRTF(vec3_length_squared(a)); }
+f32 vec3_length(Vec3 a) {
+  return SQRTF(vec3_length_squared(a));
+}
 
 Vec3 vec3_normalize(Vec3 a) {
   Vec3 res = vec3(0.0f, 0.0f, 0.0f);
@@ -309,9 +325,13 @@ f32 vec4_dot(Vec4 a, Vec4 b) {
   return res;
 }
 
-f32 vec4_length_squared(Vec4 a) { return vec4_dot(a, a); }
+f32 vec4_length_squared(Vec4 a) {
+  return vec4_dot(a, a);
+}
 
-f32 vec4_length(Vec4 a) { return SQRTF(vec4_length_squared(a)); }
+f32 vec4_length(Vec4 a) {
+  return SQRTF(vec4_length_squared(a));
+}
 
 Vec4 vec4_normalize(Vec4 a) {
   Vec4 res = vec4(0.0f, 0.0f, 0.0f, 0.0f);

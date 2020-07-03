@@ -317,6 +317,10 @@ typedef struct {
 
 } RenderStruct;
 
+enum {
+
+} GameMode;
+
 typedef struct {
   bool game_initialised;
   bool quit_game;
