@@ -162,8 +162,9 @@ int main(int argc, char **args) {
   game_state.time_game_start = fplGetTimeInMilliseconds();
   game_state.time_last_frame = game_state.time_game_start;
 
-  game_state.quit_game = false;
+  game_state.mode = GameMode_Play;
   game_state.game_initialised = false;
+  game_state.quit_game = false;
 
   game_state.storage_permanent.size = megabytes(256);
   game_state.storage_permanent.base = mmap(NULL,
@@ -242,7 +243,8 @@ int main(int argc, char **args) {
 
     // allocate memory arena space for RonaInput
     game_state.input = (RonaInput *)arena_alloc(&(game_state.storage_permanent), sizeof(RonaInput));
-    game_state.input->idx = 1;
+    game_state.input->key_toggle_idx = 1;
+    game_state.input->mouse_toggle_idx = 1;
 
     // Event/Main loop
     while (fplWindowUpdate() && !game_state.quit_game) {
@@ -292,10 +294,26 @@ int main(int argc, char **args) {
       }
 
       if (game_state.window_has_focus) {
+        fplMouseState mouseState;
+        if (fplPollMouseState(&mouseState)) {
+          game_state.input->mouse_toggle_idx = 1 - game_state.input->mouse_toggle_idx;
+          int idx = game_state.input->mouse_toggle_idx;
+          game_state.input->key[idx][MouseButton_Left] =
+            (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Left];
+          game_state.input->key[idx][MouseButton_Middle] =
+            (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Middle];
+          game_state.input->key[idx][MouseButton_Right] =
+            (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Right];
+
+          game_state.input->mouse_pos.x = mouseState.x;
+          game_state.input->mouse_pos.y = mouseState.y;
+          game_state.input->mouse_wheel_delta = 0.0f;
+        }
+
         fplKeyboardState keyboardState;
         if (fplPollKeyboardState(&keyboardState)) {
-          game_state.input->idx = 1 - game_state.input->idx;
-          int idx = game_state.input->idx;
+          game_state.input->key_toggle_idx = 1 - game_state.input->key_toggle_idx;
+          int idx = game_state.input->key_toggle_idx;
           game_state.input->key[idx][Key_Space] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Space];
           game_state.input->key[idx][Key_Return] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Return];
           game_state.input->key[idx][Key_Shift] = (RonaButtonState)keyboardState.buttonStatesMapped[fplKey_Shift];

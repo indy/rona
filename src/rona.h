@@ -317,16 +317,39 @@ typedef struct {
 
 } RenderStruct;
 
-enum {
-
+typedef enum {
+  GameMode_Edit,
+  GameMode_Play
 } GameMode;
 
 typedef struct {
+  MemoryArena* arena;
+  RenderStruct* render_struct;
+  Vec2 pos;
+  Vec4 fg;
+  Vec4 bg;
+} TextParams;
+
+typedef struct {
+  int             key_toggle_idx;
+  RonaButtonState key[2][NumRonaKeys];
+
+  int             mouse_toggle_idx;
+  RonaButtonState mouse[2][NumRonaMouseButtons];
+  Vec2i           mouse_pos;
+  f32             mouse_wheel_delta;
+} RonaInput;
+
+typedef struct {
+  GameMode mode;
   bool game_initialised;
   bool quit_game;
 
   bool window_has_focus;
   bool window_resized;
+
+  Vec2 render_texture_from_window_factor;   // multiply this
+  Vec2 render_texture_from_window_delta;    // add this
 
   RenderStruct render_struct;
 

@@ -37,6 +37,59 @@ void game_shutdown(GameState* game_state) {
   renderer_shutdown(game_state->gl);
 }
 
+Vec2 render_texture_from_window(GameState *game_state, f32 x, f32 y) {
+  Vec2 pos;
+  pos.x = x;
+  pos.y = (f32)game_state->render_struct.window_height - y;
+
+  return vec2_mul(vec2_add(pos, game_state->render_texture_from_window_delta),
+                  game_state->render_texture_from_window_factor);
+}
+
+void render_texture_from_window_calc(GameState* game_state) {
+  RenderStruct *render_struct = &(game_state->render_struct);
+
+  Vec2 render_texture_from_window_factor;   // multiply this
+  Vec2 render_texture_from_window_delta;    // add this
+
+  f32 window_width = (f32)render_struct->window_width;
+  f32 window_height = (f32)render_struct->window_height;
+  f32 render_texture_width = (f32)render_struct->render_texture_width;
+  f32 render_texture_height = (f32)render_struct->render_texture_height;
+
+  f32 aspect_ratio = render_texture_width / render_texture_height;
+  f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
+
+  if (window_aspect_ratio <= aspect_ratio) {
+    // window is narrower than desired
+
+    // world to window
+    render_texture_from_window_factor.x = render_texture_width / window_width;
+    render_texture_from_window_factor.y = render_texture_from_window_factor.x;
+
+    f32 y_in_window = render_texture_height / render_texture_from_window_factor.x; // height in window pixels of 360
+    f32 v = (f32)window_height - y_in_window;
+    f32 v_pad = v / 2.0f;
+
+    render_texture_from_window_delta.x = 0.0f;
+    render_texture_from_window_delta.y = -v_pad;
+  } else {
+    // window is more elongated horizontally than desired
+    render_texture_from_window_factor.x = render_texture_height / window_height;
+    render_texture_from_window_factor.y = render_texture_from_window_factor.x;
+
+    f32 x_in_window = render_texture_width / render_texture_from_window_factor.y; // width in window pixels of 640
+    f32 h = (f32)window_width - x_in_window;
+    f32 h_pad = h / 2.0f;
+
+    render_texture_from_window_delta.x = -h_pad;
+    render_texture_from_window_delta.y = 0.0f;
+  }
+
+  game_state->render_texture_from_window_factor = render_texture_from_window_factor;
+  game_state->render_texture_from_window_delta = render_texture_from_window_delta;
+}
+
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
   RonaGl*       gl = game_state->gl;
@@ -45,6 +98,8 @@ void game_lib_load(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
 
   renderer_lib_load(gl, arena, render_struct);
+
+  render_texture_from_window_calc(game_state);
 
   Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
   Colour red = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
@@ -55,19 +110,6 @@ void game_lib_load(GameState* game_state) {
   mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
   mesh_screen_lib_load(game_state->mesh_screen, gl, render_struct);
   level1_lib_load(game_state->level, gl, arena, tileset);
-
-  Vec4   fg, bg;
-  Colour ground_colour_fg;
-  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
-  Colour ground_colour_bg;
-  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
-  vec4_from_colour(&fg, &ground_colour_fg);
-  vec4_from_colour(&bg, &ground_colour_bg);
-
-  text_render_reset(render_struct);
-  text_render_paragraph(render_struct, "is this changing\nnewline hooha", vec2(0.0f, 140.0f), fg,
-                        bg);
-  text_render_to_gpu(gl, render_struct);
 }
 
 // changes have been made to the game client, this old version will be unloaded
@@ -96,6 +138,35 @@ Entity* get_hero(Level* level) {
 
 void game_step(GameState* game_state) {
   game_state->storage_transient.used = 0;
+
+  if (game_state->window_resized) {
+    render_texture_from_window_calc(game_state);
+  }
+
+  RenderStruct *render_struct = &(game_state->render_struct);
+  RonaGl *gl = game_state->gl;
+
+  text_reset(render_struct);
+
+  Colour ground_colour_fg;
+  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
+  Colour ground_colour_bg;
+  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
+
+  TextParams text_params;
+  text_params.arena = &(game_state->storage_transient);
+  text_params.render_struct = render_struct;
+  text_params.pos = vec2(0.0f, 140.0f);
+  vec4_from_colour(&(text_params.fg), &ground_colour_fg);
+  vec4_from_colour(&(text_params.bg), &ground_colour_bg);
+
+  text_params.pos = vec2(100.0f, 300.0f);
+
+  Vec2 mouse_rt = render_texture_from_window(game_state,
+                                           (f32)game_state->input->mouse_pos.x,
+                                           (f32)game_state->input->mouse_pos.y);
+  text_params.pos = vec2(400.0f, 248.0f);
+  text_printf(&text_params, "mouse in world (%.2f, %.2f)", mouse_rt.x, mouse_rt.y);
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;
@@ -172,6 +243,8 @@ void game_step(GameState* game_state) {
       }
     }
   }
+
+  text_send_to_gpu(render_struct, gl);
 
   renderer_render(game_state->gl, game_state->level, &game_state->render_struct,
                   game_state->mesh_screen);

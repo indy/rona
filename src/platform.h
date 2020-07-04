@@ -1075,6 +1075,13 @@ typedef enum RonaKey {
   NumRonaKeys,
 } RonaKey;
 
+typedef enum RonaMouseButton {
+  MouseButton_Left,
+  MouseButton_Middle,
+  MouseButton_Right,
+  NumRonaMouseButtons
+} RonaMouseButton;
+
 // #ifdef __cplusplus
 // extern "C" {
 // #endif
@@ -1138,11 +1145,6 @@ typedef struct {
   PFNGLVERTEXATTRIBPOINTERPROC      vertexAttribPointer;
   PFNGLDELETEVERTEXARRAYSPROC       deleteVertexArrays;
 } RonaGl;
-
-typedef struct {
-  int             idx;
-  RonaButtonState key[2][NumRonaKeys];
-} RonaInput;
 
 // #ifdef __cplusplus
 // }

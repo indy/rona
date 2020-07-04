@@ -143,6 +143,9 @@ void stb_rona_transient_free(void* mem) {
 #define STBI_FREE(X) RONA_TRANSIENT_FREE(X)
 #include "stb_image.h"
 
+#define STB_SPRINTF_IMPLEMENTATION
+#include "stb_sprintf.h"
+
 #include "tileset.c"
 
 #include "colour.c"

@@ -275,13 +275,14 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
   return true;
 }
 
-void text_render_reset(RenderStruct* render_struct) {
+void text_reset(RenderStruct* render_struct) {
   render_struct->num_characters = 0;
 }
 
-void text_render_paragraph(RenderStruct* render_struct, char* text, Vec2 pos, Vec4 fg, Vec4 bg) {
+void text_paragraph(TextParams *text_params, char* text) {
   char* c = text;
 
+  Vec2 pos = text_params->pos;
   f32 basex = pos.x;
   i32 width_count = 0;
 
@@ -291,14 +292,29 @@ void text_render_paragraph(RenderStruct* render_struct, char* text, Vec2 pos, Ve
       width_count = 0;
     } else {
       pos.x = basex + ((f32)(width_count * TILE_CHAR_WIDTH));
-      tileset_add_char(render_struct, *c, &pos, &fg, &bg);
+      tileset_add_char(text_params->render_struct, *c, &pos, &text_params->fg, &text_params->bg);
       width_count++;
     }
     c++;
   }
 }
 
-void text_render_to_gpu(RonaGl* gl, RenderStruct* render_struct) {
+void text_printf(TextParams *text_params, char* fmt, ...) {
+#define MAX_TEXT_PRINTF_BUFFER_SIZE 4096
+  MemoryArena *arena = text_params->arena;
+  char *buffer = (char *)arena_head(arena);
+  u64 arena_space_available = arena->size - arena->used;
+  va_list va;
+
+  va_start(va, fmt);
+  stbsp_vsnprintf(buffer, MIN(arena_space_available, MAX_TEXT_PRINTF_BUFFER_SIZE), fmt, va);
+  va_end(va);
+
+  // stbsp_sprintf(buf, "mouse co-ords (%d, %d)", game_params->input->mouse_pos.x, game_params->input->mouse_pos.y);
+  text_paragraph(text_params, buffer);
+}
+
+void text_send_to_gpu(RenderStruct* render_struct, RonaGl* gl) {
   gl->bindVertexArray(render_struct->text_vao);
 
   gl->bindBuffer(GL_ARRAY_BUFFER, render_struct->text_vbo);
