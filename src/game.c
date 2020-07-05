@@ -160,13 +160,15 @@ void game_step(GameState* game_state) {
   vec4_from_colour(&(text_params.fg), &ground_colour_fg);
   vec4_from_colour(&(text_params.bg), &ground_colour_bg);
 
-  text_params.pos = vec2(100.0f, 300.0f);
 
   Vec2 mouse_rt = render_texture_from_window(game_state,
                                            (f32)game_state->input->mouse_pos.x,
                                            (f32)game_state->input->mouse_pos.y);
-  text_params.pos = vec2(400.0f, 248.0f);
-  text_printf(&text_params, "mouse in world (%.2f, %.2f)", mouse_rt.x, mouse_rt.y);
+  // text_params.pos = vec2(200.0f, 248.0f);
+  // text_printf(&text_params, "mouse in world (%.2f, %.2f)", mouse_rt.x, mouse_rt.y);
+
+  text_params.pos = vec2(16.0f, 160.0f);
+  text_printf(&text_params, "here are some words XYZ");
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;

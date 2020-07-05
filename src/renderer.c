@@ -83,6 +83,10 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
 
   // render text
   //
+  // gl->activeTexture(GL_TEXTURE2);
+  // gl->bindTexture(GL_TEXTURE_2D, render_struct->font_texture_id);
+  // gl->uniform1i(render_struct->tile_shader.uniform_texture, 2);
+
   gl->uniform3f(render_struct->tile_shader.uniform_pos, 0.0f, 0.0f, 0.0f);
   gl->bindVertexArray(render_struct->text_vao);
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
@@ -184,7 +188,7 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
   // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
   // "no"));
 
-  // load textures
+  // load tileset texture
   gl->genTextures(1, &(render_struct->tileset_texture_id));
   int            tex_width, tex_height, num_channels;
   char*          tileset_filename = "assets/tileset.png";
@@ -215,6 +219,40 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
     RONA_ERROR("renderer.c failed to load %s\n", tileset_filename);
     return false;
   }
+
+#if 0
+  // load font texture
+  gl->genTextures(1, &(render_struct->font_texture_id));
+  tileset_filename = "assets/RulerGold.png"; // note: this font isn't monospace
+  data = stbi_load(tileset_filename, &tex_width, &tex_height, &num_channels, 0);
+
+  if (data) {
+    gl->activeTexture(GL_TEXTURE2);
+    gl->bindTexture(GL_TEXTURE_2D, render_struct->font_texture_id);
+
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    // gl->generateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    Tileset* tileset = &(render_struct->font_tileset);
+    tileset->image_dim.width = tex_width;
+    tileset->image_dim.height = tex_height;
+    tileset->sprite_dim.width = 8;
+    tileset->sprite_dim.height = 15;
+    tileset_calc_uv_units(tileset);
+
+    RONA_LOG("uv %.6f, %.6f\n", tileset->uv_unit.u, tileset->uv_unit.v);
+
+  } else {
+    RONA_ERROR("renderer.c failed to load %s\n", tileset_filename);
+    return false;
+  }
+#endif
 
   // setup render texture
   render_struct->render_texture_width = RENDER_TEXTURE_WIDTH;

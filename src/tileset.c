@@ -298,7 +298,6 @@ static Dim2 g_sprite_locations[] = {
   [278].row = 22, [278].col = 14  // TS_NorthWest
 };
 
-// note: the columns are half-width
 static Dim2 g_char_locations[] = {
   [0].row = 23, [0].col = 10, // space
   [1].row = 28, [1].col = 7, // !
@@ -396,7 +395,6 @@ static Dim2 g_char_locations[] = {
   [93].row = 28, [93].col = 14,  // } using ) instead
   [94].row = 0, [94].col = 0  // | todo: add this character
 };
-// clang-format on
 
 void tileset_calc_uv_units(Tileset* tileset) {
   tileset->uv_unit.u = 1.0f / (f32)(tileset->image_dim.width / tileset->sprite_dim.width);
@@ -432,7 +430,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
 
   f32 *e = &(render_struct->text_vertices[TILED_QUAD_GEOMETRY_SIZEOF_1 * render_struct->num_characters]);
 
-  Vec2 uv = tileset_get_uv_char(&(render_struct->tileset), c);
+  Vec2 uv = tileset_get_uv_char(tileset, c);
   f32 u = uv.u;
   f32 v = uv.v;
   f32 ud = tileset->uv_unit.u / 2.0;

@@ -264,8 +264,10 @@ typedef struct {
   Vec2 uv_unit; // size of each sprite in u,v normalized co-ordinates
 } Tileset;
 
-#define RENDER_TEXTURE_WIDTH 640
-#define RENDER_TEXTURE_HEIGHT 360
+#define RENDER_TEXTURE_WIDTH 512
+#define RENDER_TEXTURE_HEIGHT 288
+//#define RENDER_TEXTURE_WIDTH 640
+//#define RENDER_TEXTURE_HEIGHT 360
 #define TILE_WIDTH 16.0
 #define TILE_HEIGHT 16.0
 #define TILE_CHAR_WIDTH 8
@@ -294,11 +296,14 @@ typedef struct {
   i32 render_texture_height;
 
   Tileset tileset;
+  Tileset font_tileset;
 
   ShaderTile   tile_shader;
   ShaderScreen screen_shader;
 
   GLuint tileset_texture_id;
+  GLuint font_texture_id;
+
   GLuint render_texture_id;
   GLuint depth_texture_id;
   GLuint framebuffer_id;
