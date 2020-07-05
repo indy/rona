@@ -25,7 +25,6 @@ usize gigabytes(usize s);
 void* arena_alloc(MemoryArena* ma, usize bytes);
 void* arena_head(MemoryArena* ma);
 
-
 #define ARENA_ALLOC(arena, size) arena_alloc((arena), (size));
 
 // define a MemoryArena in the the transient storage

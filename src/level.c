@@ -195,6 +195,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   bool have_hero = false;
   i32  next_non_hero_entity_index = 1;
 
+  level->offset_stage_from_world = vec2(50.0f, 50.0f);
   level->mesh_floor = (Mesh*)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
 
   i32 width = dbl_width / 2;

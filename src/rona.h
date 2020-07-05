@@ -253,6 +253,7 @@ typedef struct {
   Tile* tiles;
   Mesh* mesh_floor;
 
+  Vec2 offset_stage_from_world;
   // history/replay data goes here as well
 } Level;
 
@@ -264,8 +265,8 @@ typedef struct {
   Vec2 uv_unit; // size of each sprite in u,v normalized co-ordinates
 } Tileset;
 
-#define RENDER_TEXTURE_WIDTH 512
-#define RENDER_TEXTURE_HEIGHT 288
+#define STAGE_WIDTH 512
+#define STAGE_HEIGHT 288
 //#define RENDER_TEXTURE_WIDTH 640
 //#define RENDER_TEXTURE_HEIGHT 360
 #define TILE_WIDTH 16.0
@@ -292,19 +293,19 @@ typedef struct {
   i32 window_width;
   i32 window_height;
 
-  i32 render_texture_width;
-  i32 render_texture_height;
+  i32 stage_width;
+  i32 stage_height;
 
   Tileset tileset;
-  Tileset font_tileset;
+  // Tileset font_tileset;
 
   ShaderTile   tile_shader;
   ShaderScreen screen_shader;
 
   GLuint tileset_texture_id;
-  GLuint font_texture_id;
+  // GLuint font_texture_id;
 
-  GLuint render_texture_id;
+  GLuint render_texture_id; // stage
   GLuint depth_texture_id;
   GLuint framebuffer_id;
 
@@ -322,17 +323,14 @@ typedef struct {
 
 } RenderStruct;
 
-typedef enum {
-  GameMode_Edit,
-  GameMode_Play
-} GameMode;
+typedef enum { GameMode_Edit, GameMode_Play } GameMode;
 
 typedef struct {
-  MemoryArena* arena;
+  MemoryArena*  arena;
   RenderStruct* render_struct;
-  Vec2 pos;
-  Vec4 fg;
-  Vec4 bg;
+  Vec2          pos;
+  Vec4          fg;
+  Vec4          bg;
 } TextParams;
 
 typedef struct {
@@ -347,14 +345,14 @@ typedef struct {
 
 typedef struct {
   GameMode mode;
-  bool game_initialised;
-  bool quit_game;
+  bool     game_initialised;
+  bool     quit_game;
 
   bool window_has_focus;
   bool window_resized;
 
-  Vec2 render_texture_from_window_factor;   // multiply this
-  Vec2 render_texture_from_window_delta;    // add this
+  Vec2 stage_from_window_factor; // multiply this
+  Vec2 stage_from_window_delta;  // add this
 
   RenderStruct render_struct;
 

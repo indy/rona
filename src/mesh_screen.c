@@ -23,8 +23,8 @@ void mesh_screen_lib_load(Mesh* mesh, RonaGl* gl, RenderStruct* render_struct) {
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-  f32 width = (f32)render_struct->render_texture_width;
-  f32 height = (f32)render_struct->render_texture_height;
+  f32 width = (f32)render_struct->stage_width;
+  f32 height = (f32)render_struct->stage_height;
   // clang-format off
   // x, y, u, v
   f32 vertices[] = {

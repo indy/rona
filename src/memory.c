@@ -37,7 +37,7 @@ void* arena_alloc(MemoryArena* ma, usize bytes) {
 }
 
 void* arena_head(MemoryArena* ma) {
-  return (void *)(ma->base + ma->used);
+  return (void*)(ma->base + ma->used);
 }
 
 void* memory_block(MemoryArena* arena, usize bytes_to_allocate, usize bytes_requested) {

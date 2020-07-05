@@ -42,8 +42,8 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
 GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* fragmentSource);
 
 void text_reset(RenderStruct* render_struct);
-void text_paragraph(TextParams *text_params, char* text);
-void text_printf(TextParams *text_params, char* fmt, ...);
+void text_paragraph(TextParams* text_params, char* text);
+void text_printf(TextParams* text_params, char* fmt, ...);
 void text_send_to_gpu(RenderStruct* render_struct, RonaGl* gl);
 
 #endif /* RENDERER_H */

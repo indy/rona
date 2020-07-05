@@ -26,8 +26,8 @@ void   update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height);
 void   bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
 void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh* screen) {
-  bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->render_texture_width,
-                   render_struct->render_texture_height);
+  bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_width,
+                   render_struct->stage_height);
 
   gl->clearColor(0.0f, 0.0f, 0.1f, 0.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -40,15 +40,14 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
   gl->activeTexture(GL_TEXTURE1);
   gl->bindTexture(GL_TEXTURE_2D, render_struct->tileset_texture_id);
 
-  f32 render_texture_width = (f32)render_struct->render_texture_width;
-  f32 render_texture_height = (f32)render_struct->render_texture_height;
+  f32 stage_width = (f32)render_struct->stage_width;
+  f32 stage_height = (f32)render_struct->stage_height;
 
   // use the RenderStruct's tile_shader for all tile based entities
   //
   gl->useProgram(render_struct->tile_shader.program);
   gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
-  Mat4 proj_matrix =
-      mat4_ortho(-10.0, render_texture_width, 0.0, render_texture_height, 10.0f, -10.0f);
+  Mat4 proj_matrix = mat4_ortho(-10.0, stage_width, 0.0, stage_height, 10.0f, -10.0f);
   gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
@@ -56,9 +55,10 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
   //
   Mesh* mesh = level->mesh_floor;
 
-  f32 world_pos_x = 0.0f;
-  f32 world_pos_y = 0.0f;
-  gl->uniform3f(render_struct->tile_shader.uniform_pos, world_pos_x, world_pos_y, 2.0f);
+  Vec3 stage_from_world =
+      vec3(level->offset_stage_from_world.x, level->offset_stage_from_world.y, 0.0f);
+  gl->uniform3f(render_struct->tile_shader.uniform_pos, stage_from_world.x, stage_from_world.y,
+                2.0f);
 
   // RONA_LOG("level vao %d\n", mesh->vao);
   gl->bindVertexArray(mesh->vao);
@@ -72,8 +72,8 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
       break;
     }
     Mesh* mesh = entity->mesh;
-    gl->uniform3f(render_struct->tile_shader.uniform_pos, entity->world_pos.x, entity->world_pos.y,
-                  entity->world_pos.z);
+    Vec3  stage_pos = vec3_add(entity->world_pos, stage_from_world);
+    gl->uniform3f(render_struct->tile_shader.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
 
     // RONA_LOG("entity vao %d\n", mesh->vao);
     gl->bindVertexArray(mesh->vao);
@@ -101,21 +101,21 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
 
   gl->useProgram(render_struct->screen_shader.program);
 
-  f32 aspect_ratio = render_texture_width / render_texture_height;
+  f32 aspect_ratio = stage_width / stage_height;
   f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
 
   if (window_aspect_ratio <= aspect_ratio) {
     // window is narrower than desired
-    f32  v = (aspect_ratio / window_aspect_ratio) * render_texture_height;
-    f32  v_pad = (v - render_texture_height) / 2.0f;
-    Mat4 m = mat4_ortho(0.0f, render_texture_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+    f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
+    f32  v_pad = (v - stage_height) / 2.0f;
+    Mat4 m = mat4_ortho(0.0f, stage_width, -v_pad, v - v_pad, 10.0f, -10.0f);
     gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
                          (GLfloat*)&(m.v));
   } else {
     // window is more elongated horizontally than desired
-    f32  h = (window_aspect_ratio / aspect_ratio) * render_texture_width;
-    f32  h_pad = (h - render_texture_width) / 2.0f;
-    Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, render_texture_height, 10.0f, -10.0f);
+    f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
+    f32  h_pad = (h - stage_width) / 2.0f;
+    Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, stage_height, 10.0f, -10.0f);
     gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
                          (GLfloat*)&(m.v));
   }
@@ -255,12 +255,10 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
 #endif
 
   // setup render texture
-  render_struct->render_texture_width = RENDER_TEXTURE_WIDTH;
-  render_struct->render_texture_height = RENDER_TEXTURE_HEIGHT;
-  render_struct->render_texture_id =
-      create_texture(gl, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
-  render_struct->depth_texture_id =
-      create_depth_texture(gl, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
+  render_struct->stage_width = STAGE_WIDTH;
+  render_struct->stage_height = STAGE_HEIGHT;
+  render_struct->render_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
+  render_struct->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   render_struct->framebuffer_id = create_framebuffer(gl);
 
   attach_textures_to_framebuffer(gl, render_struct->framebuffer_id,
@@ -270,7 +268,7 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
     return false;
   }
   gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
-  gl->viewport(0, 0, RENDER_TEXTURE_WIDTH, RENDER_TEXTURE_HEIGHT);
+  gl->viewport(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
 
   // play with text rendering
   //
@@ -317,12 +315,12 @@ void text_reset(RenderStruct* render_struct) {
   render_struct->num_characters = 0;
 }
 
-void text_paragraph(TextParams *text_params, char* text) {
+void text_paragraph(TextParams* text_params, char* text) {
   char* c = text;
 
   Vec2 pos = text_params->pos;
-  f32 basex = pos.x;
-  i32 width_count = 0;
+  f32  basex = pos.x;
+  i32  width_count = 0;
 
   while (*c) {
     if (*c == '\n') {
@@ -337,18 +335,19 @@ void text_paragraph(TextParams *text_params, char* text) {
   }
 }
 
-void text_printf(TextParams *text_params, char* fmt, ...) {
+void text_printf(TextParams* text_params, char* fmt, ...) {
 #define MAX_TEXT_PRINTF_BUFFER_SIZE 4096
-  MemoryArena *arena = text_params->arena;
-  char *buffer = (char *)arena_head(arena);
-  u64 arena_space_available = arena->size - arena->used;
-  va_list va;
+  MemoryArena* arena = text_params->arena;
+  char*        buffer = (char*)arena_head(arena);
+  u64          arena_space_available = arena->size - arena->used;
+  va_list      va;
 
   va_start(va, fmt);
   stbsp_vsnprintf(buffer, MIN(arena_space_available, MAX_TEXT_PRINTF_BUFFER_SIZE), fmt, va);
   va_end(va);
 
-  // stbsp_sprintf(buf, "mouse co-ords (%d, %d)", game_params->input->mouse_pos.x, game_params->input->mouse_pos.y);
+  // stbsp_sprintf(buf, "mouse co-ords (%d, %d)", game_params->input->mouse_pos.x,
+  // game_params->input->mouse_pos.y);
   text_paragraph(text_params, buffer);
 }
 
