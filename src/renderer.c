@@ -25,11 +25,11 @@ bool   is_framebuffer_ok(RonaGl* gl);
 void   update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height);
 void   bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
-void renderer_render(GameState *game_state) {
-  RonaGl* gl = game_state->gl;
-  Level* level = game_state->level;
+void renderer_render(GameState* game_state) {
+  RonaGl*       gl = game_state->gl;
+  Level*        level = game_state->level;
   RenderStruct* render_struct = &game_state->render_struct;
-  Mesh* screen = game_state->mesh_screen;
+  Mesh*         screen = game_state->mesh_screen;
 
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_width,
                    render_struct->stage_height);
@@ -98,7 +98,6 @@ void renderer_render(GameState *game_state) {
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
                    GL_UNSIGNED_INT, 0);
 
-
   // render onto screen
   bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
   gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -136,20 +135,19 @@ void renderer_render(GameState *game_state) {
     gl->bindVertexArray(screen->vao);
     gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
   } else {
-
+    // GameMode_Edit
 #ifdef RONA_NUKLEAR
 
-    // GameMode_Edit
-    basic_demo(&ctx, &media);
+#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
+    button_demo(&nuklear_state.ctx, &nuklear_media);
+    basic_demo(&nuklear_state.ctx, &nuklear_media);
+#endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
 
-    struct nk_vec2 scale;
-    scale.x = 1.0f;
-    scale.y = 1.0f;
+    tiny_demo(&nuklear_state.ctx);
 
     int width = render_struct->window_width;
     int height = render_struct->window_height;
-    device_draw(gl, &device, &ctx, width, height, scale, NK_ANTI_ALIASING_ON);
-
+    nuklear_render(gl, &nuklear_state, width, height, NK_ANTI_ALIASING_ON);
 #endif
   }
 }

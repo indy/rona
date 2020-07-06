@@ -35,5 +35,4 @@ bool mouse_up(RonaInput* input, RonaMouseButton mouse_button) {
 bool mouse_pressed(RonaInput* input, RonaMouseButton mouse_button) {
   return input->mouse[input->mouse_toggle_idx][mouse_button] == ButtonState_Down &&
          input->mouse[1 - input->mouse_toggle_idx][mouse_button] == ButtonState_Up;
-
 }

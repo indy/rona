@@ -323,10 +323,7 @@ typedef struct {
 
 } RenderStruct;
 
-typedef enum {
-  GameMode_Edit,
-  GameMode_Play
-} GameMode;
+typedef enum { GameMode_Edit, GameMode_Play } GameMode;
 
 typedef struct {
   MemoryArena*  arena;
@@ -380,13 +377,6 @@ typedef struct {
 
   RonaGl*    gl;
   RonaInput* input;
-
-// #ifdef RONA_NUKLEAR
-//   struct device device;
-//   struct nk_font_atlas atlas;
-//   struct media media;
-//   struct nk_context ctx;
-// #endif
 } GameState;
 
 #endif /* RONA_H */

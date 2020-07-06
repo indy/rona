@@ -1018,7 +1018,7 @@ typedef void(APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers)
 typedef void(APIENTRYP PFNGLBINDBUFFERPROC)(GLenum target, GLuint buffer);
 typedef void(APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data,
                                             GLenum usage);
-typedef void *(APIENTRYP PFNGLMAPBUFFERPROC)(GLenum target, GLenum access);
+typedef void*(APIENTRYP PFNGLMAPBUFFERPROC)(GLenum target, GLenum access);
 typedef GLboolean(APIENTRYP PFNGLUNMAPBUFFERPROC)(GLenum target);
 typedef void(APIENTRYP PFNGLENABLEVERTEXATTRIBARRAYPROC)(GLuint index);
 typedef void(APIENTRYP PFNGLDISABLEVERTEXATTRIBARRAYPROC)(GLuint index);
@@ -1099,7 +1099,7 @@ typedef enum RonaMouseButton {
 
 typedef struct {
   PFNGLGETUNIFORMLOCATIONPROC getUniformLocation;
-  PFNGLGETATTRIBLOCATIONPROC getAttribLocation;
+  PFNGLGETATTRIBLOCATIONPROC  getAttribLocation;
 
   PFNGLUNIFORM1IPROC        uniform1i;
   PFNGLUNIFORM2FPROC        uniform2f;
