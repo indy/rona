@@ -422,6 +422,8 @@ Vec2 tileset_get_uv_char(Tileset* tileset, char c) {
   return res;
 }
 
+// pos is where the lower left corner of the character is placed
+//
 // clang-format off
 void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, Vec4 *bg) {
   Tileset *tileset = &(render_struct->tileset);
@@ -435,13 +437,16 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   f32 v = uv.v;
   f32 ud = tileset->uv_unit.u / 2.0;
   f32 vd = tileset->uv_unit.v;
-  f32 half_dim_x = TILE_CHAR_WIDTH * 0.5f;
-  f32 half_dim_y = TILE_CHAR_HEIGHT * 0.5f;
+  // f32 half_dim_x = TILE_CHAR_WIDTH * 0.5f;
+  // f32 half_dim_y = TILE_CHAR_HEIGHT * 0.5f;
   f32 xpos = pos->x;
   f32 ypos = pos->y;
 
-  *e++ = -half_dim_x + xpos;
-  *e++ = half_dim_y + ypos;
+  // RONA_LOG("x dim: %.4f -> %.4f\n", -half_dim_x + xpos, half_dim_x + xpos);
+  // RONA_LOG("%.4f %.4f, %.4f %.4f\n", xpos, ypos, xpos + TILE_CHAR_WIDTH, ypos + TILE_CHAR_HEIGHT);
+
+  *e++ = xpos;
+  *e++ = ypos + TILE_CHAR_HEIGHT;
 
   *e++ = u;
   *e++ = v;
@@ -449,8 +454,8 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = fg->e[0]; *e++ = fg->e[1]; *e++ = fg->e[2]; *e++ = fg->e[3];
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
-  *e++ = -half_dim_x + xpos;
-  *e++ = -half_dim_y + ypos;
+  *e++ = xpos;
+  *e++ = ypos;
 
   *e++ = u;
   *e++ = v + vd;
@@ -458,8 +463,8 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = fg->e[0]; *e++ = fg->e[1]; *e++ = fg->e[2]; *e++ = fg->e[3];
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
-  *e++ = half_dim_x + xpos;
-  *e++ = -half_dim_y + ypos;
+  *e++ = xpos + TILE_CHAR_WIDTH;
+  *e++ = ypos;
 
   *e++ = u + ud;
   *e++ = v + vd;
@@ -467,8 +472,8 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = fg->e[0]; *e++ = fg->e[1]; *e++ = fg->e[2]; *e++ = fg->e[3];
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
-  *e++ = half_dim_x + xpos;
-  *e++ = half_dim_y + ypos;
+  *e++ = xpos + TILE_CHAR_WIDTH;
+  *e++ = ypos + TILE_CHAR_HEIGHT;
 
   *e++ = u + ud;
   *e++ = v;

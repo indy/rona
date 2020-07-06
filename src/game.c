@@ -93,11 +93,11 @@ void stage_from_window_calc(GameState* game_state) {
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
   RonaGl*       gl = game_state->gl;
-  MemoryArena*  arena = &(game_state->storage_transient);
+  MemoryArena*  transient_arena = &(game_state->storage_transient);
   Tileset*      tileset = &(game_state->render_struct.tileset);
   RenderStruct* render_struct = &(game_state->render_struct);
 
-  renderer_lib_load(gl, arena, render_struct);
+  renderer_lib_load(gl, transient_arena, render_struct);
 
   stage_from_window_calc(game_state);
 
@@ -109,7 +109,19 @@ void game_lib_load(GameState* game_state) {
   mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block, red, transparent);
   mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
   mesh_screen_lib_load(game_state->mesh_screen, gl, render_struct);
-  level1_lib_load(game_state->level, gl, arena, tileset);
+  level1_lib_load(game_state->level, gl, transient_arena, tileset);
+
+  Colour text_colour_fg;
+  colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
+  Colour text_colour_bg;
+  colour_from(&text_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
+
+  TextParams* text_params = &(game_state->text_params_debug);
+  text_params->arena = transient_arena;
+  text_params->render_struct = render_struct;
+  text_params->pos = vec2(0.0f, 140.0f);
+  vec4_from_colour(&(text_params->fg), &text_colour_fg);
+  vec4_from_colour(&(text_params->bg), &text_colour_bg);
 }
 
 // changes have been made to the game client, this old version will be unloaded
@@ -137,44 +149,30 @@ Entity* get_hero(Level* level) {
 }
 
 void game_step(GameState* game_state) {
+  RenderStruct* render_struct = &(game_state->render_struct);
+  RonaGl*       gl = game_state->gl;
+
   game_state->storage_transient.used = 0;
 
   if (game_state->window_resized) {
     stage_from_window_calc(game_state);
   }
 
-  RenderStruct* render_struct = &(game_state->render_struct);
-  RonaGl*       gl = game_state->gl;
+  text_render_reset(render_struct);
 
-  text_reset(render_struct);
-
-  Colour ground_colour_fg;
-  colour_from(&ground_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
-  Colour ground_colour_bg;
-  colour_from(&ground_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
-
-  TextParams text_params;
-  text_params.arena = &(game_state->storage_transient);
-  text_params.render_struct = render_struct;
-  text_params.pos = vec2(0.0f, 140.0f);
-  vec4_from_colour(&(text_params.fg), &ground_colour_fg);
-  vec4_from_colour(&(text_params.bg), &ground_colour_bg);
-
-  //  Vec2 mouse_on_stage = stage_from_window(game_state, (f32)game_state->input->mouse_pos.x,
-  // (f32)game_state->input->mouse_pos.y);
-  // text_params.pos = vec2(200.0f, 248.0f);
-  // text_printf(&text_params, "mouse on stage (%.2f, %.2f)", mouse_rt.x, mouse_rt.y);
-
-  text_params.pos = vec2(16.0f, 160.0f);
-  text_printf(&text_params, "here are some words XYZ");
+  Vec2        mouse_on_stage = stage_from_window(game_state, (f32)game_state->input->mouse_pos.x,
+                                          (f32)game_state->input->mouse_pos.y);
+  TextParams* text_params = &(game_state->text_params_debug);
+  text_params->pos = vec2(0.0f, render_struct->stage_height - TILE_HEIGHT);
+  text_printf(text_params, "%s (%.2f, %.2f)", game_state->mode == GameMode_Edit ? "Edit" : "Play",
+              mouse_on_stage.x, mouse_on_stage.y);
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;
     return;
   }
-  if (key_pressed(game_state->input, Key_T)) {
-    RONA_OUT("press");
-    fflush(stdout);
+  if (key_pressed(game_state->input, Key_M)) {
+    game_state->mode = game_state->mode == GameMode_Edit ? GameMode_Play : GameMode_Edit;
   }
 
   Level*    level = game_state->level;

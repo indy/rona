@@ -47,7 +47,8 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
   //
   gl->useProgram(render_struct->tile_shader.program);
   gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
-  Mat4 proj_matrix = mat4_ortho(-10.0, stage_width, 0.0, stage_height, 10.0f, -10.0f);
+
+  Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0, stage_height, 10.0f, -10.0f);
   gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
@@ -122,7 +123,7 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
 
   gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
   gl->activeTexture(GL_TEXTURE0);
-  gl->bindTexture(GL_TEXTURE_2D, render_struct->render_texture_id);
+  gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
 
   gl->bindVertexArray(screen->vao);
   gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
@@ -257,12 +258,12 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
   // setup render texture
   render_struct->stage_width = STAGE_WIDTH;
   render_struct->stage_height = STAGE_HEIGHT;
-  render_struct->render_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
+  render_struct->stage_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   render_struct->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   render_struct->framebuffer_id = create_framebuffer(gl);
 
-  attach_textures_to_framebuffer(gl, render_struct->framebuffer_id,
-                                 render_struct->render_texture_id, render_struct->depth_texture_id);
+  attach_textures_to_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_texture_id,
+                                 render_struct->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
     RONA_ERROR("%d, Framebuffer is not ok\n", 1);
     return false;
@@ -311,7 +312,7 @@ bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* aren
   return true;
 }
 
-void text_reset(RenderStruct* render_struct) {
+void text_render_reset(RenderStruct* render_struct) {
   render_struct->num_characters = 0;
 }
 

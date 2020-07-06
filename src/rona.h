@@ -267,8 +267,8 @@ typedef struct {
 
 #define STAGE_WIDTH 512
 #define STAGE_HEIGHT 288
-//#define RENDER_TEXTURE_WIDTH 640
-//#define RENDER_TEXTURE_HEIGHT 360
+//#define STAGE_WIDTH 640
+//#define STAGE_HEIGHT 360
 #define TILE_WIDTH 16.0
 #define TILE_HEIGHT 16.0
 #define TILE_CHAR_WIDTH 8
@@ -305,7 +305,7 @@ typedef struct {
   GLuint tileset_texture_id;
   // GLuint font_texture_id;
 
-  GLuint render_texture_id; // stage
+  GLuint stage_texture_id;
   GLuint depth_texture_id;
   GLuint framebuffer_id;
 
@@ -323,7 +323,10 @@ typedef struct {
 
 } RenderStruct;
 
-typedef enum { GameMode_Edit, GameMode_Play } GameMode;
+typedef enum {
+  GameMode_Edit,
+  GameMode_Play
+} GameMode;
 
 typedef struct {
   MemoryArena*  arena;
@@ -347,6 +350,8 @@ typedef struct {
   GameMode mode;
   bool     game_initialised;
   bool     quit_game;
+
+  TextParams text_params_debug;
 
   bool window_has_focus;
   bool window_resized;
