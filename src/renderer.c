@@ -25,7 +25,12 @@ bool   is_framebuffer_ok(RonaGl* gl);
 void   update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height);
 void   bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
-void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh* screen) {
+void renderer_render(GameState *game_state) {
+  RonaGl* gl = game_state->gl;
+  Level* level = game_state->level;
+  RenderStruct* render_struct = &game_state->render_struct;
+  Mesh* screen = game_state->mesh_screen;
+
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_width,
                    render_struct->stage_height);
 
@@ -93,40 +98,47 @@ void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
                    GL_UNSIGNED_INT, 0);
 
-  // render texture to screen
-  //
-  bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
 
+  // render onto screen
+  bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
   gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  gl->useProgram(render_struct->screen_shader.program);
+  if (game_state->mode == GameMode_Play) {
+    // render stage as large as possible onto screen
+    //
 
-  f32 aspect_ratio = stage_width / stage_height;
-  f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
+    gl->useProgram(render_struct->screen_shader.program);
 
-  if (window_aspect_ratio <= aspect_ratio) {
-    // window is narrower than desired
-    f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
-    f32  v_pad = (v - stage_height) / 2.0f;
-    Mat4 m = mat4_ortho(0.0f, stage_width, -v_pad, v - v_pad, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
-                         (GLfloat*)&(m.v));
+    f32 aspect_ratio = stage_width / stage_height;
+    f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
+
+    if (window_aspect_ratio <= aspect_ratio) {
+      // window is narrower than desired
+      f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
+      f32  v_pad = (v - stage_height) / 2.0f;
+      Mat4 m = mat4_ortho(0.0f, stage_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                           (GLfloat*)&(m.v));
+    } else {
+      // window is more elongated horizontally than desired
+      f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
+      f32  h_pad = (h - stage_width) / 2.0f;
+      Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, stage_height, 10.0f, -10.0f);
+      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                           (GLfloat*)&(m.v));
+    }
+
+    gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
+    gl->activeTexture(GL_TEXTURE0);
+    gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
+
+    gl->bindVertexArray(screen->vao);
+    gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
   } else {
-    // window is more elongated horizontally than desired
-    f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
-    f32  h_pad = (h - stage_width) / 2.0f;
-    Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, stage_height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
-                         (GLfloat*)&(m.v));
+    // GameMode_Edit
+
   }
-
-  gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
-  gl->activeTexture(GL_TEXTURE0);
-  gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
-
-  gl->bindVertexArray(screen->vao);
-  gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
 }
 
 void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct) {

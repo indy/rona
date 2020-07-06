@@ -24,7 +24,7 @@ void renderer_shutdown(RonaGl* gl);
 void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct);
 void renderer_lib_unload(RonaGl* gl);
 
-void renderer_render(RonaGl* gl, Level* level, RenderStruct* render_struct, Mesh* screen);
+void renderer_render(GameState *game_state);
 /*
   This is a convoluted way of including text files into c source code
 

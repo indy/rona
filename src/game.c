@@ -244,6 +244,5 @@ void game_step(GameState* game_state) {
 
   text_send_to_gpu(render_struct, gl);
 
-  renderer_render(game_state->gl, game_state->level, &game_state->render_struct,
-                  game_state->mesh_screen);
+  renderer_render(game_state);
 }
