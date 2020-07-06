@@ -22,4 +22,8 @@ bool key_down(RonaInput* input, RonaKey key);
 bool key_up(RonaInput* input, RonaKey key);
 bool key_pressed(RonaInput* input, RonaKey key);
 
+bool mouse_down(RonaInput* input, RonaMouseButton mouse_button);
+bool mouse_up(RonaInput* input, RonaMouseButton mouse_button);
+bool mouse_pressed(RonaInput* input, RonaMouseButton mouse_button);
+
 #endif /* INPUT_H */

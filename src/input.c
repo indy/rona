@@ -25,3 +25,15 @@ bool key_pressed(RonaInput* input, RonaKey key) {
   return input->key[input->key_toggle_idx][key] == ButtonState_Down &&
          input->key[1 - input->key_toggle_idx][key] == ButtonState_Up;
 }
+
+bool mouse_down(RonaInput* input, RonaMouseButton mouse_button) {
+  return input->mouse[input->mouse_toggle_idx][mouse_button] == ButtonState_Down;
+}
+bool mouse_up(RonaInput* input, RonaMouseButton mouse_button) {
+  return input->mouse[input->mouse_toggle_idx][mouse_button] == ButtonState_Up;
+}
+bool mouse_pressed(RonaInput* input, RonaMouseButton mouse_button) {
+  return input->mouse[input->mouse_toggle_idx][mouse_button] == ButtonState_Down &&
+         input->mouse[1 - input->mouse_toggle_idx][mouse_button] == ButtonState_Up;
+
+}
