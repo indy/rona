@@ -11,6 +11,8 @@
 CC=gcc
 INCLUDE_FLAGS=-Iext
 
+EXT_SRC=ext/*.h
+
 GAME_SRC=src/*.c
 GAME_HEADERS=src/*.h
 
@@ -57,7 +59,7 @@ tags: $(TAGS_OUT)
 ./target/screen.frag.c: src/shaders/screen.frag
 	xxd -i $< > $@
 
-$(GUEST_OUT): $(GUEST_MAIN) $(GAME_SRC) $(GAME_HEADERS) Makefile $(SHADERS_OUT)
+$(GUEST_OUT): $(GUEST_MAIN) $(GAME_SRC) $(EXT_SRC) $(GAME_HEADERS) Makefile $(SHADERS_OUT)
 	$(CC) $(GUEST_CFLAGS) $(INCLUDE_FLAGS) $(GUEST_MAIN) -o $(GUEST_OUT) -Wall $(GUEST_LDFLAGS)
 
 $(HOST_OUT): $(HOST_MAIN) $(HOST_HEADERS) Makefile

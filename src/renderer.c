@@ -136,8 +136,21 @@ void renderer_render(GameState *game_state) {
     gl->bindVertexArray(screen->vao);
     gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
   } else {
-    // GameMode_Edit
 
+#ifdef RONA_NUKLEAR
+
+    // GameMode_Edit
+    basic_demo(&ctx, &media);
+
+    struct nk_vec2 scale;
+    scale.x = 1.0f;
+    scale.y = 1.0f;
+
+    int width = render_struct->window_width;
+    int height = render_struct->window_height;
+    device_draw(gl, &device, &ctx, width, height, scale, NK_ANTI_ALIASING_ON);
+
+#endif
   }
 }
 

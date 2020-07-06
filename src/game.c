@@ -90,6 +90,7 @@ void stage_from_window_calc(GameState* game_state) {
   game_state->stage_from_window_delta = stage_from_window_delta;
 }
 
+
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
   RonaGl*       gl = game_state->gl;
@@ -122,10 +123,93 @@ void game_lib_load(GameState* game_state) {
   text_params->pos = vec2(0.0f, 140.0f);
   vec4_from_colour(&(text_params->fg), &text_colour_fg);
   vec4_from_colour(&(text_params->bg), &text_colour_bg);
+
+#ifdef RONA_NUKLEAR
+
+  device_init(gl, &device);
+
+  {
+    const void *image; int w, h;
+    struct nk_font_config cfg = nk_font_config(0);
+    cfg.oversample_h = 3; cfg.oversample_v = 2;
+    /* Loading one font with different heights is only required if you want higher
+     * quality text otherwise you can just set the font height directly
+     * e.g.: ctx->style.font.height = 20. */
+
+    nk_font_atlas_init_default(&atlas);
+    nk_font_atlas_begin(&atlas);
+
+    media.font_14 = nk_font_atlas_add_from_file(&atlas, "assets/fonts/Roboto-Regular.ttf", 14.0f, &cfg);
+    media.font_18 = nk_font_atlas_add_from_file(&atlas, "assets/fonts/Roboto-Regular.ttf", 18.0f, &cfg);
+    media.font_20 = nk_font_atlas_add_from_file(&atlas, "assets/fonts/Roboto-Regular.ttf", 20.0f, &cfg);
+    media.font_22 = nk_font_atlas_add_from_file(&atlas, "assets/fonts/Roboto-Regular.ttf", 22.0f, &cfg);
+    image = nk_font_atlas_bake(&atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
+    device_upload_atlas(gl, &device, image, w, h);
+    nk_font_atlas_end(&atlas, nk_handle_id((int)device.font_tex), &device.null);
+  }
+
+  nk_init_default(&ctx, &media.font_14->handle);
+
+  /* icons */
+  gl->enable(GL_TEXTURE_2D);
+  media.unchecked = icon_load(gl, "assets/icon/unchecked.png");
+  media.checked = icon_load(gl, "assets/icon/checked.png");
+  media.rocket = icon_load(gl, "assets/icon/rocket.png");
+  media.cloud = icon_load(gl, "assets/icon/cloud.png");
+  media.pen = icon_load(gl, "assets/icon/pen.png");
+  media.play = icon_load(gl, "assets/icon/play.png");
+  media.pause = icon_load(gl, "assets/icon/pause.png");
+  media.stop = icon_load(gl, "assets/icon/stop.png");
+  media.next =  icon_load(gl, "assets/icon/next.png");
+  media.prev =  icon_load(gl, "assets/icon/prev.png");
+  media.tools = icon_load(gl, "assets/icon/tools.png");
+  media.dir = icon_load(gl, "assets/icon/directory.png");
+  media.copy = icon_load(gl, "assets/icon/copy.png");
+  media.convert = icon_load(gl, "assets/icon/export.png");
+  media.del = icon_load(gl, "assets/icon/delete.png");
+  media.edit = icon_load(gl, "assets/icon/edit.png");
+  media.menu[0] = icon_load(gl, "assets/icon/home.png");
+  media.menu[1] = icon_load(gl, "assets/icon/phone.png");
+  media.menu[2] = icon_load(gl, "assets/icon/plane.png");
+  media.menu[3] = icon_load(gl, "assets/icon/wifi.png");
+  media.menu[4] = icon_load(gl, "assets/icon/settings.png");
+  media.menu[5] = icon_load(gl, "assets/icon/volume.png");
+
+  {int i;
+    for (i = 0; i < 9; ++i) {
+      char buffer[256];
+      sprintf(buffer, "assets/images/image%d.png", (i+1));
+      media.images[i] = icon_load(gl, buffer);
+    }}
+
+#endif
 }
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
+
+#ifdef RONA_NUKLEAR
+  RonaGl *gl = game_state->gl;
+  gl->deleteTextures(1,(const GLuint*)&media.unchecked.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.checked.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.rocket.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.cloud.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.pen.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.play.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.pause.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.stop.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.next.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.prev.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.tools.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.dir.handle.id);
+  gl->deleteTextures(1,(const GLuint*)&media.del.handle.id);
+
+  nk_font_atlas_clear(&atlas);
+  nk_free(&ctx);
+
+  device_shutdown(game_state->gl, &device);
+#endif
+
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
   mesh_lib_unload(game_state->mesh_hero, game_state->gl);
@@ -174,6 +258,22 @@ void game_step(GameState* game_state) {
   if (key_pressed(game_state->input, Key_M)) {
     game_state->mode = game_state->mode == GameMode_Edit ? GameMode_Play : GameMode_Edit;
   }
+
+#ifdef RONA_NUKLEAR
+
+  if (game_state->mode == GameMode_Edit) {
+    nk_input_begin(&ctx);
+
+    int x = (int)game_state->input->mouse_pos.x;
+    int y = (int)game_state->input->mouse_pos.y;
+    nk_input_motion(&ctx, x, y);
+
+    nk_input_button(&ctx, NK_BUTTON_LEFT, x, y, mouse_down(game_state->input, MouseButton_Left));
+    // nk_input_button(&ctx, NK_BUTTON_MIDDLE, (int)x, (int)y, glfwGetMouseButton(win, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS);
+    nk_input_button(&ctx, NK_BUTTON_RIGHT, x, y, mouse_down(game_state->input, MouseButton_Right));
+    nk_input_end(&ctx);
+  }
+#endif
 
   Level*    level = game_state->level;
   Entity*   hero = get_hero(level);
