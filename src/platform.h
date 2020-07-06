@@ -897,6 +897,7 @@ typedef void(APIENTRYP PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v
 typedef void(APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2,
                                            GLfloat v3);
 typedef GLint(APIENTRYP PFNGLGETUNIFORMLOCATIONPROC)(GLhandle programObj, const GLchar* name);
+typedef GLint(APIENTRYP PFNGLGETATTRIBLOCATIONPROC)(GLhandle programObj, const GLchar* name);
 typedef void(APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count,
                                                   GLboolean transpose, const GLfloat* value);
 typedef void(APIENTRYP PFNGLENABLEPROC)(GLenum cap);
@@ -919,10 +920,13 @@ typedef void(APIENTRYP PFNGLDELETETEXTURESPROC)(GLsizei n, const GLuint* texture
 typedef void(APIENTRYP PFNGLGENTEXTURESPROC)(GLsizei n, GLuint* textures);
 // typedef void (APIENTRYP PFNGLCREATETEXTUREPROC)(); ????
 typedef void(APIENTRYP PFNGLBINDTEXTUREPROC)(GLenum target, GLuint texture);
+typedef void(APIENTRYP PFNGLGENERATEMIPMAPPROC)(GLenum target);
+
 typedef void(APIENTRYP PFNGLTEXIMAGE2DPROC)(GLenum target, GLint level, GLint internalFormat,
                                             GLsizei width, GLsizei height, GLint border,
                                             GLenum format, GLenum type, const GLvoid* data);
 typedef void(APIENTRYP PFNGLTEXPARAMETERIPROC)(GLenum target, GLenum pname, GLint param);
+typedef void(APIENTRYP PFNGLTEXPARAMETERFPROC)(GLenum target, GLenum pname, GLfloat param);
 typedef void(APIENTRYP PFNGLGENFRAMEBUFFERSPROC)(GLsizei n, GLuint* framebuffers);
 // typedef void (APIENTRYP PFNGLCREATEFRAMEBUFFERPROC)(GLsizei n, GLuint *ids); // gl4
 typedef void(APIENTRYP PFNGLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
@@ -937,7 +941,9 @@ typedef void(APIENTRYP PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count,
 typedef void(APIENTRYP PFNGLCOMPILESHADERPROC)(GLuint shader);
 typedef void(APIENTRYP PFNGLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint* params);
 typedef void(APIENTRYP PFNGLATTACHSHADERPROC)(GLuint program, GLuint shader);
+typedef void(APIENTRYP PFNGLDETACHSHADERPROC)(GLuint program, GLuint shader);
 typedef GLuint(APIENTRYP PFNGLCREATEPROGRAMPROC)(void);
+typedef void(APIENTRYP PFNGLDELETEPROGRAMPROC)(GLuint program);
 typedef void(APIENTRYP PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length,
                                                   GLchar* infoLog);
 typedef void(APIENTRYP PFNGLLINKPROGRAMPROC)(GLuint program);
@@ -1003,12 +1009,17 @@ typedef void(APIENTRYP PFNGLUSEPROGRAMPROC)(GLuint program);
 #define GL_SRC0_ALPHA 0x8588
 #define GL_SRC2_ALPHA 0x858A
 
+typedef void(APIENTRYP PFNGLSCISSORPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
+
 typedef void(APIENTRYP PFNGLGENVERTEXARRAYSPROC)(GLsizei n, GLuint* arrays);
 typedef void(APIENTRYP PFNGLBINDVERTEXARRAYPROC)(GLuint array);
 typedef void(APIENTRYP PFNGLGENBUFFERSPROC)(GLsizei n, GLuint* buffers);
+typedef void(APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers);
 typedef void(APIENTRYP PFNGLBINDBUFFERPROC)(GLenum target, GLuint buffer);
 typedef void(APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data,
                                             GLenum usage);
+typedef void *(APIENTRYP PFNGLMAPBUFFERPROC)(GLenum target, GLenum access);
+typedef GLboolean(APIENTRYP PFNGLUNMAPBUFFERPROC)(GLenum target);
 typedef void(APIENTRYP PFNGLENABLEVERTEXATTRIBARRAYPROC)(GLuint index);
 typedef void(APIENTRYP PFNGLDISABLEVERTEXATTRIBARRAYPROC)(GLuint index);
 typedef void(APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC)(GLuint index, GLint size, GLenum type,
@@ -1088,6 +1099,7 @@ typedef enum RonaMouseButton {
 
 typedef struct {
   PFNGLGETUNIFORMLOCATIONPROC getUniformLocation;
+  PFNGLGETATTRIBLOCATIONPROC getAttribLocation;
 
   PFNGLUNIFORM1IPROC        uniform1i;
   PFNGLUNIFORM2FPROC        uniform2f;
@@ -1113,8 +1125,10 @@ typedef struct {
   PFNGLGENTEXTURESPROC    genTextures;
   // PFNGLCREATETEXTUREPROC createTexture;
   PFNGLBINDTEXTUREPROC     bindTexture;
+  PFNGLGENERATEMIPMAPPROC  generateMipmap;
   PFNGLTEXIMAGE2DPROC      texImage2D;
   PFNGLTEXPARAMETERIPROC   texParameteri;
+  PFNGLTEXPARAMETERFPROC   texParameterf;
   PFNGLGENFRAMEBUFFERSPROC genFramebuffers;
   ;
   // PFNGLCREATEFRAMEBUFFERPROC createFramebuffer;
@@ -1127,7 +1141,9 @@ typedef struct {
   PFNGLCOMPILESHADERPROC            compileShader;
   PFNGLGETSHADERIVPROC              getShaderiv;
   PFNGLATTACHSHADERPROC             attachShader;
+  PFNGLDETACHSHADERPROC             detachShader;
   PFNGLCREATEPROGRAMPROC            createProgram;
+  PFNGLDELETEPROGRAMPROC            deleteProgram;
   PFNGLGETSHADERINFOLOGPROC         getShaderInfoLog;
   PFNGLLINKPROGRAMPROC              linkProgram;
   PFNGLVALIDATEPROGRAMPROC          validateProgram;
@@ -1135,11 +1151,15 @@ typedef struct {
   PFNGLGETPROGRAMINFOLOGPROC        getProgramInfoLog;
   PFNGLDELETESHADERPROC             deleteShader;
   PFNGLUSEPROGRAMPROC               useProgram;
+  PFNGLSCISSORPROC                  scissor;
   PFNGLGENVERTEXARRAYSPROC          genVertexArrays;
   PFNGLBINDVERTEXARRAYPROC          bindVertexArray;
   PFNGLGENBUFFERSPROC               genBuffers;
+  PFNGLDELETEBUFFERSPROC            deleteBuffers;
   PFNGLBINDBUFFERPROC               bindBuffer;
   PFNGLBUFFERDATAPROC               bufferData;
+  PFNGLMAPBUFFERPROC                mapBuffer;
+  PFNGLUNMAPBUFFERPROC              unmapBuffer;
   PFNGLENABLEVERTEXATTRIBARRAYPROC  enableVertexAttribArray;
   PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
   PFNGLVERTEXATTRIBPOINTERPROC      vertexAttribPointer;

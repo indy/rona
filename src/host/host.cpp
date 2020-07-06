@@ -2,6 +2,7 @@
 #define FPL_NO_VIDEO_SOFTWARE
 #define FPL_NO_AUDIO
 #include <final_platform_layer.h>
+// #include <nuklear.h>
 
 // for access function used to check if plugin exists
 #include "unistd.h"
@@ -40,6 +41,7 @@ static void *GLProcAddress(const char *name) {
 
 static void LoadGLFunctions(RonaGl *gl) {
   gl->getUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GLProcAddress("glGetUniformLocation");
+  gl->getAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)GLProcAddress("glGetAttribLocation");
   gl->uniform1i = (PFNGLUNIFORM1IPROC)GLProcAddress("glUniform1i");
   gl->uniform2f = (PFNGLUNIFORM2FPROC)GLProcAddress("glUniform2f");
   gl->uniform3f = (PFNGLUNIFORM3FPROC)GLProcAddress("glUniform3f");
@@ -64,8 +66,10 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->genTextures = (PFNGLGENTEXTURESPROC)GLProcAddress("glGenTextures");
   // gl->createTexture = (PFNGLCREATETEXTUREPROC)GLProcAddress("glCreateTexture");
   gl->bindTexture = (PFNGLBINDTEXTUREPROC)GLProcAddress("glBindTexture");
+  gl->generateMipmap = (PFNGLGENERATEMIPMAPPROC)GLProcAddress("glGenerateMipmap");
   gl->texImage2D = (PFNGLTEXIMAGE2DPROC)GLProcAddress("glTexImage2D");
   gl->texParameteri = (PFNGLTEXPARAMETERIPROC)GLProcAddress("glTexParameteri");
+  gl->texParameterf = (PFNGLTEXPARAMETERFPROC)GLProcAddress("glTexParameterf");
   gl->genFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)GLProcAddress("glGenFramebuffers");
   // gl->createFramebuffer = (PFNGLCREATEFRAMEBUFFERPROC)GLProcAddress("glCreateFramebuffer"); // gl4 ???
   gl->bindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)GLProcAddress("glBindFramebuffer");
@@ -77,7 +81,9 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->compileShader = (PFNGLCOMPILESHADERPROC)GLProcAddress("glCompileShader");
   gl->getShaderiv = (PFNGLGETSHADERIVPROC)GLProcAddress("glGetShaderiv");
   gl->attachShader = (PFNGLATTACHSHADERPROC)GLProcAddress("glAttachShader");
+  gl->detachShader = (PFNGLDETACHSHADERPROC)GLProcAddress("glDetachShader");
   gl->createProgram = (PFNGLCREATEPROGRAMPROC)GLProcAddress("glCreateProgram");
+  gl->deleteProgram = (PFNGLDELETEPROGRAMPROC)GLProcAddress("glDeleteProgram");
   gl->getShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)GLProcAddress("glGetShaderInfoLog");
   gl->linkProgram = (PFNGLLINKPROGRAMPROC)GLProcAddress("glLinkProgram");
   gl->validateProgram = (PFNGLVALIDATEPROGRAMPROC)GLProcAddress("glValidateProgram");
@@ -86,11 +92,16 @@ static void LoadGLFunctions(RonaGl *gl) {
   gl->deleteShader = (PFNGLDELETESHADERPROC)GLProcAddress("glDeleteShader");
   gl->useProgram = (PFNGLUSEPROGRAMPROC)GLProcAddress("glUseProgram");
 
+  gl->scissor = (PFNGLSCISSORPROC)GLProcAddress("glScissor");
+
   gl->genVertexArrays = (PFNGLGENVERTEXARRAYSPROC)GLProcAddress("glGenVertexArrays");
   gl->bindVertexArray = (PFNGLBINDVERTEXARRAYPROC)GLProcAddress("glBindVertexArray");
   gl->genBuffers = (PFNGLGENBUFFERSPROC)GLProcAddress("glGenBuffers");
+  gl->deleteBuffers = (PFNGLDELETEBUFFERSPROC)GLProcAddress("glDeleteBuffers");
   gl->bindBuffer = (PFNGLBINDBUFFERPROC)GLProcAddress("glBindBuffer");
   gl->bufferData = (PFNGLBUFFERDATAPROC)GLProcAddress("glBufferData");
+  gl->mapBuffer = (PFNGLMAPBUFFERPROC)GLProcAddress("glMapBuffer");
+  gl->unmapBuffer = (PFNGLUNMAPBUFFERPROC)GLProcAddress("glUnmapBuffer");
   gl->enableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GLProcAddress("glEnableVertexAttribArray");
   gl->disableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GLProcAddress("glDisableVertexAttribArray");
   gl->vertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)GLProcAddress("glVertexAttribPointer");
@@ -298,11 +309,11 @@ int main(int argc, char **args) {
         if (fplPollMouseState(&mouseState)) {
           game_state.input->mouse_toggle_idx = 1 - game_state.input->mouse_toggle_idx;
           int idx = game_state.input->mouse_toggle_idx;
-          game_state.input->key[idx][MouseButton_Left] =
+          game_state.input->mouse[idx][MouseButton_Left] =
             (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Left];
-          game_state.input->key[idx][MouseButton_Middle] =
+          game_state.input->mouse[idx][MouseButton_Middle] =
             (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Middle];
-          game_state.input->key[idx][MouseButton_Right] =
+          game_state.input->mouse[idx][MouseButton_Right] =
             (RonaButtonState)mouseState.buttonStates[fplMouseButtonType_Right];
 
           game_state.input->mouse_pos.x = mouseState.x;
