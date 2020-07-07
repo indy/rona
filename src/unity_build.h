@@ -26,7 +26,7 @@
 #include "tileset.h"
 
 // RONA_NUKLEAR: define to compile in nuklear code
-#define RONA_NUKLEAR
+// #define RONA_NUKLEAR
 // RONA_NUKLEAR_DEMO_WITH_IMAGES: compile nuklear demo that involves loading lots of images
 // #define RONA_NUKLEAR_DEMO_WITH_IMAGES
 
@@ -39,7 +39,9 @@
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
 #define NK_INCLUDE_FONT_BAKING
+#ifndef RONA_NUKLEAR_DEMO_WITH_IMAGES
 #define NK_INCLUDE_DEFAULT_FONT
+#endif /* RONA_NUKLEAR_DEMO_WITH_IMAGES */
 #define NK_IMPLEMENTATION
 
 #include "nuklear.h"
@@ -176,6 +178,7 @@ void stb_rona_transient_free(void* mem) {
 #endif
 
 #include "colour.c"
+#include "command.c"
 #include "game.c"
 #include "input.c"
 #include "level.c"

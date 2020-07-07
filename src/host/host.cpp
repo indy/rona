@@ -177,7 +177,7 @@ int main(int argc, char **args) {
   game_state.game_initialised = false;
   game_state.quit_game = false;
 
-  game_state.storage_permanent.size = megabytes(256);
+  game_state.storage_permanent.size = megabytes(MEMORY_ALLOCATION_STORAGE_PERMANENT);
   game_state.storage_permanent.base = mmap(NULL,
                                            game_state.storage_permanent.size,
                                            PROT_READ | PROT_WRITE,
@@ -186,7 +186,7 @@ int main(int argc, char **args) {
                                            0);
   game_state.storage_permanent.used = 0;
 
-  game_state.storage_transient.size = megabytes(256);
+  game_state.storage_transient.size = megabytes(MEMORY_ALLOCATION_STORAGE_TRANSIENT);
   game_state.storage_transient.base = mmap(NULL,
                                            game_state.storage_transient.size,
                                            PROT_READ | PROT_WRITE,

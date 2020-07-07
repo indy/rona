@@ -18,9 +18,15 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
-// use memory arenas instead of malloc/free
-// #define RONA_MALLOC malloc
-// #define RONA_FREE free
+// Memory allocation sizes
+//
+
+// sum of these 2 is the total reserved for the entire game
+#define MEMORY_ALLOCATION_STORAGE_PERMANENT 256
+#define MEMORY_ALLOCATION_STORAGE_TRANSIENT 256
+
+#define MEMORY_ALLOCATION_LEVEL 64
+#define MEMORY_ALLOCATION_NUKLEAR 16
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                           \

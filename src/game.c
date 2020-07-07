@@ -21,7 +21,7 @@ void game_startup(GameState* game_state) {
   game_state->mesh_block = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
   game_state->mesh_pit = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
 
-  u64 level_memory_arena_size = megabytes(64);
+  u64 level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
   game_state->level = (Level*)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
   game_state->level->mem.base = game_state->level + sizeof(Level);
   game_state->level->mem.size = level_memory_arena_size - sizeof(Level);
@@ -33,7 +33,7 @@ void game_startup(GameState* game_state) {
 
 #ifdef RONA_NUKLEAR
   // allocate some memory for nuklear
-  usize nuklear_memory_size = megabytes(16);
+  usize nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
   void* nuklear_memory = (void*)ARENA_ALLOC(&game_state->storage_permanent, nuklear_memory_size);
 
   // align memory with nk_draw_command
@@ -46,7 +46,6 @@ void game_startup(GameState* game_state) {
   device_init(gl, &nuklear_state);
 
   struct nk_font* font_to_use;
-
   const void*           image;
   int                   w, h;
   struct nk_font_config cfg = nk_font_config(0);
