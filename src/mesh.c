@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_lib_load_single_tile(Mesh* mesh, RonaGl* gl, Tileset* tileset, TilesetSprite tile_sprite,
+void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
                                Colour fg_col, Colour bg_col) {
 
   Vec4   fg, bg;
@@ -90,6 +90,6 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGl* gl, Tileset* tileset, Tileset
   gl->bindVertexArray(0);
 }
 
-void mesh_lib_unload(Mesh* mesh, RonaGl* gl) {
+void mesh_lib_unload(Mesh* mesh, RonaGL* gl) {
   gl->deleteVertexArrays(1, &mesh->vao);
 }

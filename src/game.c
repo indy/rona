@@ -42,7 +42,7 @@ void game_startup(GameState* game_state) {
   void* aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
   nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
 
-  RonaGl* gl = game_state->gl;
+  RonaGL* gl = game_state->gl;
   device_init(gl, &nuklear_state);
 
   struct nk_font* font_to_use;
@@ -121,7 +121,7 @@ void game_shutdown(GameState* game_state) {
 #ifdef RONA_NUKLEAR
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-  RonaGl* gl = game_state->gl;
+  RonaGL* gl = game_state->gl;
   gl->deleteTextures(1, (const GLuint*)&nuklear_media.unchecked.handle.id);
   gl->deleteTextures(1, (const GLuint*)&nuklear_media.checked.handle.id);
   gl->deleteTextures(1, (const GLuint*)&nuklear_media.rocket.handle.id);
@@ -203,7 +203,7 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
-  RonaGl*       gl = game_state->gl;
+  RonaGL*       gl = game_state->gl;
   MemoryArena*  transient_arena = &(game_state->storage_transient);
   Tileset*      tileset = &(game_state->render_struct.tileset);
   RenderStruct* render_struct = &(game_state->render_struct);
@@ -261,7 +261,7 @@ Entity* get_hero(Level* level) {
 
 void game_step(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
-  RonaGl*       gl = game_state->gl;
+  RonaGL*       gl = game_state->gl;
 
   game_state->storage_transient.used = 0;
 

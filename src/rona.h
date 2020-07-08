@@ -18,6 +18,44 @@
 #ifndef RONA_H
 #define RONA_H
 
+// Configuration
+//
+// define RONA_NUKLEAR to compile in nuklear code
+// define RONA_NUKLEAR_DEMO_WITH_IMAGES to compile nuklear demo that involves loading lots of images
+
+// #define RONA_NUKLEAR
+// #define RONA_NUKLEAR_DEMO_WITH_IMAGES
+
+
+
+// Memory allocation sizes
+//
+
+// sum of these 2 is the total reserved for the entire game
+#define MEMORY_ALLOCATION_STORAGE_PERMANENT 256
+#define MEMORY_ALLOCATION_STORAGE_TRANSIENT 256
+
+#define MEMORY_ALLOCATION_LEVEL 64
+#define MEMORY_ALLOCATION_NUKLEAR 16
+
+#ifdef _DEBUG
+#define RONA_ASSERT(exp)                                                                           \
+  if (!(exp)) {                                                                                    \
+    fprintf(stderr, "ASSERT FAILURE: %s (%s:%d)\n", __func__, __FILE__, __LINE__);                 \
+    fflush(stderr);                                                                                \
+    *(int*)0 = 0;                                                                                  \
+  }
+#else
+#define RONA_ASSERT(exp)                                                                           \
+  {}
+#endif
+
+#define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
+#define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
+#define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
+#define RONA_OUT(f_) fprintf(stdout, (f_))
+
+
 #define true 1
 #define false 0
 
@@ -35,6 +73,8 @@ typedef unsigned long long u64;
 
 typedef unsigned char byte;
 typedef unsigned int  usize;
+
+#include "rona_gl.h"
 
 typedef struct {
   union {
@@ -333,6 +373,72 @@ typedef struct {
   Vec4          bg;
 } TextParams;
 
+typedef enum RonaButtonState {
+  ButtonState_Up = 0,
+  ButtonState_Down = 1,
+  ButtonState_Repeat = 2, // this doesn't work when polling X11 from final_platform_layer
+} RonaButtonState;
+
+typedef enum RonaKey {
+  Key_Space,
+  Key_Return,
+  Key_Shift,
+  Key_Control,
+  Key_Escape,
+
+  Key_Up,
+  Key_Down,
+  Key_Left,
+  Key_Right,
+
+  Key_0,
+  Key_1,
+  Key_2,
+  Key_3,
+  Key_4,
+  Key_5,
+  Key_6,
+  Key_7,
+  Key_8,
+  Key_9,
+
+  Key_A,
+  Key_B,
+  Key_C,
+  Key_D,
+  Key_E,
+  Key_F,
+  Key_G,
+  Key_H,
+  Key_I,
+  Key_J,
+  Key_K,
+  Key_L,
+  Key_M,
+  Key_N,
+  Key_O,
+  Key_P,
+  Key_Q,
+  Key_R,
+  Key_S,
+  Key_T,
+  Key_U,
+  Key_V,
+  Key_W,
+  Key_X,
+  Key_Y,
+  Key_Z,
+
+  NumRonaKeys,
+} RonaKey;
+
+typedef enum RonaMouseButton {
+  MouseButton_Left,
+  MouseButton_Middle,
+  MouseButton_Right,
+  NumRonaMouseButtons
+} RonaMouseButton;
+
 typedef struct {
   int             key_toggle_idx;
   RonaButtonState key[2][NumRonaKeys];
@@ -375,7 +481,7 @@ typedef struct {
 
   Level* level;
 
-  RonaGl*    gl;
+  RonaGL*    gl;
   RonaInput* input;
 } GameState;
 

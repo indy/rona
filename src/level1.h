@@ -21,7 +21,7 @@
 void level1_startup(Level* level, GameState* game_state);
 void level1_shutdown(Level* level);
 
-void level1_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset);
-void level1_lib_unload(Level* level, RonaGl* gl);
+void level1_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset);
+void level1_lib_unload(Level* level, RonaGL* gl);
 
 #endif /* LEVEL_1_H */

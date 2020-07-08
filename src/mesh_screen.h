@@ -18,8 +18,8 @@
 #ifndef MESH_SCREEN_H
 #define MESH_SCREEN_H
 
-// void mesh_screen_render(Mesh *mesh, RonaGl *gl, Mat4 *proj_matrix);
-void mesh_screen_lib_load(Mesh* mesh, RonaGl* gl, RenderStruct* render_struct);
-void mesh_screen_lib_unload(Mesh* mesh, RonaGl* gl);
+// void mesh_screen_render(Mesh *mesh, RonaGL *gl, Mat4 *proj_matrix);
+void mesh_screen_lib_load(Mesh* mesh, RonaGL* gl, RenderStruct* render_struct);
+void mesh_screen_lib_unload(Mesh* mesh, RonaGL* gl);
 
 #endif /* MESH_SCREEN_H */

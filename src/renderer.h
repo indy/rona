@@ -18,11 +18,11 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* arena);
-void renderer_shutdown(RonaGl* gl);
+bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, MemoryArena* arena);
+void renderer_shutdown(RonaGL* gl);
 
-void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct);
-void renderer_lib_unload(RonaGl* gl);
+void renderer_lib_load(RonaGL* gl, MemoryArena* transient, RenderStruct* render_struct);
+void renderer_lib_unload(RonaGL* gl);
 
 void renderer_render(GameState* game_state);
 /*
@@ -39,11 +39,11 @@ void renderer_render(GameState* game_state);
   memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                  \
   NAME[src_shaders_##SHADER##_len] = 0;
 
-GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* fragmentSource);
+GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* fragmentSource);
 
 void text_render_reset(RenderStruct* render_struct);
 void text_paragraph(TextParams* text_params, char* text);
 void text_printf(TextParams* text_params, char* fmt, ...);
-void text_send_to_gpu(RenderStruct* render_struct, RonaGl* gl);
+void text_send_to_gpu(RenderStruct* render_struct, RonaGL* gl);
 
 #endif /* RENDERER_H */

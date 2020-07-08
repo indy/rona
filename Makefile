@@ -32,7 +32,7 @@ GUEST_OUT=./target/lib$(GUEST_NAME).so
 HOST_CFLAGS=-Wno-pointer-arith -Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
 # HOST_CFLAGS=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
 HOST_MAIN=src/host/host.cpp
-HOST_HEADERS=src/platform.h src/rona.h
+HOST_HEADERS=src/rona.h src/rona_gl.h
 HOST_LIBS=-lGL -lm -lpthread -ldl -lrt -lX11 -lstdc++
 HOST_OUT=./target/host
 

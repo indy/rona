@@ -19,16 +19,9 @@
 #include <float.h>
 #include <math.h>
 
-#include "platform.h"
-
 #include "rona.h"
 
 #include "tileset.h"
-
-// RONA_NUKLEAR: define to compile in nuklear code
-// #define RONA_NUKLEAR
-// RONA_NUKLEAR_DEMO_WITH_IMAGES: compile nuklear demo that involves loading lots of images
-// #define RONA_NUKLEAR_DEMO_WITH_IMAGES
 
 #ifdef RONA_NUKLEAR
 

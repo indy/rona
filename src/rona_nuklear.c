@@ -404,7 +404,7 @@ struct nk_glfw_vertex {
 };
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-static struct nk_image icon_load(RonaGl* gl, const char* filename) {
+static struct nk_image icon_load(RonaGL* gl, const char* filename) {
   int            x, y, n;
   GLuint         tex;
   unsigned char* data = stbi_load(filename, &x, &y, &n, 0);
@@ -424,7 +424,7 @@ static struct nk_image icon_load(RonaGl* gl, const char* filename) {
 }
 #endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES  */
 
-static void device_init(RonaGl* gl, NuklearState* dev) {
+static void device_init(RonaGL* gl, NuklearState* dev) {
   GLint                status;
   static const GLchar* vertex_shader =
       NK_SHADER_VERSION "uniform mat4 ProjMtx;\n"
@@ -502,7 +502,7 @@ static void device_init(RonaGl* gl, NuklearState* dev) {
   gl->bindVertexArray(0);
 }
 
-static void device_upload_atlas(RonaGl* gl, NuklearState* dev, const void* image, int width,
+static void device_upload_atlas(RonaGL* gl, NuklearState* dev, const void* image, int width,
                                 int height) {
   gl->genTextures(1, &dev->font_tex);
   gl->bindTexture(GL_TEXTURE_2D, dev->font_tex);
@@ -512,7 +512,7 @@ static void device_upload_atlas(RonaGl* gl, NuklearState* dev, const void* image
                  GL_UNSIGNED_BYTE, image);
 }
 
-static void device_shutdown(RonaGl* gl, NuklearState* dev) {
+static void device_shutdown(RonaGL* gl, NuklearState* dev) {
   gl->detachShader(dev->prog, dev->vert_shdr);
   gl->detachShader(dev->prog, dev->frag_shdr);
   gl->deleteShader(dev->vert_shdr);
@@ -524,7 +524,7 @@ static void device_shutdown(RonaGl* gl, NuklearState* dev) {
   nk_buffer_free(&dev->cmds);
 }
 
-void nuklear_render(RonaGl* gl, NuklearState* dev, int width, int height,
+void nuklear_render(RonaGL* gl, NuklearState* dev, int width, int height,
                     enum nk_anti_aliasing AA) {
   struct nk_context* ctx = &dev->ctx;
 

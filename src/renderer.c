@@ -15,18 +15,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-GLuint create_framebuffer(RonaGl* gl);
-GLuint create_texture(RonaGl* gl, u32 width, u32 height);
-GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height);
-void   delete_texture(RonaGl* gl, GLuint texture_id);
-void   attach_textures_to_framebuffer(RonaGl* gl, GLuint framebuffer_id, GLuint texture_id,
+GLuint create_framebuffer(RonaGL* gl);
+GLuint create_texture(RonaGL* gl, u32 width, u32 height);
+GLuint create_depth_texture(RonaGL* gl, u32 width, u32 height);
+void   delete_texture(RonaGL* gl, GLuint texture_id);
+void   attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint texture_id,
                                       GLuint depth_texture_id);
-bool   is_framebuffer_ok(RonaGl* gl);
-void   update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height);
-void   bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
+bool   is_framebuffer_ok(RonaGL* gl);
+void   update_viewport(RonaGL* gl, u32 viewport_width, u32 viewport_height);
+void   bind_framebuffer(RonaGL* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
 void renderer_render(GameState* game_state) {
-  RonaGl*       gl = game_state->gl;
+  RonaGL*       gl = game_state->gl;
   Level*        level = game_state->level;
   RenderStruct* render_struct = &game_state->render_struct;
   Mesh*         screen = game_state->mesh_screen;
@@ -152,7 +152,7 @@ void renderer_render(GameState* game_state) {
   }
 }
 
-void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_struct) {
+void renderer_lib_load(RonaGL* gl, MemoryArena* transient, RenderStruct* render_struct) {
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
@@ -185,14 +185,14 @@ void renderer_lib_load(RonaGl* gl, MemoryArena* transient, RenderStruct* render_
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
 
-void renderer_lib_unload(RonaGl* gl) {
+void renderer_lib_unload(RonaGL* gl) {
   gl->disableVertexAttribArray(0);
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
   gl->bindVertexArray(0);
 }
 
-bool renderer_startup(RonaGl* gl, RenderStruct* render_struct, MemoryArena* arena) {
+bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, MemoryArena* arena) {
   const char* version = (const char*)gl->getString(GL_VERSION);
   const char* vendor = (const char*)gl->getString(GL_VENDOR);
   const char* renderer = (const char*)gl->getString(GL_RENDERER);
@@ -375,7 +375,7 @@ void text_printf(TextParams* text_params, char* fmt, ...) {
   text_paragraph(text_params, buffer);
 }
 
-void text_send_to_gpu(RenderStruct* render_struct, RonaGl* gl) {
+void text_send_to_gpu(RenderStruct* render_struct, RonaGL* gl) {
   gl->bindVertexArray(render_struct->text_vao);
 
   gl->bindBuffer(GL_ARRAY_BUFFER, render_struct->text_vbo);
@@ -389,10 +389,10 @@ void text_send_to_gpu(RenderStruct* render_struct, RonaGl* gl) {
   gl->bindVertexArray(0);
 }
 
-void renderer_shutdown(RonaGl* gl) {
+void renderer_shutdown(RonaGL* gl) {
 }
 
-GLuint create_shader_type(RonaGl* gl, GLenum type, const char* source) {
+GLuint create_shader_type(RonaGL* gl, GLenum type, const char* source) {
   GLuint shaderId = gl->createShader(type);
 
   gl->shaderSource(shaderId, 1, &source, NULL);
@@ -418,7 +418,7 @@ GLuint create_shader_type(RonaGl* gl, GLenum type, const char* source) {
   return (shaderId);
 }
 
-GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* fragmentSource) {
+GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* fragmentSource) {
   GLuint programId = gl->createProgram();
 
   GLuint vertexShader = create_shader_type(gl, GL_VERTEX_SHADER, vertexSource);
@@ -451,14 +451,14 @@ GLuint create_shader_program(RonaGl* gl, const char* vertexSource, const char* f
   return (programId);
 }
 
-GLuint create_framebuffer(RonaGl* gl) {
+GLuint create_framebuffer(RonaGL* gl) {
   GLuint framebuffer;
   gl->genFramebuffers(1, &framebuffer);
 
   return framebuffer;
 }
 
-GLuint create_texture(RonaGl* gl, u32 width, u32 height) {
+GLuint create_texture(RonaGL* gl, u32 width, u32 height) {
   GLuint texture_id;
 
   gl->genTextures(1, &texture_id);
@@ -477,7 +477,7 @@ GLuint create_texture(RonaGl* gl, u32 width, u32 height) {
   return texture_id;
 }
 
-GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height) {
+GLuint create_depth_texture(RonaGL* gl, u32 width, u32 height) {
   GLuint texture_id;
 
   gl->genTextures(1, &texture_id);
@@ -491,18 +491,18 @@ GLuint create_depth_texture(RonaGl* gl, u32 width, u32 height) {
   return texture_id;
 }
 
-void delete_texture(RonaGl* gl, GLuint texture_id) {
+void delete_texture(RonaGL* gl, GLuint texture_id) {
   gl->deleteTextures(1, &texture_id);
 }
 
-void attach_textures_to_framebuffer(RonaGl* gl, GLuint framebuffer_id, GLuint texture_id,
+void attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint texture_id,
                                     GLuint depth_texture_id) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
   gl->framebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture_id, 0);
 }
 
-bool is_framebuffer_ok(RonaGl* gl) {
+bool is_framebuffer_ok(RonaGL* gl) {
   if (gl->checkFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     RONA_ERROR("Framebuffer is not complete\n");
     return false;
@@ -510,11 +510,11 @@ bool is_framebuffer_ok(RonaGl* gl) {
   return true;
 }
 
-void update_viewport(RonaGl* gl, u32 viewport_width, u32 viewport_height) {
+void update_viewport(RonaGL* gl, u32 viewport_width, u32 viewport_height) {
   gl->viewport(0, 0, viewport_width, viewport_height);
 }
 
-void bind_framebuffer(RonaGl* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height) {
+void bind_framebuffer(RonaGL* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height) {
   gl->bindFramebuffer(GL_FRAMEBUFFER, framebuffer_id);
   update_viewport(gl, viewport_width, viewport_height);
 }

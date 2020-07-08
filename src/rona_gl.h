@@ -15,36 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef PLATFORM_H
-#define PLATFORM_H
-
-// Memory allocation sizes
-//
-
-// sum of these 2 is the total reserved for the entire game
-#define MEMORY_ALLOCATION_STORAGE_PERMANENT 256
-#define MEMORY_ALLOCATION_STORAGE_TRANSIENT 256
-
-#define MEMORY_ALLOCATION_LEVEL 64
-#define MEMORY_ALLOCATION_NUKLEAR 16
-
-#ifdef _DEBUG
-#define RONA_ASSERT(exp)                                                                           \
-  if (!(exp)) {                                                                                    \
-    fprintf(stderr, "ASSERT FAILURE: %s (%s:%d)\n", __func__, __FILE__, __LINE__);                 \
-    fflush(stderr);                                                                                \
-    *(int*)0 = 0;                                                                                  \
-  }
-#else
-#define RONA_ASSERT(exp)                                                                           \
-  {}
-#endif
-
-#define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
-#define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
-#define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
-#define RONA_OUT(f_) fprintf(stdout, (f_))
-
 typedef unsigned int   GLenum;
 typedef unsigned char  GLboolean;
 typedef unsigned int   GLbitfield;
@@ -1033,72 +1003,6 @@ typedef void(APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC)(GLuint index, GLint size, G
                                                      const void* pointer);
 typedef void(APIENTRYP PFNGLDELETEVERTEXARRAYSPROC)(GLsizei n, const GLuint* arrays);
 
-typedef enum RonaButtonState {
-  ButtonState_Up = 0,
-  ButtonState_Down = 1,
-  ButtonState_Repeat = 2, // this doesn't work when polling X11 from final_platform_layer
-} RonaButtonState;
-
-typedef enum RonaKey {
-  Key_Space,
-  Key_Return,
-  Key_Shift,
-  Key_Control,
-  Key_Escape,
-
-  Key_Up,
-  Key_Down,
-  Key_Left,
-  Key_Right,
-
-  Key_0,
-  Key_1,
-  Key_2,
-  Key_3,
-  Key_4,
-  Key_5,
-  Key_6,
-  Key_7,
-  Key_8,
-  Key_9,
-
-  Key_A,
-  Key_B,
-  Key_C,
-  Key_D,
-  Key_E,
-  Key_F,
-  Key_G,
-  Key_H,
-  Key_I,
-  Key_J,
-  Key_K,
-  Key_L,
-  Key_M,
-  Key_N,
-  Key_O,
-  Key_P,
-  Key_Q,
-  Key_R,
-  Key_S,
-  Key_T,
-  Key_U,
-  Key_V,
-  Key_W,
-  Key_X,
-  Key_Y,
-  Key_Z,
-
-  NumRonaKeys,
-} RonaKey;
-
-typedef enum RonaMouseButton {
-  MouseButton_Left,
-  MouseButton_Middle,
-  MouseButton_Right,
-  NumRonaMouseButtons
-} RonaMouseButton;
-
 // #ifdef __cplusplus
 // extern "C" {
 // #endif
@@ -1170,10 +1074,8 @@ typedef struct {
   PFNGLDISABLEVERTEXATTRIBARRAYPROC disableVertexAttribArray;
   PFNGLVERTEXATTRIBPOINTERPROC      vertexAttribPointer;
   PFNGLDELETEVERTEXARRAYSPROC       deleteVertexArrays;
-} RonaGl;
+} RonaGL;
 
 // #ifdef __cplusplus
 // }
 // #endif
-
-#endif

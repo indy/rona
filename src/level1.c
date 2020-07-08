@@ -46,7 +46,7 @@ void level1_shutdown(Level* level) {
   level->mem.used = 0;
 }
 
-void level1_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset) {
+void level1_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset) {
   mesh_floor_lib_load(level, gl, transient, tileset);
 
   // Colour hero_colour;
@@ -58,6 +58,6 @@ void level1_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* 
   // hero->colour.b = hero_colour.element[2];
   // hero->colour.a = hero_colour.element[3];
 }
-void level1_lib_unload(Level* level, RonaGl* gl) {
+void level1_lib_unload(Level* level, RonaGL* gl) {
   mesh_floor_lib_unload(level, gl);
 }

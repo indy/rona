@@ -271,7 +271,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   }
 }
 
-void mesh_floor_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tileset* tileset) {
+void mesh_floor_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset) {
 
   Vec4 fg, bg;
 
@@ -412,6 +412,6 @@ void mesh_floor_lib_load(Level* level, RonaGl* gl, MemoryArena* transient, Tiles
   gl->bindVertexArray(0);
 }
 
-void mesh_floor_lib_unload(Level* level, RonaGl* gl) {
+void mesh_floor_lib_unload(Level* level, RonaGL* gl) {
   gl->deleteVertexArrays(1, &level->mesh_floor->vao);
 }

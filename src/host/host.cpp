@@ -14,7 +14,6 @@
 
 typedef unsigned long long u64; // copied from rona.h
 
-#include "../platform.h"
 #include "../rona.h"
 
 const char *tmp = "/tmp/";
@@ -39,7 +38,7 @@ static void *GLProcAddress(const char *name) {
 }
 #endif
 
-static void LoadGLFunctions(RonaGl *gl) {
+static void LoadGLFunctions(RonaGL *gl) {
   gl->getUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GLProcAddress("glGetUniformLocation");
   gl->getAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)GLProcAddress("glGetAttribLocation");
   gl->uniform1i = (PFNGLUNIFORM1IPROC)GLProcAddress("glUniform1i");
@@ -241,7 +240,7 @@ int main(int argc, char **args) {
 
   if (fplPlatformInit(fplInitFlags_Video, &settings)) {
     // allocate memory arena space for RonaGL
-    game_state.gl = (RonaGl *)arena_alloc(&(game_state.storage_permanent), sizeof(RonaGl));
+    game_state.gl = (RonaGL *)arena_alloc(&(game_state.storage_permanent), sizeof(RonaGL));
 
     LoadGLFunctions(game_state.gl);
 
