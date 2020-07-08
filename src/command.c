@@ -19,33 +19,30 @@
   test command buffers
 */
 
-typedef enum {
-  CommandType_Delimiter = 0,
-  CommandType_EntityMove
-} CommandType;
+typedef enum { CommandType_Delimiter = 0, CommandType_EntityMove } CommandType;
 
 typedef struct {
   CommandType type;
 
   union {
     struct {
-      Entity *entity;
-      f32 some_f;
+      Entity* entity;
+      f32     some_f;
     } entity_move;
     struct {
-      Entity *entity;
-      i32 some_i;
+      Entity* entity;
+      i32     some_i;
     } entity_rotate;
   } data;
 } Command;
 
 typedef struct CommandBuffer {
-  Command *command;
+  Command* command;
 
-  struct CommandBuffer *prev;
-  struct CommandBuffer *next;
-  usize size;
-  usize used;
+  struct CommandBuffer* prev;
+  struct CommandBuffer* next;
+  usize                 size;
+  usize                 used;
 } CommandBuffer;
 
 void some_fun() {

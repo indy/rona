@@ -22,7 +22,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction);
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]);
 
-void mesh_floor_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset);
+void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset);
 void mesh_floor_lib_unload(Level* level, RonaGL* gl);
 
 #endif /* LEVEL_H */

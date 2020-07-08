@@ -187,7 +187,7 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]) {
   level->max_num_entities = 10;
-  level->entities = (Entity*)ARENA_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
+  level->entities = (Entity*)BUMP_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }
@@ -200,13 +200,13 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
       vec2(((f32)STAGE_WIDTH - (((f32)dbl_width / 2.0f) * TILE_WIDTH)) / 2.0f,
            (STAGE_HEIGHT - ((f32)height * TILE_HEIGHT)) / 2.0f);
 
-  level->mesh_floor = (Mesh*)ARENA_ALLOC(&(level->mem), sizeof(Mesh));
+  level->mesh_floor = (Mesh*)BUMP_ALLOC(&(level->mem), sizeof(Mesh));
 
   i32 width = dbl_width / 2;
   level->width = width;
   level->height = height;
   i32 num_tiles = level->width * level->height;
-  level->tiles = (Tile*)ARENA_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
+  level->tiles = (Tile*)BUMP_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
 
   const f32 max_speed = 9.0f;
 
@@ -271,7 +271,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   }
 }
 
-void mesh_floor_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset) {
+void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
 
   Vec4 fg, bg;
 
@@ -313,8 +313,8 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tiles
 
   u32  sizeof_vertices = sizeof(f32) * num_vert_elements;
   u32  sizeof_indices = sizeof(u32) * mesh->num_elements;
-  f32* vertices = (f32*)ARENA_ALLOC(transient, sizeof_vertices);
-  u32* indices = (u32*)ARENA_ALLOC(transient, sizeof_indices);
+  f32* vertices = (f32*)BUMP_ALLOC(transient, sizeof_vertices);
+  u32* indices = (u32*)BUMP_ALLOC(transient, sizeof_indices);
 
   // build geometry
   i32 tile_count = 0;

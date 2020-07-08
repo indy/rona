@@ -18,10 +18,10 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, MemoryArena* arena);
+bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bump);
 void renderer_shutdown(RonaGL* gl);
 
-void renderer_lib_load(RonaGL* gl, MemoryArena* transient, RenderStruct* render_struct);
+void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct);
 void renderer_lib_unload(RonaGL* gl);
 
 void renderer_render(GameState* game_state);
@@ -34,8 +34,8 @@ void renderer_render(GameState* game_state);
 
   The benefit of all this is that hot reloading works on shaders
 */
-#define SHADER_AS_STRING(ARENA, NAME, SHADER)                                                      \
-  char* NAME = (char*)ARENA_ALLOC(ARENA, (src_shaders_##SHADER##_len + 1));                        \
+#define SHADER_AS_STRING(BUMP, NAME, SHADER)                                                       \
+  char* NAME = (char*)BUMP_ALLOC(BUMP, (src_shaders_##SHADER##_len + 1));                          \
   memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                  \
   NAME[src_shaders_##SHADER##_len] = 0;
 

@@ -24,7 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-// clang-format off
+  // clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 7
   #define L1_HEIGHT 7
@@ -46,7 +46,7 @@ void level1_shutdown(Level* level) {
   level->mem.used = 0;
 }
 
-void level1_lib_load(Level* level, RonaGL* gl, MemoryArena* transient, Tileset* tileset) {
+void level1_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
   mesh_floor_lib_load(level, gl, transient, tileset);
 
   // Colour hero_colour;

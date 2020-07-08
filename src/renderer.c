@@ -152,7 +152,7 @@ void renderer_render(GameState* game_state) {
   }
 }
 
-void renderer_lib_load(RonaGL* gl, MemoryArena* transient, RenderStruct* render_struct) {
+void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct) {
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
@@ -192,7 +192,7 @@ void renderer_lib_unload(RonaGL* gl) {
   gl->bindVertexArray(0);
 }
 
-bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, MemoryArena* arena) {
+bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bump) {
   const char* version = (const char*)gl->getString(GL_VERSION);
   const char* vendor = (const char*)gl->getString(GL_VENDOR);
   const char* renderer = (const char*)gl->getString(GL_RENDERER);
@@ -300,11 +300,10 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, MemoryArena* aren
   render_struct->max_characters_per_frame = 5000;
   render_struct->text_vertices_mem_allocated =
       render_struct->max_characters_per_frame * TILED_QUAD_GEOMETRY_BYTES;
-  render_struct->text_vertices =
-      (f32*)ARENA_ALLOC(arena, render_struct->text_vertices_mem_allocated);
+  render_struct->text_vertices = (f32*)BUMP_ALLOC(bump, render_struct->text_vertices_mem_allocated);
   render_struct->text_indices_mem_allocated =
       render_struct->max_characters_per_frame * TILED_QUAD_INDICES_BYTES;
-  render_struct->text_indices = (u32*)ARENA_ALLOC(arena, render_struct->text_indices_mem_allocated);
+  render_struct->text_indices = (u32*)BUMP_ALLOC(bump, render_struct->text_indices_mem_allocated);
 
   gl->genVertexArrays(1, &(render_struct->text_vao));
   gl->bindVertexArray(render_struct->text_vao);
@@ -361,13 +360,13 @@ void text_paragraph(TextParams* text_params, char* text) {
 
 void text_printf(TextParams* text_params, char* fmt, ...) {
 #define MAX_TEXT_PRINTF_BUFFER_SIZE 4096
-  MemoryArena* arena = text_params->arena;
-  char*        buffer = (char*)arena_head(arena);
-  u64          arena_space_available = arena->size - arena->used;
-  va_list      va;
+  BumpAllocator* bump = text_params->bump;
+  char*          buffer = (char*)bump_head(bump);
+  u64            bump_space_available = bump->size - bump->used;
+  va_list        va;
 
   va_start(va, fmt);
-  stbsp_vsnprintf(buffer, MIN(arena_space_available, MAX_TEXT_PRINTF_BUFFER_SIZE), fmt, va);
+  stbsp_vsnprintf(buffer, MIN(bump_space_available, MAX_TEXT_PRINTF_BUFFER_SIZE), fmt, va);
   va_end(va);
 
   // stbsp_sprintf(buf, "mouse co-ords (%d, %d)", game_params->input->mouse_pos.x,

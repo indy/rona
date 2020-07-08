@@ -22,22 +22,14 @@ usize kilobytes(usize s);
 usize megabytes(usize s);
 usize gigabytes(usize s);
 
-void* arena_alloc(MemoryArena* ma, usize bytes);
-void* arena_head(MemoryArena* ma);
+void* bump_alloc(BumpAllocator* ba, usize bytes);
+void* bump_head(BumpAllocator* ba);
 
-#define ARENA_ALLOC(arena, size) arena_alloc((arena), (size));
+#define BUMP_ALLOC(bump, size) bump_alloc((bump), (size));
 
-// define a MemoryArena in the the transient storage
-//
-#define MA_TRANSIENT(new_arena, game_state)                                                        \
-  MemoryArena new_arena;                                                                           \
-  new_arena.base = game_state->storage_transient.base + game_state->storage_transient.used;        \
-  new_arena.size = game_state->storage_transient.size - game_state->storage_transient.used;        \
-  new_arena.used = 0;
-
-void  memory_allocator_reset(MemoryAllocator* ma, MemoryArena* arena);
-void* rona_malloc(MemoryAllocator* ma, usize bytes);
-void  rona_free(MemoryAllocator* ma, void* mem);
-void* rona_realloc(MemoryAllocator* ma, void* mem, usize bytes);
+void  grouped_allocator_reset(GroupedAllocator* ga, BumpAllocator* bump);
+void* rona_malloc(GroupedAllocator* ga, usize bytes);
+void  rona_free(GroupedAllocator* ga, void* mem);
+void* rona_realloc(GroupedAllocator* ga, void* mem, usize bytes);
 
 #endif /* MEMORY_H */

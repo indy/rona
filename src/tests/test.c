@@ -29,13 +29,13 @@ static MunitResult test_rona_math(const MunitParameter params[], void* user_data
 
 static MunitResult test_rona_memory(const MunitParameter params[], void* user_data) {
 
-  MemoryArena arena;
+  BumpAllocator arena;
   arena.size = megabytes(1);
   arena.base = malloc(arena.size);
   arena.used = 0;
 
-  MemoryAllocator ma;
-  memory_allocator_reset(&ma, &arena);
+  GroupedAllocator ma;
+  grouped_allocator_reset(&ma, &arena);
 
   void* ptr = rona_malloc(&ma, 500);
   munit_assert(ma.available_one_kilobyte == NULL);

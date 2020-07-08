@@ -26,14 +26,12 @@
 // #define RONA_NUKLEAR
 // #define RONA_NUKLEAR_DEMO_WITH_IMAGES
 
-
-
 // Memory allocation sizes
 //
 
 // sum of these 2 is the total reserved for the entire game
-#define MEMORY_ALLOCATION_STORAGE_PERMANENT 256
-#define MEMORY_ALLOCATION_STORAGE_TRANSIENT 256
+#define MEMORY_ALLOCATION_ARENA_PERMANENT 256
+#define MEMORY_ALLOCATION_ARENA_TRANSIENT 256
 
 #define MEMORY_ALLOCATION_LEVEL 64
 #define MEMORY_ALLOCATION_NUKLEAR 16
@@ -54,7 +52,6 @@
 #define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
 #define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
 #define RONA_OUT(f_) fprintf(stdout, (f_))
-
 
 #define true 1
 #define false 0
@@ -208,7 +205,7 @@ typedef struct {
   void* base;
   u64   size;
   u64   used;
-} MemoryArena;
+} BumpAllocator;
 
 typedef struct MemoryBlock {
   usize               bytes_allocated;
@@ -216,15 +213,19 @@ typedef struct MemoryBlock {
   struct MemoryBlock* next;
 } MemoryBlock;
 
-// lifetimes: MemoryArena > MemoryAllocator > MemoryBlock
+// lifetimes: BumpAllocator > GroupedAllocator > MemoryBlock
+//
+// GroupedAllocator builds upon BumpAllocator by have 3 single linked
+// lists of freed memory (binned by block size) which are used by the
+// rona_malloc, rona_realloc, rona_free functions
 //
 typedef struct {
-  MemoryArena* arena;
+  BumpAllocator* bump;
 
   MemoryBlock* available_one_kilobyte;
   MemoryBlock* available_one_megabyte;
   MemoryBlock* available_large;
-} MemoryAllocator;
+} GroupedAllocator;
 
 typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
 
@@ -283,7 +284,7 @@ typedef struct {
 } Tile;
 
 typedef struct {
-  MemoryArena mem;
+  BumpAllocator mem;
 
   i32     max_num_entities;
   Entity* entities;
@@ -366,11 +367,11 @@ typedef struct {
 typedef enum { GameMode_Edit, GameMode_Play } GameMode;
 
 typedef struct {
-  MemoryArena*  arena;
-  RenderStruct* render_struct;
-  Vec2          pos;
-  Vec4          fg;
-  Vec4          bg;
+  BumpAllocator* bump;
+  RenderStruct*  render_struct;
+  Vec2           pos;
+  Vec4           fg;
+  Vec4           bg;
 } TextParams;
 
 typedef enum RonaButtonState {
@@ -468,11 +469,11 @@ typedef struct {
   u64 time_last_frame;
   u64 time_delta;
 
-  MemoryArena storage_permanent;
-  MemoryArena storage_transient;
+  BumpAllocator arena_permanent;
+  BumpAllocator arena_transient;
 
-  MemoryAllocator allocator_permanent;
-  MemoryAllocator allocator_transient;
+  GroupedAllocator allocator_permanent;
+  GroupedAllocator allocator_transient;
 
   Mesh* mesh_screen;
   Mesh* mesh_hero;

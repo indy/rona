@@ -16,25 +16,25 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void game_startup(GameState* game_state) {
-  game_state->mesh_screen = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_hero = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_block = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
-  game_state->mesh_pit = (Mesh*)ARENA_ALLOC(&game_state->storage_permanent, sizeof(Mesh));
+  game_state->mesh_screen = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
+  game_state->mesh_hero = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
+  game_state->mesh_block = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
+  game_state->mesh_pit = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
 
   u64 level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
-  game_state->level = (Level*)ARENA_ALLOC(&game_state->storage_permanent, level_memory_arena_size);
+  game_state->level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
   game_state->level->mem.base = game_state->level + sizeof(Level);
   game_state->level->mem.size = level_memory_arena_size - sizeof(Level);
   game_state->level->mem.used = 0;
 
   level1_startup(game_state->level, game_state);
 
-  renderer_startup(game_state->gl, &(game_state->render_struct), &(game_state->storage_permanent));
+  renderer_startup(game_state->gl, &(game_state->render_struct), &(game_state->arena_permanent));
 
 #ifdef RONA_NUKLEAR
   // allocate some memory for nuklear
   usize nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
-  void* nuklear_memory = (void*)ARENA_ALLOC(&game_state->storage_permanent, nuklear_memory_size);
+  void* nuklear_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_memory_size);
 
   // align memory with nk_draw_command
   const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
@@ -45,7 +45,7 @@ void game_startup(GameState* game_state) {
   RonaGL* gl = game_state->gl;
   device_init(gl, &nuklear_state);
 
-  struct nk_font* font_to_use;
+  struct nk_font*       font_to_use;
   const void*           image;
   int                   w, h;
   struct nk_font_config cfg = nk_font_config(0);
@@ -203,12 +203,12 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
-  RonaGL*       gl = game_state->gl;
-  MemoryArena*  transient_arena = &(game_state->storage_transient);
-  Tileset*      tileset = &(game_state->render_struct.tileset);
-  RenderStruct* render_struct = &(game_state->render_struct);
+  RonaGL*        gl = game_state->gl;
+  BumpAllocator* bump_transient = &(game_state->arena_transient);
+  Tileset*       tileset = &(game_state->render_struct.tileset);
+  RenderStruct*  render_struct = &(game_state->render_struct);
 
-  renderer_lib_load(gl, transient_arena, render_struct);
+  renderer_lib_load(gl, bump_transient, render_struct);
 
   stage_from_window_calc(game_state);
 
@@ -220,7 +220,7 @@ void game_lib_load(GameState* game_state) {
   mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block, red, transparent);
   mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
   mesh_screen_lib_load(game_state->mesh_screen, gl, render_struct);
-  level1_lib_load(game_state->level, gl, transient_arena, tileset);
+  level1_lib_load(game_state->level, gl, bump_transient, tileset);
 
   Colour text_colour_fg;
   colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
@@ -228,7 +228,7 @@ void game_lib_load(GameState* game_state) {
   colour_from(&text_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
 
   TextParams* text_params = &(game_state->text_params_debug);
-  text_params->arena = transient_arena;
+  text_params->bump = bump_transient;
   text_params->render_struct = render_struct;
   text_params->pos = vec2(0.0f, 140.0f);
   vec4_from_colour(&(text_params->fg), &text_colour_fg);
@@ -263,7 +263,7 @@ void game_step(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
   RonaGL*       gl = game_state->gl;
 
-  game_state->storage_transient.used = 0;
+  game_state->arena_transient.used = 0;
 
   if (game_state->window_resized) {
     stage_from_window_calc(game_state);
