@@ -329,7 +329,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bu
 
   gl->bindVertexArray(0);
 
-  RONA_OUT("Running modern opengl\n");
+  RONA_LOG("Running modern opengl\n");
 
   return true;
 }

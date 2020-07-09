@@ -57,7 +57,7 @@ CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation) {
     game_lib_unload(g_game_state);
     return 0;
   case CR_CLOSE:
-    RONA_OUT("CLOSE\n");
+    RONA_LOG("CLOSE\n");
     game_shutdown(g_game_state);
     return 0;
   default:

@@ -53,7 +53,6 @@
 #define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
 #define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
 #define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
-#define RONA_OUT(f_) fprintf(stdout, (f_))
 
 #define true 1
 #define false 0
