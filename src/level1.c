@@ -27,10 +27,11 @@ void level1_startup(Level* level, GameState* game_state) {
 // clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 7
-  #define L1_HEIGHT 7
+  #define L1_HEIGHT 8
   char layout[L1_HEIGHT][L1_WIDTH * 2] = {
     "    . . U . . ",
     "    . B       ",
+    "    . .       ",
     "    . .       ",
     "H . . . U . . ",
     "    . .       ",

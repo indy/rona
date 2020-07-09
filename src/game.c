@@ -32,18 +32,58 @@ void game_startup(GameState* game_state) {
   renderer_startup(game_state->gl, &(game_state->render_struct), &(game_state->arena_permanent));
 
 #ifdef RONA_NUKLEAR
+  RonaGL* gl = game_state->gl;
+  device_init(gl, &nuklear_state);
+
+  nuklear_state.stage_in_nuklear_texture_id = create_texture(game_state->gl, STAGE_WIDTH, STAGE_HEIGHT);
+  nuklear_state.depth_texture_id = create_depth_texture(game_state->gl, STAGE_WIDTH, STAGE_HEIGHT);
+  nuklear_state.framebuffer_id = create_framebuffer(game_state->gl);
+  attach_textures_to_framebuffer(game_state->gl,
+                                 nuklear_state.framebuffer_id,
+                                 nuklear_state.stage_in_nuklear_texture_id,
+                                 nuklear_state.depth_texture_id);
+  if (!is_framebuffer_ok(game_state->gl)) {
+    RONA_ERROR("%d, Nuklear stage Framebuffer is not ok\n", 1);
+  }
+  gl->bindFramebuffer(GL_FRAMEBUFFER, nuklear_state.framebuffer_id);
+  gl->viewport(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
+
+
+
   // allocate some memory for nuklear
-  usize nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
-  void* nuklear_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_memory_size);
+  nuklear_state.nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
+  void *nuklear_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_state.nuklear_memory_size);
 
   // align memory with nk_draw_command
   const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
   u64           align_mask = (cmd_align << 1) - 1;
   void* aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
-  nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
 
-  RonaGL* gl = game_state->gl;
-  device_init(gl, &nuklear_state);
+  nuklear_state.nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
+  nuklear_state.nuklear_memory = aligned_nuklear_memory;
+
+  // allocate memory for nuklear atlas
+  usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR_ATLAS);
+  void *nuklear_atlas_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_atlas_memory_size);
+
+  nuklear_state.bump_permanent.size = nuklear_atlas_memory_size;
+  nuklear_state.bump_permanent.base = nuklear_atlas_memory;
+  nuklear_state.bump_permanent.used = 0;
+
+  grouped_allocator_reset(&(nuklear_state.allocator_permanent), &(nuklear_state.bump_permanent));
+
+  // allocating from transient memory as we're only expecting transient allocations to occur during this function
+  usize nuklear_atlas_transient_memory_size = megabytes(6);
+  void *nuklear_atlas_transient_memory = (void*)BUMP_ALLOC(&game_state->arena_transient, nuklear_atlas_transient_memory_size);
+
+  nuklear_state.bump_transient.size = nuklear_atlas_transient_memory_size;
+  nuklear_state.bump_transient.base = nuklear_atlas_transient_memory;
+  nuklear_state.bump_transient.used = 0;
+
+  grouped_allocator_reset(&(nuklear_state.allocator_transient), &(nuklear_state.bump_transient));
+
+  // all transient memory operations should happen in-between setting this variable from true to false
+  nuklear_state.transient_allocation_calls_expected = true;
 
   struct nk_font*       font_to_use;
   const void*           image;
@@ -57,7 +97,14 @@ void game_startup(GameState* game_state) {
 
   struct nk_font_atlas* atlas = &(nuklear_state.atlas);
 
-  nk_font_atlas_init_default(atlas);
+  nuklear_state.persistent.alloc = &nuklear_persistent_alloc;
+  nuklear_state.persistent.free = &nuklear_persistent_free;
+
+  nuklear_state.transient.alloc = &nuklear_transient_alloc;
+  nuklear_state.transient.free = &nuklear_transient_free;
+
+  // call nk_font_atlas_init_custom instead
+  nk_font_atlas_init_custom(atlas, &(nuklear_state.persistent), &(nuklear_state.transient));
   nk_font_atlas_begin(atlas);
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
@@ -76,8 +123,13 @@ void game_startup(GameState* game_state) {
   device_upload_atlas(gl, &nuklear_state, image, w, h);
   nk_font_atlas_end(atlas, nk_handle_id((int)nuklear_state.font_tex), &nuklear_state.null);
 
-  nk_init_fixed(&nuklear_state.ctx, aligned_nuklear_memory, (nk_size)nuklear_memory_size,
+  // note: after nk_font_atlas_end is called I'm assuming there won't be any more transient memory allocations
+  nuklear_state.transient_allocation_calls_expected = false;
+
+
+  nk_init_fixed(&nuklear_state.ctx, nuklear_state.nuklear_memory, (nk_size)nuklear_state.nuklear_memory_size,
                 &font_to_use->handle);
+
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
   /* icons */
@@ -149,11 +201,7 @@ void game_shutdown(GameState* game_state) {
 }
 
 Vec2 stage_from_window(GameState* game_state, f32 x, f32 y) {
-  Vec2 pos;
-  pos.x = x;
-  pos.y = (f32)game_state->render_struct.window_height - y;
-
-  return vec2_mul(vec2_add(pos, game_state->stage_from_window_delta),
+  return vec2_mul(vec2_add(vec2(x, y), game_state->stage_from_window_delta),
                   game_state->stage_from_window_factor);
 }
 
@@ -203,6 +251,9 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
+  // RONA_LOG("base %p, size: %llu, used: %llu\n", game_state->arena_permanent.base,
+  //          game_state->arena_permanent.size, game_state->arena_permanent.used);
+
   RonaGL*        gl = game_state->gl;
   BumpAllocator* bump_transient = &(game_state->arena_transient);
   Tileset*       tileset = &(game_state->render_struct.tileset);
@@ -265,6 +316,10 @@ void game_step(GameState* game_state) {
 
   game_state->arena_transient.used = 0;
 
+  if (key_pressed_ignore_active_flag(game_state->input, Key_F)) {
+    game_state->input->active = !game_state->input->active;
+  }
+
   if (game_state->window_resized) {
     stage_from_window_calc(game_state);
   }
@@ -274,9 +329,15 @@ void game_step(GameState* game_state) {
   Vec2        mouse_on_stage = stage_from_window(game_state, (f32)game_state->input->mouse_pos.x,
                                           (f32)game_state->input->mouse_pos.y);
   TextParams* text_params = &(game_state->text_params_debug);
-  text_params->pos = vec2(0.0f, render_struct->stage_height - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, 0.0f);
   text_printf(text_params, "%s (%.2f, %.2f)", game_state->mode == GameMode_Edit ? "Edit" : "Play",
               mouse_on_stage.x, mouse_on_stage.y);
+
+  if (!game_state->input->active) {
+    text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
+    text_printf(text_params, "Input Ignored\n");
+  }
+
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;
@@ -306,23 +367,29 @@ void game_step(GameState* game_state) {
   bool      moved = false;
 
 #if 0
-  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
   text_printf(text_params, "command-index-next-free %d", level->command_index_next_free);
-  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
   text_printf(text_params, "command-index-furthest-future %d", level->command_index_furthest_future);
-  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
   text_printf(text_params, "%p", level->command_buffer);
-  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
   text_printf(text_params, "cb size %d used %d", level->command_buffer->size, level->command_buffer->used);
-  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
   text_printf(text_params, "cb prev %p next %p", level->command_buffer->prev, level->command_buffer->next);
 #endif
+
+  /*
+   * NOTE: The window event: LostFocus isn't always quick or reliable,
+   * so I could end up moving focus to Emacs, and having this program
+   * pick up those key presses as well
+   */
 
   if (key_pressed(game_state->input, Key_Z)) {
     command_undo(level);
   }
 
-  if (key_pressed(game_state->input, Key_X)) {
+  if (key_pressed(game_state->input, Key_A)) {
     command_redo(level);
   }
 

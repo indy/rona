@@ -19,6 +19,8 @@
 #include <float.h>
 #include <math.h>
 
+#include "cr.h"
+
 #include "rona.h"
 
 #include "tileset.h"

@@ -35,6 +35,7 @@
 
 #define MEMORY_ALLOCATION_LEVEL 64
 #define MEMORY_ALLOCATION_NUKLEAR 16
+#define MEMORY_ALLOCATION_NUKLEAR_ATLAS 16
 
 #define MEMORY_COMMANDS_IN_BUFFER 10000
 
@@ -224,6 +225,7 @@ typedef struct {
   BumpAllocator* bump;
 
   MemoryBlock* available_one_kilobyte;
+  MemoryBlock* available_150_kilobyte;
   MemoryBlock* available_one_megabyte;
   MemoryBlock* available_large;
 } GroupedAllocator;
@@ -485,9 +487,9 @@ typedef enum RonaMouseButton {
 } RonaMouseButton;
 
 typedef struct {
+  bool            active;
   int             key_toggle_idx;
   RonaButtonState key[2][NumRonaKeys];
-
   int             mouse_toggle_idx;
   RonaButtonState mouse[2][NumRonaMouseButtons];
   Vec2i           mouse_pos;

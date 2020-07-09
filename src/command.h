@@ -30,7 +30,7 @@ Command* command_add(Level* level);
 bool command_undo(Level* level);
 bool command_redo(Level* level);
 
-typedef enum { CommandExecute_Undo, CommandExecute_Redo, CommandExecute_Play } CommandExecute;
+typedef enum { CommandExecute_Play, CommandExecute_Undo, CommandExecute_Redo } CommandExecute;
 
 void command_execute(Command* command, CommandExecute execute_type);
 

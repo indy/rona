@@ -28,10 +28,10 @@ void mesh_screen_lib_load(Mesh* mesh, RonaGL* gl, RenderStruct* render_struct) {
   // clang-format off
   // x, y, u, v
   f32 vertices[] = {
-    0.0f, height, 0.0f, 1.0f,
     0.0f, 0.0f, 0.0f, 0.0f,
-    width, 0.0f, 1.0f, 0.0f,
-    width, height, 1.0f, 1.0f
+    0.0f, height, 0.0f, 1.0f,
+    width, height, 1.0f, 1.0f,
+    width, 0.0f, 1.0f, 0.0f
   };
   u32 indices[] = {
     0, 1, 2,

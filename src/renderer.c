@@ -15,13 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-GLuint create_framebuffer(RonaGL* gl);
-GLuint create_texture(RonaGL* gl, u32 width, u32 height);
-GLuint create_depth_texture(RonaGL* gl, u32 width, u32 height);
 void   delete_texture(RonaGL* gl, GLuint texture_id);
-void   attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint texture_id,
-                                      GLuint depth_texture_id);
-bool   is_framebuffer_ok(RonaGL* gl);
 void   update_viewport(RonaGL* gl, u32 viewport_width, u32 viewport_height);
 void   bind_framebuffer(RonaGL* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
@@ -31,10 +25,12 @@ void renderer_render(GameState* game_state) {
   RenderStruct* render_struct = &game_state->render_struct;
   Mesh*         screen = game_state->mesh_screen;
 
+  // render the scene onto the stage texture
+  //
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_width,
                    render_struct->stage_height);
 
-  gl->clearColor(0.0f, 0.0f, 0.1f, 0.0f);
+  gl->clearColor(0.0f, 0.0f, 0.1f, 1.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   gl->disable(GL_DEPTH_TEST);
@@ -53,7 +49,7 @@ void renderer_render(GameState* game_state) {
   gl->useProgram(render_struct->tile_shader.program);
   gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
 
-  Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0, stage_height, 10.0f, -10.0f);
+  Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
   gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
@@ -98,14 +94,19 @@ void renderer_render(GameState* game_state) {
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
                    GL_UNSIGNED_INT, 0);
 
-  // render onto screen
-  bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
-  gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // --------------------------------------------------------------------------------
 
+  // if RONA_NUKLEAR isn't defined just render as if GameMode_Play was selected
+
+#ifdef RONA_NUKLEAR
   if (game_state->mode == GameMode_Play) {
+#endif
+
     // render stage as large as possible onto screen
     //
+    bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
+    gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     gl->useProgram(render_struct->screen_shader.program);
 
@@ -116,27 +117,57 @@ void renderer_render(GameState* game_state) {
       // window is narrower than desired
       f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
       f32  v_pad = (v - stage_height) / 2.0f;
-      Mat4 m = mat4_ortho(0.0f, stage_width, -v_pad, v - v_pad, 10.0f, -10.0f);
+      Mat4 m = mat4_ortho(0.0f, stage_width, v - v_pad, - v_pad, 10.0f, -10.0f);
       gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
                            (GLfloat*)&(m.v));
     } else {
       // window is more elongated horizontally than desired
       f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
       f32  h_pad = (h - stage_width) / 2.0f;
-      Mat4 m = mat4_ortho(-h_pad, h - h_pad, 0, stage_height, 10.0f, -10.0f);
+      Mat4 m = mat4_ortho(-h_pad, h - h_pad, stage_height, 0.0f, 10.0f, -10.0f);
       gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
                            (GLfloat*)&(m.v));
     }
 
     gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
     gl->activeTexture(GL_TEXTURE0);
+
     gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
 
     gl->bindVertexArray(screen->vao);
     gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
+
+#ifdef RONA_NUKLEAR
   } else {
     // GameMode_Edit
-#ifdef RONA_NUKLEAR
+
+    // render the stage onto another texture using the screen_shader
+    // this will perform sRGB colour conversion (and any other post processing effects)
+    //
+    bind_framebuffer(gl, nuklear_state.framebuffer_id, render_struct->stage_width, render_struct->stage_height);
+    gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    gl->useProgram(render_struct->screen_shader.program);
+
+    Mat4 m = mat4_ortho(0.0f, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
+      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                           (GLfloat*)&(m.v));
+
+    gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
+    gl->activeTexture(GL_TEXTURE0);
+
+    gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
+
+    gl->bindVertexArray(screen->vao);
+    gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
+
+
+    // render the edit ui onto the screen
+
+    bind_framebuffer(gl, 0, render_struct->window_width, render_struct->window_height);
+    gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
     button_demo(&nuklear_state.ctx, &nuklear_media);
@@ -144,12 +175,13 @@ void renderer_render(GameState* game_state) {
 #endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
 
     tiny_demo(&nuklear_state.ctx);
+    tex_demo(&nuklear_state.ctx, nuklear_state.stage_in_nuklear_texture_id);
 
     int width = render_struct->window_width;
     int height = render_struct->window_height;
     nuklear_render(gl, &nuklear_state, width, height, NK_ANTI_ALIASING_ON);
-#endif
   }
+#endif
 }
 
 void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct) {
@@ -347,7 +379,7 @@ void text_paragraph(TextParams* text_params, char* text) {
 
   while (*c) {
     if (*c == '\n') {
-      pos.y -= TILE_CHAR_HEIGHT;
+      pos.y += TILE_CHAR_HEIGHT;
       width_count = 0;
     } else {
       pos.x = basex + ((f32)(width_count * TILE_CHAR_WIDTH));

@@ -16,7 +16,6 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "../unity_build.h"
-#include "cr.h"
 
 // To save states automatically from previous instance to a new loaded one, use CR_STATE flag on
 // statics/globals. This will create a new data section in the binary for transferable states

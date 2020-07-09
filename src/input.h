@@ -21,6 +21,7 @@
 bool key_down(RonaInput* input, RonaKey key);
 bool key_up(RonaInput* input, RonaKey key);
 bool key_pressed(RonaInput* input, RonaKey key);
+bool key_pressed_ignore_active_flag(RonaInput* input, RonaKey key);
 
 bool mouse_down(RonaInput* input, RonaMouseButton mouse_button);
 bool mouse_up(RonaInput* input, RonaMouseButton mouse_button);

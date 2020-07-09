@@ -446,7 +446,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   // RONA_LOG("%.4f %.4f, %.4f %.4f\n", xpos, ypos, xpos + TILE_CHAR_WIDTH, ypos + TILE_CHAR_HEIGHT);
 
   *e++ = xpos;
-  *e++ = ypos + TILE_CHAR_HEIGHT;
+  *e++ = ypos;
 
   *e++ = u;
   *e++ = v;
@@ -455,7 +455,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
   *e++ = xpos;
-  *e++ = ypos;
+  *e++ = ypos + TILE_CHAR_HEIGHT;
 
   *e++ = u;
   *e++ = v + vd;
@@ -464,7 +464,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
   *e++ = xpos + TILE_CHAR_WIDTH;
-  *e++ = ypos;
+  *e++ = ypos + TILE_CHAR_HEIGHT;
 
   *e++ = u + ud;
   *e++ = v + vd;
@@ -473,7 +473,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   *e++ = bg->e[0]; *e++ = bg->e[1]; *e++ = bg->e[2]; *e++ = bg->e[3];
 
   *e++ = xpos + TILE_CHAR_WIDTH;
-  *e++ = ypos + TILE_CHAR_HEIGHT;
+  *e++ = ypos;
 
   *e++ = u + ud;
   *e++ = v;

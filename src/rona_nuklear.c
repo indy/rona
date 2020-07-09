@@ -1,3 +1,42 @@
+void *nuklear_persistent_alloc(nk_handle h, void *mem, nk_size bytes) {
+  void *addr = rona_realloc(&(nuklear_state.allocator_permanent), mem, bytes);
+#if 0
+  RONA_LOG("called persistent_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
+#endif
+  return addr;
+}
+
+void nuklear_persistent_free(nk_handle h, void *mem) {
+#if 1
+  RONA_LOG("called persistent_free %p\n", mem);
+#endif
+  rona_free(&(nuklear_state.allocator_permanent), mem);
+}
+
+void *nuklear_transient_alloc(nk_handle h, void *mem, nk_size bytes) {
+  if (!nuklear_state.transient_allocation_calls_expected) {
+    RONA_ERROR("transient_free called after expected scope\n");
+    return NULL;
+  }
+  void *addr = rona_realloc(&(nuklear_state.allocator_transient), mem, bytes);
+#if 0
+  RONA_LOG("called transient_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
+#endif
+  return addr;
+}
+
+void nuklear_transient_free(nk_handle h, void *mem) {
+  if (!nuklear_state.transient_allocation_calls_expected) {
+    RONA_ERROR("transient_free called after expected scope\n");
+    return;
+  }
+#if 0
+  RONA_LOG("called transient_free %p\n", mem);
+#endif
+  rona_free(&(nuklear_state.allocator_transient), mem);
+}
+
+
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
 
 /* ===============================================================
@@ -388,6 +427,29 @@ static void tiny_demo(struct nk_context* ctx) {
       nk_slider_float(ctx, 0, &value, 1.0f, 0.1f);
     }
     nk_layout_row_end(ctx);
+  }
+  nk_end(ctx);
+}
+
+static void tex_demo(struct nk_context* ctx, GLuint stage_texture) {
+  if (nk_begin(ctx, "in-game", nk_rect(50, 250, STAGE_WIDTH, STAGE_HEIGHT + 65),
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
+    // NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE
+
+    /* custom widget pixel width */
+    nk_layout_row_begin(ctx, NK_DYNAMIC, 300, 1);
+    {
+      // nk_layout_row_push(ctx, 300);
+      nk_layout_row_push(ctx, STAGE_WIDTH/STAGE_HEIGHT);
+
+      struct nk_image stage_image = nk_image_id(stage_texture);
+      // stage_image.w = STAGE_WIDTH;
+      // stage_image.h = STAGE_HEIGHT;
+
+      nk_image(ctx, stage_image);
+    }
+    nk_layout_row_end(ctx);
+
   }
   nk_end(ctx);
 }

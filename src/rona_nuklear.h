@@ -46,6 +46,30 @@ typedef struct {
   struct nk_font_atlas atlas;
   struct nk_context    ctx;
 
+  usize nuklear_memory_size;
+  void* nuklear_memory;
+
+  // -----------------------------------------------------------------------------
+  //
+  // memory management variables for font atlas functionality
+  //
+  struct nk_allocator persistent; // todo: can't these nk_allocators just be local variables?
+  struct nk_allocator transient;
+
+  BumpAllocator bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
+  GroupedAllocator allocator_permanent;
+
+  BumpAllocator bump_transient; // reserves transient memory, so should be used with caution
+  GroupedAllocator allocator_transient;
+
+  bool transient_allocation_calls_expected;
+  // -----------------------------------------------------------------------------
+
+  // render the stage_texture onto stage_in_nuklear_texture_id applying colour space conversion
+  GLuint stage_in_nuklear_texture_id;
+  GLuint depth_texture_id;
+  GLuint framebuffer_id;
+
   struct nk_buffer            cmds;
   struct nk_draw_null_texture null;
   GLuint                      vbo, vao, ebo;
@@ -60,7 +84,13 @@ typedef struct {
   GLuint                      font_tex;
 } NuklearState;
 
-static NuklearState nuklear_state;
-static NuklearMedia nuklear_media;
+static NuklearState CR_STATE nuklear_state;
+static NuklearMedia CR_STATE nuklear_media;
+
+void *nuklear_persistent_alloc(nk_handle h, void *mem, nk_size bytes);
+void nuklear_persistent_free(nk_handle h, void *mem);
+void *nuklear_transient_alloc(nk_handle h, void *mem, nk_size bytes);
+void nuklear_transient_free(nk_handle h, void *mem);
+
 
 #endif /* RONA_NUKLEAR */

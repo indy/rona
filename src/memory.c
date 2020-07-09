@@ -51,6 +51,7 @@ void* memory_block(BumpAllocator* bump, usize bytes_to_allocate, usize bytes_req
 void grouped_allocator_reset(GroupedAllocator* ga, BumpAllocator* bump) {
   ga->bump = bump;
   ga->available_one_kilobyte = NULL;
+  ga->available_150_kilobyte = NULL;
   ga->available_one_megabyte = NULL;
   ga->available_large = NULL;
 }
@@ -68,6 +69,15 @@ void* rona_malloc(GroupedAllocator* ga, usize bytes) {
       block->bytes_requested = bytes;
     } else {
       block = memory_block(ga->bump, kilobytes(1), bytes);
+    }
+  } else if (bytes_to_use < kilobytes(150)) {
+    if (ga->available_150_kilobyte) {
+      block = ga->available_150_kilobyte;
+      ga->available_150_kilobyte = block->next;
+      block->next = NULL;
+      block->bytes_requested = bytes;
+    } else {
+      block = memory_block(ga->bump, kilobytes(150), bytes);
     }
   } else if (bytes_to_use < megabytes(1)) {
     if (ga->available_one_megabyte) {
@@ -125,6 +135,9 @@ void rona_free(GroupedAllocator* ga, void* mem) {
   if (block->bytes_allocated <= kilobytes(1)) {
     block->next = ga->available_one_kilobyte;
     ga->available_one_kilobyte = block;
+  } else if (block->bytes_allocated <= kilobytes(150)) {
+    block->next = ga->available_150_kilobyte;
+    ga->available_150_kilobyte = block;
   } else if (block->bytes_allocated <= megabytes(1)) {
     block->next = ga->available_one_megabyte;
     ga->available_one_megabyte = block;

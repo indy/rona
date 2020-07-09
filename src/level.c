@@ -42,10 +42,10 @@ Vec2i vec2i_add_direction(Vec2i* pos, Direction direction) {
   Vec2i res = vec2i_clone(pos);
   switch (direction) {
   case Direction_North:
-    res.y += 1;
+    res.y -= 1;
     break;
   case Direction_South:
-    res.y -= 1;
+    res.y += 1;
     break;
   case Direction_East:
     res.x += 1;
@@ -132,6 +132,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction) {
 
   return true;
 }
+
 
 bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
@@ -235,7 +236,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   // centre the level in the stage
   level->offset_stage_from_world =
       vec2(((f32)STAGE_WIDTH - (((f32)dbl_width / 2.0f) * TILE_WIDTH)) / 2.0f,
-           (STAGE_HEIGHT - ((f32)height * TILE_HEIGHT)) / 2.0f);
+           ((f32)height * TILE_HEIGHT) / 2.0f);
 
   level->mesh_floor = (Mesh*)BUMP_ALLOC(&(level->mem), sizeof(Mesh));
 
@@ -249,7 +250,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
   for (i32 j = 0; j < height; j++) {
 
-    char* plan_line = layout[height - 1 - j];
+    char* plan_line = layout[j];
 
     for (i32 i = 0; i < dbl_width; i += 2) {
       i32 tile_index = (i / 2) + (j * width);
@@ -365,7 +366,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
         e = &vertices[e_index];
 
         *e++ = -half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
-        *e++ = half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
+        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u;
         *e++ = v;
@@ -374,7 +375,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
         *e++ = bg.e[0]; *e++ = bg.e[1]; *e++ = bg.e[2]; *e++ = bg.e[3];
 
         *e++ = -half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
-        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
+        *e++ =  half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u;
         *e++ = v + vd;
@@ -383,7 +384,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
         *e++ = bg.e[0]; *e++ = bg.e[1]; *e++ = bg.e[2]; *e++ = bg.e[3];
 
         *e++ = half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
-        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
+        *e++ = half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u + ud;
         *e++ = v + vd;
@@ -392,7 +393,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
         *e++ = bg.e[0]; *e++ = bg.e[1]; *e++ = bg.e[2]; *e++ = bg.e[3];
 
         *e++ = half_dim_x + ((f32)i * TILE_WIDTH) + HALF_TILE_WIDTH;
-        *e++ = half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
+        *e++ = -half_dim_y + ((f32)j * TILE_HEIGHT) + HALF_TILE_HEIGHT;
 
         *e++ = u + ud;
         *e++ = v;

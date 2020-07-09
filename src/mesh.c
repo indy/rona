@@ -43,10 +43,10 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
   f32 half_dim_y = TILE_HEIGHT * 0.5f;
   f32 vertices[] = {
     //      positions                uv             foreground colour            background colour
-    -half_dim_x,  half_dim_y,     u,    v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-    -half_dim_x, -half_dim_y,     u,    v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-     half_dim_x, -half_dim_y,     u+ud, v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-     half_dim_x,  half_dim_y,     u+ud, v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3]
+    -half_dim_x, -half_dim_y,     u,    v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+    -half_dim_x,  half_dim_y,     u,    v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+     half_dim_x,  half_dim_y,     u+ud, v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
+     half_dim_x, -half_dim_y,     u+ud, v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3]
   };
   u32 indices[] = {
     0, 1, 2,

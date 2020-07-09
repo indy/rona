@@ -25,6 +25,14 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
 void renderer_lib_unload(RonaGL* gl);
 
 void renderer_render(GameState* game_state);
+
+GLuint create_texture(RonaGL* gl, u32 width, u32 height);
+GLuint create_depth_texture(RonaGL* gl, u32 width, u32 height);
+GLuint create_framebuffer(RonaGL* gl);
+bool   is_framebuffer_ok(RonaGL* gl);
+void   attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint texture_id,
+                                      GLuint depth_texture_id);
+
 /*
   This is a convoluted way of including text files into c source code
 

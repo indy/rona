@@ -15,6 +15,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+void command_execute(Command* command, CommandExecute execute_type) {
+  Entity* e = command->entity;
+
+  //  command_pretty_print(command, undo, "execute");
+
+  switch (command->type) {
+
+    /*
+     *
+     * Entity Move
+     *
+     */
+  case CommandType_EntityMove:
+    switch (execute_type) {
+    case CommandExecute_Play:
+      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
+      // world_pos will smoothly transition to world_target
+      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
+      e->entity_state = command->data.entity_move.new_params.entity_state;
+      break;
+    case CommandExecute_Undo:
+      vec2i_copy(&e->board_pos, &command->data.entity_move.old_params.board_pos);
+      vec3_copy(&e->world_pos, &command->data.entity_move.old_params.world_pos);
+      vec3_copy(&e->world_target, &command->data.entity_move.old_params.world_target);
+      e->entity_state = command->data.entity_move.old_params.entity_state;
+      break;
+    case CommandExecute_Redo:
+      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
+      vec3_copy(&e->world_pos, &command->data.entity_move.new_params.world_pos);
+      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
+      e->entity_state = command->data.entity_move.new_params.entity_state;
+      break;
+    }
+
+    break;
+  default:
+    RONA_ERROR("command_execute: unknown command type %d\n", command->type);
+    break;
+  }
+}
+
 CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
   CommandBuffer* cb = (CommandBuffer*)BUMP_ALLOC(bump, sizeof(CommandBuffer));
   if (!cb) {
@@ -237,6 +278,11 @@ bool command_undo(Level* level) {
 }
 
 bool command_redo(Level* level) {
+  if (!level->command_buffer_furthest_future) {
+    // haven't added any commands yet
+    return false;
+  }
+
   if (level->command_buffer_furthest_future == level->command_buffer &&
       level->command_index_furthest_future == (level->command_index_next_free - 1)) {
     // this is the furthest future point in this 'timeline'
@@ -253,41 +299,6 @@ bool command_redo(Level* level) {
   } while (!command->is_last_in_transaction);
 
   return true;
-}
-
-void command_execute(Command* command, CommandExecute execute_type) {
-  Entity* e = command->entity;
-
-  //  command_pretty_print(command, undo, "execute");
-
-  switch (command->type) {
-  case CommandType_EntityMove:
-    switch (execute_type) {
-    case CommandExecute_Undo:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.old_params.board_pos);
-      vec3_copy(&e->world_pos, &command->data.entity_move.old_params.world_pos);
-      vec3_copy(&e->world_target, &command->data.entity_move.old_params.world_target);
-      e->entity_state = command->data.entity_move.old_params.entity_state;
-      break;
-    case CommandExecute_Redo:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
-      vec3_copy(&e->world_pos, &command->data.entity_move.new_params.world_pos);
-      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
-      e->entity_state = command->data.entity_move.new_params.entity_state;
-      break;
-    case CommandExecute_Play:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
-      // world_pos will smoothly transition to world_target
-      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
-      e->entity_state = command->data.entity_move.new_params.entity_state;
-      break;
-    }
-
-    break;
-  default:
-    RONA_ERROR("command_execute: unknown command type %d\n", command->type);
-    break;
-  }
 }
 
 void command_pretty_print(Command* command, bool undo, const char* msg) {

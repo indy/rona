@@ -196,11 +196,13 @@ int main(int argc, char **args) {
 
   game_state.allocator_permanent.bump = &(game_state.arena_permanent);
   game_state.allocator_permanent.available_one_kilobyte = NULL;
+  game_state.allocator_permanent.available_150_kilobyte = NULL;
   game_state.allocator_permanent.available_one_megabyte = NULL;
   game_state.allocator_permanent.available_large = NULL;
 
   game_state.allocator_transient.bump = &(game_state.arena_transient);
   game_state.allocator_transient.available_one_kilobyte = NULL;
+  game_state.allocator_transient.available_150_kilobyte = NULL;
   game_state.allocator_transient.available_one_megabyte = NULL;
   game_state.allocator_transient.available_large = NULL;
 
@@ -253,6 +255,7 @@ int main(int argc, char **args) {
 
     // bump allocate memory for RonaInput
     game_state.input = (RonaInput *)bump_alloc(&(game_state.arena_permanent), sizeof(RonaInput));
+    game_state.input->active = true;
     game_state.input->key_toggle_idx = 1;
     game_state.input->mouse_toggle_idx = 1;
 
