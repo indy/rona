@@ -15,16 +15,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef LEVEL_H
-#define LEVEL_H
+#ifndef COMMAND_H
+#define COMMAND_H
 
-bool try_moving_hero(Level* level, Entity* hero, Direction direction);
-void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
-                 char layout[][dbl_width]);
+bool command_buffer_startup(Level* level);
+void command_buffer_shutdown(Level* level);
 
-void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset);
-void mesh_floor_lib_unload(Level* level, RonaGL* gl);
+bool command_transaction_begin(Level* level);
+bool command_transaction_end(Level* level);
 
-void world_from_board(Vec3* dst, i32 x, i32 y, f32 z);
+// returns Command for caller to fill out, call within a transaction
+Command* command_add(Level* level);
 
-#endif /* LEVEL_H */
+bool command_undo(Level* level);
+bool command_redo(Level* level);
+
+typedef enum { CommandExecute_Undo, CommandExecute_Redo, CommandExecute_Play } CommandExecute;
+
+void command_execute(Command* command, CommandExecute execute_type);
+
+void command_pretty_print(Command* command, bool undo, const char* msg);
+void command_debug(Level* level);
+
+#endif /* COMMAND_H */

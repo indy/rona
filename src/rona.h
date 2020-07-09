@@ -36,6 +36,8 @@
 #define MEMORY_ALLOCATION_LEVEL 64
 #define MEMORY_ALLOCATION_NUKLEAR 16
 
+#define MEMORY_COMMANDS_IN_BUFFER 10000
+
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                           \
   if (!(exp)) {                                                                                    \
@@ -283,6 +285,41 @@ typedef struct {
   TileType tile_type;
 } Tile;
 
+typedef enum { CommandType_Delimiter = 0, CommandType_EntityMove } CommandType;
+
+typedef struct {
+  Vec2i       board_pos;
+  Vec3        world_pos;
+  Vec3        world_target;
+  EntityState entity_state;
+} CommandParamsEntityMove;
+
+typedef struct {
+  CommandType type;
+  bool        is_last_in_transaction;
+
+  Entity* entity;
+
+  union {
+    struct {
+      CommandParamsEntityMove old_params;
+      CommandParamsEntityMove new_params;
+    } entity_move;
+    struct {
+      i32 some_i;
+    } entity_rotate;
+  } data;
+} Command;
+
+typedef struct CommandBuffer {
+  Command* command;
+
+  struct CommandBuffer* prev;
+  struct CommandBuffer* next;
+  usize                 size; // size is in terms of number of Command structs in *command
+  usize                 used; // used is in number of Command structs
+} CommandBuffer;
+
 typedef struct {
   BumpAllocator mem;
 
@@ -295,7 +332,15 @@ typedef struct {
   Mesh* mesh_floor;
 
   Vec2 offset_stage_from_world;
-  // history/replay data goes here as well
+
+  // undo/redo system
+  //
+  bool           in_command_transaction;
+  usize          command_index_next_free; // index of the next command in the current command_buffer
+  CommandBuffer* command_buffer;          // the currently active command buffer
+  usize          command_index_furthest_future; // the index of the furthest future point
+  CommandBuffer*
+      command_buffer_furthest_future; // the command buffer that contains the command_furthest_index
 } Level;
 
 typedef struct {

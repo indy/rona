@@ -50,6 +50,11 @@ void vec2i_set(Vec2i* dest, i32 x, i32 y) {
   dest->y = y;
 }
 
+void vec2i_copy(Vec2i* dest, Vec2i* src) {
+  dest->x = src->x;
+  dest->y = src->y;
+}
+
 Vec2i vec2i_add(Vec2i a, Vec2i b) {
   Vec2i res;
   res.x = a.x + b.x;
@@ -187,6 +192,12 @@ void vec3_set(Vec3* dest, f32 x, f32 y, f32 z) {
   dest->x = x;
   dest->y = y;
   dest->z = z;
+}
+
+void vec3_copy(Vec3* dest, Vec3* src) {
+  dest->x = src->x;
+  dest->y = src->y;
+  dest->z = src->z;
 }
 
 Vec3 vec3_add(Vec3 a, Vec3 b) {

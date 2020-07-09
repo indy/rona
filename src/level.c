@@ -106,11 +106,29 @@ bool try_moving_block(Level* level, Entity* block, Direction direction) {
     }
   }
 
-  vec2i_set(&block->board_pos, new_pos.x, new_pos.y);
-  world_from_board(&block->world_target, block->board_pos.x, block->board_pos.y,
-                   block->world_target.z);
+  {
+    Command* command = command_add(level);
 
-  block->entity_state = EntityState_Moving;
+    command->type = CommandType_EntityMove;
+    command->entity = block;
+
+    CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
+    CommandParamsEntityMove* new_params = &command->data.entity_move.new_params;
+
+    old_params->board_pos = block->board_pos;
+    new_params->board_pos = new_pos;
+
+    old_params->world_target = block->world_target;
+    world_from_board(&new_params->world_target, new_pos.x, new_pos.y, block->world_target.z);
+
+    old_params->world_pos = block->world_pos;
+    new_params->world_pos = new_params->world_target;
+
+    old_params->entity_state = block->entity_state;
+    new_params->entity_state = EntityState_Moving;
+
+    command_execute(command, CommandExecute_Play);
+  }
 
   return true;
 }
@@ -163,10 +181,29 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
     }
   }
 
-  vec2i_set(&hero->board_pos, new_pos.x, new_pos.y);
-  world_from_board(&hero->world_target, hero->board_pos.x, hero->board_pos.y, hero->world_target.z);
+  {
+    Command* command = command_add(level);
 
-  hero->entity_state = EntityState_Moving;
+    command->type = CommandType_EntityMove;
+    command->entity = hero;
+
+    CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
+    CommandParamsEntityMove* new_params = &command->data.entity_move.new_params;
+
+    old_params->board_pos = hero->board_pos;
+    new_params->board_pos = new_pos;
+
+    old_params->world_target = hero->world_target;
+    world_from_board(&new_params->world_target, new_pos.x, new_pos.y, hero->world_target.z);
+
+    old_params->world_pos = hero->world_pos;
+    new_params->world_pos = new_params->world_target;
+
+    old_params->entity_state = hero->entity_state;
+    new_params->entity_state = EntityState_Moving;
+
+    command_execute(command, CommandExecute_Play);
+  }
 
   return true;
 }

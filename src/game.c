@@ -305,6 +305,33 @@ void game_step(GameState* game_state) {
   Direction direction;
   bool      moved = false;
 
+#if 0
+  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_printf(text_params, "command-index-next-free %d", level->command_index_next_free);
+  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_printf(text_params, "command-index-furthest-future %d", level->command_index_furthest_future);
+  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_printf(text_params, "%p", level->command_buffer);
+  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_printf(text_params, "cb size %d used %d", level->command_buffer->size, level->command_buffer->used);
+  text_params->pos = vec2(0.0f, text_params->pos.y - TILE_HEIGHT);
+  text_printf(text_params, "cb prev %p next %p", level->command_buffer->prev, level->command_buffer->next);
+#endif
+
+  if (key_pressed(game_state->input, Key_Z)) {
+    command_undo(level);
+  }
+
+  if (key_pressed(game_state->input, Key_X)) {
+    command_redo(level);
+  }
+
+#if 0
+  if (key_pressed(game_state->input, Key_D)) {
+    command_debug(level);
+  }
+#endif
+
   if (hero->entity_state == EntityState_Standing) {
     if (key_pressed(game_state->input, Key_Up)) {
       direction = Direction_North;
@@ -320,7 +347,9 @@ void game_step(GameState* game_state) {
       moved = true;
     }
     if (moved) {
+      command_transaction_begin(level);
       try_moving_hero(level, hero, direction);
+      command_transaction_end(level);
     }
   }
 
@@ -335,36 +364,36 @@ void game_step(GameState* game_state) {
     // axis aligned distance, not the best but it will do for this simple game
     f32 distance_to_move = e->world_max_speed * time_delta * TILE_WIDTH;
 
-    if (e->entity_state == EntityState_Moving) {
-      if (e->world_pos.x < e->world_target.x) {
-        e->world_pos.x += distance_to_move;
-        if (e->world_pos.x >= e->world_target.x) {
-          e->world_pos.x = e->world_target.x;
-        }
-      }
-      if (e->world_pos.y < e->world_target.y) {
-        e->world_pos.y += distance_to_move;
-        if (e->world_pos.y >= e->world_target.y) {
-          e->world_pos.y = e->world_target.y;
-        }
-      }
-      if (e->world_pos.x > e->world_target.x) {
-        e->world_pos.x -= distance_to_move;
-        if (e->world_pos.x <= e->world_target.x) {
-          e->world_pos.x = e->world_target.x;
-        }
-      }
-      if (e->world_pos.y > e->world_target.y) {
-        e->world_pos.y -= distance_to_move;
-        if (e->world_pos.y <= e->world_target.y) {
-          e->world_pos.y = e->world_target.y;
-        }
-      }
-
-      if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
-        e->entity_state = EntityState_Standing;
+    // if (e->entity_state == EntityState_Moving) {
+    if (e->world_pos.x < e->world_target.x) {
+      e->world_pos.x += distance_to_move;
+      if (e->world_pos.x >= e->world_target.x) {
+        e->world_pos.x = e->world_target.x;
       }
     }
+    if (e->world_pos.y < e->world_target.y) {
+      e->world_pos.y += distance_to_move;
+      if (e->world_pos.y >= e->world_target.y) {
+        e->world_pos.y = e->world_target.y;
+      }
+    }
+    if (e->world_pos.x > e->world_target.x) {
+      e->world_pos.x -= distance_to_move;
+      if (e->world_pos.x <= e->world_target.x) {
+        e->world_pos.x = e->world_target.x;
+      }
+    }
+    if (e->world_pos.y > e->world_target.y) {
+      e->world_pos.y -= distance_to_move;
+      if (e->world_pos.y <= e->world_target.y) {
+        e->world_pos.y = e->world_target.y;
+      }
+    }
+
+    if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
+      e->entity_state = EntityState_Standing;
+    }
+    // }
   }
 
   text_send_to_gpu(render_struct, gl);

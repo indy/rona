@@ -43,6 +43,7 @@
 #endif /* RONA_NUKLEAR */
 
 #include "colour.h"
+#include "command.h"
 #include "entity.h"
 #include "game.h"
 #include "input.h"

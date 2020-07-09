@@ -24,15 +24,15 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-  // clang-format off
+// clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 7
   #define L1_HEIGHT 7
   char layout[L1_HEIGHT][L1_WIDTH * 2] = {
     "    . . U . . ",
+    "    . B       ",
     "    . .       ",
-    "    . .       ",
-    "H . B . U . . ",
+    "H . . . U . . ",
     "    . .       ",
     "    . .       ",
     "    . . U . . "
@@ -40,9 +40,13 @@ void level1_startup(Level* level, GameState* game_state) {
   // clang-format on
 
   level_build(game_state, level, L1_WIDTH * 2, L1_HEIGHT, layout);
+  if (!command_buffer_startup(level)) {
+    RONA_ERROR("level1_startup: command_buffer_startup failed\n");
+  }
 }
 
 void level1_shutdown(Level* level) {
+  command_buffer_shutdown(level);
   level->mem.used = 0;
 }
 
