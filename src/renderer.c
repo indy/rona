@@ -15,9 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void   delete_texture(RonaGL* gl, GLuint texture_id);
-void   update_viewport(RonaGL* gl, u32 viewport_width, u32 viewport_height);
-void   bind_framebuffer(RonaGL* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
+void delete_texture(RonaGL* gl, GLuint texture_id);
+void update_viewport(RonaGL* gl, u32 viewport_width, u32 viewport_height);
+void bind_framebuffer(RonaGL* gl, GLuint framebuffer_id, u32 viewport_width, u32 viewport_height);
 
 void renderer_render(GameState* game_state) {
   RonaGL*       gl = game_state->gl;
@@ -117,7 +117,7 @@ void renderer_render(GameState* game_state) {
       // window is narrower than desired
       f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
       f32  v_pad = (v - stage_height) / 2.0f;
-      Mat4 m = mat4_ortho(0.0f, stage_width, v - v_pad, - v_pad, 10.0f, -10.0f);
+      Mat4 m = mat4_ortho(0.0f, stage_width, v - v_pad, -v_pad, 10.0f, -10.0f);
       gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
                            (GLfloat*)&(m.v));
     } else {
@@ -144,15 +144,16 @@ void renderer_render(GameState* game_state) {
     // render the stage onto another texture using the screen_shader
     // this will perform sRGB colour conversion (and any other post processing effects)
     //
-    bind_framebuffer(gl, nuklear_state.framebuffer_id, render_struct->stage_width, render_struct->stage_height);
+    bind_framebuffer(gl, nuklear_state.framebuffer_id, render_struct->stage_width,
+                     render_struct->stage_height);
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     gl->useProgram(render_struct->screen_shader.program);
 
     Mat4 m = mat4_ortho(0.0f, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
-                           (GLfloat*)&(m.v));
+    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+                         (GLfloat*)&(m.v));
 
     gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
     gl->activeTexture(GL_TEXTURE0);
@@ -161,7 +162,6 @@ void renderer_render(GameState* game_state) {
 
     gl->bindVertexArray(screen->vao);
     gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
-
 
     // render the edit ui onto the screen
 

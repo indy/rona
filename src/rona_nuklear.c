@@ -1,31 +1,31 @@
-void *nuklear_persistent_alloc(nk_handle h, void *mem, nk_size bytes) {
-  void *addr = rona_realloc(&(nuklear_state.allocator_permanent), mem, bytes);
+void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes) {
+  void* addr = rona_realloc(&(nuklear_state.allocator_permanent), mem, bytes);
 #if 0
   RONA_LOG("called persistent_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
 #endif
   return addr;
 }
 
-void nuklear_persistent_free(nk_handle h, void *mem) {
+void nuklear_persistent_free(nk_handle h, void* mem) {
 #if 1
   RONA_LOG("called persistent_free %p\n", mem);
 #endif
   rona_free(&(nuklear_state.allocator_permanent), mem);
 }
 
-void *nuklear_transient_alloc(nk_handle h, void *mem, nk_size bytes) {
+void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes) {
   if (!nuklear_state.transient_allocation_calls_expected) {
     RONA_ERROR("transient_free called after expected scope\n");
     return NULL;
   }
-  void *addr = rona_realloc(&(nuklear_state.allocator_transient), mem, bytes);
+  void* addr = rona_realloc(&(nuklear_state.allocator_transient), mem, bytes);
 #if 0
   RONA_LOG("called transient_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
 #endif
   return addr;
 }
 
-void nuklear_transient_free(nk_handle h, void *mem) {
+void nuklear_transient_free(nk_handle h, void* mem) {
   if (!nuklear_state.transient_allocation_calls_expected) {
     RONA_ERROR("transient_free called after expected scope\n");
     return;
@@ -35,7 +35,6 @@ void nuklear_transient_free(nk_handle h, void *mem) {
 #endif
   rona_free(&(nuklear_state.allocator_transient), mem);
 }
-
 
 #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
 
@@ -440,7 +439,7 @@ static void tex_demo(struct nk_context* ctx, GLuint stage_texture) {
     nk_layout_row_begin(ctx, NK_DYNAMIC, 300, 1);
     {
       // nk_layout_row_push(ctx, 300);
-      nk_layout_row_push(ctx, STAGE_WIDTH/STAGE_HEIGHT);
+      nk_layout_row_push(ctx, STAGE_WIDTH / STAGE_HEIGHT);
 
       struct nk_image stage_image = nk_image_id(stage_texture);
       // stage_image.w = STAGE_WIDTH;
@@ -449,7 +448,6 @@ static void tex_demo(struct nk_context* ctx, GLuint stage_texture) {
       nk_image(ctx, stage_image);
     }
     nk_layout_row_end(ctx);
-
   }
   nk_end(ctx);
 }
@@ -486,7 +484,18 @@ static struct nk_image icon_load(RonaGL* gl, const char* filename) {
 }
 #endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES  */
 
-static void device_init(RonaGL* gl, NuklearState* dev) {
+static void device_upload_atlas(RonaGL* gl, NuklearState* dev, const void* image, int width,
+                                int height) {
+  gl->genTextures(1, &dev->font_tex);
+  gl->bindTexture(GL_TEXTURE_2D, dev->font_tex);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, image);
+}
+
+static void nuklear_startup(NuklearState* nuklear_state, RonaGL* gl, BumpAllocator* permanent,
+                            BumpAllocator* transient) {
   GLint                status;
   static const GLchar* vertex_shader =
       NK_SHADER_VERSION "uniform mat4 ProjMtx;\n"
@@ -510,68 +519,199 @@ static void device_init(RonaGL* gl, NuklearState* dev) {
                         "   Out_Color = Frag_Color * texture(Texture, Frag_UV.st);\n"
                         "}\n";
 
-  nk_buffer_init_default(&dev->cmds);
-  dev->prog = gl->createProgram();
-  dev->vert_shdr = gl->createShader(GL_VERTEX_SHADER);
-  dev->frag_shdr = gl->createShader(GL_FRAGMENT_SHADER);
-  gl->shaderSource(dev->vert_shdr, 1, &vertex_shader, 0);
-  gl->shaderSource(dev->frag_shdr, 1, &fragment_shader, 0);
-  gl->compileShader(dev->vert_shdr);
-  gl->compileShader(dev->frag_shdr);
-  gl->getShaderiv(dev->vert_shdr, GL_COMPILE_STATUS, &status);
-  assert(status == GL_TRUE);
-  gl->getShaderiv(dev->frag_shdr, GL_COMPILE_STATUS, &status);
-  assert(status == GL_TRUE);
-  gl->attachShader(dev->prog, dev->vert_shdr);
-  gl->attachShader(dev->prog, dev->frag_shdr);
-  gl->linkProgram(dev->prog);
-  gl->getProgramiv(dev->prog, GL_LINK_STATUS, &status);
-  assert(status == GL_TRUE);
+  // memory management code
+  //
 
-  dev->uniform_tex = gl->getUniformLocation(dev->prog, "Texture");
-  dev->uniform_proj = gl->getUniformLocation(dev->prog, "ProjMtx");
-  dev->attrib_pos = gl->getAttribLocation(dev->prog, "Position");
-  dev->attrib_uv = gl->getAttribLocation(dev->prog, "TexCoord");
-  dev->attrib_col = gl->getAttribLocation(dev->prog, "Color");
+  // allocate some memory for nuklear
+  nuklear_state->nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
+  void* nuklear_memory = (void*)BUMP_ALLOC(permanent, nuklear_state->nuklear_memory_size);
+
+  // align memory with nk_draw_command
+  const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
+  u64           align_mask = (cmd_align << 1) - 1;
+  void* aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
+
+  nuklear_state->nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
+  nuklear_state->nuklear_memory = aligned_nuklear_memory;
+
+  // allocate memory for nuklear atlas
+  usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR_ATLAS);
+  void* nuklear_atlas_memory = (void*)BUMP_ALLOC(permanent, nuklear_atlas_memory_size);
+
+  nuklear_state->bump_permanent.size = nuklear_atlas_memory_size;
+  nuklear_state->bump_permanent.base = nuklear_atlas_memory;
+  nuklear_state->bump_permanent.used = 0;
+
+  grouped_allocator_reset(&(nuklear_state->allocator_permanent), &(nuklear_state->bump_permanent));
+
+  // allocating from transient memory as we're only expecting transient allocations to occur during
+  // this function
+  usize nuklear_atlas_transient_memory_size = megabytes(6);
+  void* nuklear_atlas_transient_memory =
+      (void*)BUMP_ALLOC(transient, nuklear_atlas_transient_memory_size);
+
+  nuklear_state->bump_transient.size = nuklear_atlas_transient_memory_size;
+  nuklear_state->bump_transient.base = nuklear_atlas_transient_memory;
+  nuklear_state->bump_transient.used = 0;
+
+  grouped_allocator_reset(&(nuklear_state->allocator_transient), &(nuklear_state->bump_transient));
+
+  nuklear_state->persistent.alloc = &nuklear_persistent_alloc;
+  nuklear_state->persistent.free = &nuklear_persistent_free;
+
+  nuklear_state->transient.alloc = &nuklear_transient_alloc;
+  nuklear_state->transient.free = &nuklear_transient_free;
 
   {
-    /* buffer setup */
-    GLsizei vs = sizeof(struct nk_glfw_vertex);
-    size_t  vp = offsetof(struct nk_glfw_vertex, position);
-    size_t  vt = offsetof(struct nk_glfw_vertex, uv);
-    size_t  vc = offsetof(struct nk_glfw_vertex, col);
+    // nk_buffer_init_default(&nuklear_state->cmds);
+    nk_buffer_init(&nuklear_state->cmds, &(nuklear_state->persistent),
+                   NK_BUFFER_DEFAULT_INITIAL_SIZE);
+    nuklear_state->prog = gl->createProgram();
+    nuklear_state->vert_shdr = gl->createShader(GL_VERTEX_SHADER);
+    nuklear_state->frag_shdr = gl->createShader(GL_FRAGMENT_SHADER);
+    gl->shaderSource(nuklear_state->vert_shdr, 1, &vertex_shader, 0);
+    gl->shaderSource(nuklear_state->frag_shdr, 1, &fragment_shader, 0);
+    gl->compileShader(nuklear_state->vert_shdr);
+    gl->compileShader(nuklear_state->frag_shdr);
+    gl->getShaderiv(nuklear_state->vert_shdr, GL_COMPILE_STATUS, &status);
+    assert(status == GL_TRUE);
+    gl->getShaderiv(nuklear_state->frag_shdr, GL_COMPILE_STATUS, &status);
+    assert(status == GL_TRUE);
+    gl->attachShader(nuklear_state->prog, nuklear_state->vert_shdr);
+    gl->attachShader(nuklear_state->prog, nuklear_state->frag_shdr);
+    gl->linkProgram(nuklear_state->prog);
+    gl->getProgramiv(nuklear_state->prog, GL_LINK_STATUS, &status);
+    assert(status == GL_TRUE);
 
-    gl->genBuffers(1, &dev->vbo);
-    gl->genBuffers(1, &dev->ebo);
-    gl->genVertexArrays(1, &dev->vao);
+    nuklear_state->uniform_tex = gl->getUniformLocation(nuklear_state->prog, "Texture");
+    nuklear_state->uniform_proj = gl->getUniformLocation(nuklear_state->prog, "ProjMtx");
+    nuklear_state->attrib_pos = gl->getAttribLocation(nuklear_state->prog, "Position");
+    nuklear_state->attrib_uv = gl->getAttribLocation(nuklear_state->prog, "TexCoord");
+    nuklear_state->attrib_col = gl->getAttribLocation(nuklear_state->prog, "Color");
 
-    gl->bindVertexArray(dev->vao);
-    gl->bindBuffer(GL_ARRAY_BUFFER, dev->vbo);
-    gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, dev->ebo);
+    {
+      /* buffer setup */
+      GLsizei vs = sizeof(struct nk_glfw_vertex);
+      size_t  vp = offsetof(struct nk_glfw_vertex, position);
+      size_t  vt = offsetof(struct nk_glfw_vertex, uv);
+      size_t  vc = offsetof(struct nk_glfw_vertex, col);
 
-    gl->enableVertexAttribArray((GLuint)dev->attrib_pos);
-    gl->enableVertexAttribArray((GLuint)dev->attrib_uv);
-    gl->enableVertexAttribArray((GLuint)dev->attrib_col);
+      gl->genBuffers(1, &nuklear_state->vbo);
+      gl->genBuffers(1, &nuklear_state->ebo);
+      gl->genVertexArrays(1, &nuklear_state->vao);
 
-    gl->vertexAttribPointer((GLuint)dev->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
-    gl->vertexAttribPointer((GLuint)dev->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
-    gl->vertexAttribPointer((GLuint)dev->attrib_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs, (void*)vc);
+      gl->bindVertexArray(nuklear_state->vao);
+      gl->bindBuffer(GL_ARRAY_BUFFER, nuklear_state->vbo);
+      gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, nuklear_state->ebo);
+
+      gl->enableVertexAttribArray((GLuint)nuklear_state->attrib_pos);
+      gl->enableVertexAttribArray((GLuint)nuklear_state->attrib_uv);
+      gl->enableVertexAttribArray((GLuint)nuklear_state->attrib_col);
+
+      gl->vertexAttribPointer((GLuint)nuklear_state->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs,
+                              (void*)vp);
+      gl->vertexAttribPointer((GLuint)nuklear_state->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs,
+                              (void*)vt);
+      gl->vertexAttribPointer((GLuint)nuklear_state->attrib_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs,
+                              (void*)vc);
+    }
+
+    gl->bindTexture(GL_TEXTURE_2D, 0);
+    gl->bindBuffer(GL_ARRAY_BUFFER, 0);
+    gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl->bindVertexArray(0);
   }
 
-  gl->bindTexture(GL_TEXTURE_2D, 0);
-  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  gl->bindVertexArray(0);
-}
+  nuklear_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
+  nuklear_state->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
+  nuklear_state->framebuffer_id = create_framebuffer(gl);
+  attach_textures_to_framebuffer(gl, nuklear_state->framebuffer_id,
+                                 nuklear_state->stage_in_nuklear_texture_id,
+                                 nuklear_state->depth_texture_id);
+  if (!is_framebuffer_ok(gl)) {
+    RONA_ERROR("%d, Nuklear stage Framebuffer is not ok\n", 1);
+  }
+  gl->bindFramebuffer(GL_FRAMEBUFFER, nuklear_state->framebuffer_id);
+  gl->viewport(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
 
-static void device_upload_atlas(RonaGL* gl, NuklearState* dev, const void* image, int width,
-                                int height) {
-  gl->genTextures(1, &dev->font_tex);
-  gl->bindTexture(GL_TEXTURE_2D, dev->font_tex);
-  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, image);
+  // all transient memory operations should happen in-between setting this variable from true to
+  // false
+  nuklear_state->transient_allocation_calls_expected = true;
+
+  struct nk_font*       font_to_use;
+  const void*           image;
+  int                   w, h;
+  struct nk_font_config cfg = nk_font_config(0);
+  cfg.oversample_h = 3;
+  cfg.oversample_v = 2;
+  /* Loading one font with different heights is only required if you want higher
+   * quality text otherwise you can just set the font height directly
+   * e.g.: device.ctx->style.font.height = 20. */
+
+  struct nk_font_atlas* atlas = &(nuklear_state->atlas);
+
+  // call nk_font_atlas_init_custom instead
+  nk_font_atlas_init_custom(atlas, &(nuklear_state->persistent), &(nuklear_state->transient));
+  nk_font_atlas_begin(atlas);
+
+#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
+  const char* font_ttf = "assets/fonts/Roboto-Regular.ttf";
+  nuklear_media.font_14 = nk_font_atlas_add_from_file(atlas, font_ttf, 14.0f, &cfg);
+  nuklear_media.font_18 = nk_font_atlas_add_from_file(atlas, font_ttf, 18.0f, &cfg);
+  nuklear_media.font_20 = nk_font_atlas_add_from_file(atlas, font_ttf, 20.0f, &cfg);
+  nuklear_media.font_22 = nk_font_atlas_add_from_file(atlas, font_ttf, 22.0f, &cfg);
+  font_to_use = nuklear_media.font_14;
+#else
+  nuklear_media.default_font = nk_font_atlas_add_default(atlas, 14.0f, &cfg);
+  font_to_use = nuklear_media.default_font;
+#endif /*  #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES */
+
+  image = nk_font_atlas_bake(atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
+  device_upload_atlas(gl, nuklear_state, image, w, h);
+  nk_font_atlas_end(atlas, nk_handle_id((int)nuklear_state->font_tex), &nuklear_state->null);
+
+  // note: after nk_font_atlas_end is called I'm assuming there won't be any more transient memory
+  // allocations
+  nuklear_state->transient_allocation_calls_expected = false;
+
+  nk_init_fixed(&nuklear_state->ctx, nuklear_state->nuklear_memory,
+                (nk_size)nuklear_state->nuklear_memory_size, &font_to_use->handle);
+
+#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
+  /* icons */
+  gl->enable(GL_TEXTURE_2D);
+  nuklear_media.unchecked = icon_load(gl, "assets/icon/unchecked.png");
+  nuklear_media.checked = icon_load(gl, "assets/icon/checked.png");
+  nuklear_media.rocket = icon_load(gl, "assets/icon/rocket.png");
+  nuklear_media.cloud = icon_load(gl, "assets/icon/cloud.png");
+  nuklear_media.pen = icon_load(gl, "assets/icon/pen.png");
+  nuklear_media.play = icon_load(gl, "assets/icon/play.png");
+  nuklear_media.pause = icon_load(gl, "assets/icon/pause.png");
+  nuklear_media.stop = icon_load(gl, "assets/icon/stop.png");
+  nuklear_media.next = icon_load(gl, "assets/icon/next.png");
+  nuklear_media.prev = icon_load(gl, "assets/icon/prev.png");
+  nuklear_media.tools = icon_load(gl, "assets/icon/tools.png");
+  nuklear_media.dir = icon_load(gl, "assets/icon/directory.png");
+  nuklear_media.copy = icon_load(gl, "assets/icon/copy.png");
+  nuklear_media.convert = icon_load(gl, "assets/icon/export.png");
+  nuklear_media.del = icon_load(gl, "assets/icon/delete.png");
+  nuklear_media.edit = icon_load(gl, "assets/icon/edit.png");
+  nuklear_media.menu[0] = icon_load(gl, "assets/icon/home.png");
+  nuklear_media.menu[1] = icon_load(gl, "assets/icon/phone.png");
+  nuklear_media.menu[2] = icon_load(gl, "assets/icon/plane.png");
+  nuklear_media.menu[3] = icon_load(gl, "assets/icon/wifi.png");
+  nuklear_media.menu[4] = icon_load(gl, "assets/icon/settings.png");
+  nuklear_media.menu[5] = icon_load(gl, "assets/icon/volume.png");
+
+  {
+    int i;
+    for (i = 0; i < 9; ++i) {
+      char buffer[256];
+      sprintf(buffer, "assets/images/image%d.png", (i + 1));
+      nuklear_media.images[i] = icon_load(gl, buffer);
+    }
+  }
+#endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
 }
 
 static void device_shutdown(RonaGL* gl, NuklearState* dev) {

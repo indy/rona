@@ -23,41 +23,7 @@
 
 #include "rona.h"
 
-#include "tileset.h"
-
-#ifdef RONA_NUKLEAR
-
-#define NK_ASSERT RONA_ASSERT
-
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#ifndef RONA_NUKLEAR_DEMO_WITH_IMAGES
-#define NK_INCLUDE_DEFAULT_FONT
-#endif /* RONA_NUKLEAR_DEMO_WITH_IMAGES */
-#define NK_IMPLEMENTATION
-
-#include "nuklear.h"
-#include "rona_nuklear.h"
-
-#endif /* RONA_NUKLEAR */
-
-#include "colour.h"
-#include "command.h"
-#include "entity.h"
-#include "game.h"
-#include "input.h"
-#include "level.h"
-#include "level1.h"
 #include "memory.h"
-#include "mesh.h"
-#include "mesh_screen.h"
-#include "renderer.h"
-#include "rona_math.h"
-
-static GameState* g_game_state = 0;
 
 // #define SYS_MALLOC
 // #define DEBUG_MALLOC
@@ -65,6 +31,8 @@ static GameState* g_game_state = 0;
 #ifdef SYS_MALLOC
 #include "stdlib.h"
 #endif
+
+static GameState* g_game_state = 0;
 
 void* stb_rona_permanent_malloc(usize bytes) {
   void* addr;
@@ -148,6 +116,39 @@ void stb_rona_transient_free(void* mem) {
 #endif
 }
 
+#ifdef RONA_NUKLEAR
+
+#define STBTT_malloc(x, u) stb_rona_permanent_malloc(x)
+#define STBTT_free(x, u) stb_rona_permanent_free(x)
+
+#define NK_ASSERT RONA_ASSERT
+
+#define NK_INCLUDE_FIXED_TYPES
+#define NK_INCLUDE_STANDARD_IO
+#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
+#define NK_INCLUDE_FONT_BAKING
+#define NK_INCLUDE_DEFAULT_FONT
+#define NK_IMPLEMENTATION
+
+#include "nuklear.h"
+#include "rona_nuklear.h"
+
+#endif /* RONA_NUKLEAR */
+
+#include "tileset.h"
+
+#include "colour.h"
+#include "command.h"
+#include "entity.h"
+#include "game.h"
+#include "input.h"
+#include "level.h"
+#include "level1.h"
+#include "mesh.h"
+#include "mesh_screen.h"
+#include "renderer.h"
+#include "rona_math.h"
+
 #define RONA_PERMANENT_MALLOC(X) stb_rona_permanent_malloc(X)
 #define RONA_PERMANENT_REALLOC(X, Y) stb_rona_permanent_realloc(X, Y)
 #define RONA_PERMANENT_FREE(X) stb_rona_permanent_free(X)
@@ -167,7 +168,7 @@ void stb_rona_transient_free(void* mem) {
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 
-#include "tileset.c"
+#include "memory.c"
 
 #ifdef RONA_NUKLEAR
 #include "rona_nuklear.c"
@@ -179,8 +180,8 @@ void stb_rona_transient_free(void* mem) {
 #include "input.c"
 #include "level.c"
 #include "level1.c"
-#include "memory.c"
 #include "mesh.c"
 #include "mesh_screen.c"
 #include "renderer.c"
 #include "rona_math.c"
+#include "tileset.c"

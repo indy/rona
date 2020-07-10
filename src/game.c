@@ -27,145 +27,14 @@ void game_startup(GameState* game_state) {
   game_state->level->mem.size = level_memory_arena_size - sizeof(Level);
   game_state->level->mem.used = 0;
 
-  level1_startup(game_state->level, game_state);
+  RonaGL* gl = game_state->gl;
 
-  renderer_startup(game_state->gl, &(game_state->render_struct), &(game_state->arena_permanent));
+  level1_startup(game_state->level, game_state);
+  renderer_startup(gl, &(game_state->render_struct), &(game_state->arena_permanent));
 
 #ifdef RONA_NUKLEAR
-  RonaGL* gl = game_state->gl;
-  device_init(gl, &nuklear_state);
-
-  nuklear_state.stage_in_nuklear_texture_id = create_texture(game_state->gl, STAGE_WIDTH, STAGE_HEIGHT);
-  nuklear_state.depth_texture_id = create_depth_texture(game_state->gl, STAGE_WIDTH, STAGE_HEIGHT);
-  nuklear_state.framebuffer_id = create_framebuffer(game_state->gl);
-  attach_textures_to_framebuffer(game_state->gl,
-                                 nuklear_state.framebuffer_id,
-                                 nuklear_state.stage_in_nuklear_texture_id,
-                                 nuklear_state.depth_texture_id);
-  if (!is_framebuffer_ok(game_state->gl)) {
-    RONA_ERROR("%d, Nuklear stage Framebuffer is not ok\n", 1);
-  }
-  gl->bindFramebuffer(GL_FRAMEBUFFER, nuklear_state.framebuffer_id);
-  gl->viewport(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
-
-
-
-  // allocate some memory for nuklear
-  nuklear_state.nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
-  void *nuklear_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_state.nuklear_memory_size);
-
-  // align memory with nk_draw_command
-  const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
-  u64           align_mask = (cmd_align << 1) - 1;
-  void* aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
-
-  nuklear_state.nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
-  nuklear_state.nuklear_memory = aligned_nuklear_memory;
-
-  // allocate memory for nuklear atlas
-  usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR_ATLAS);
-  void *nuklear_atlas_memory = (void*)BUMP_ALLOC(&game_state->arena_permanent, nuklear_atlas_memory_size);
-
-  nuklear_state.bump_permanent.size = nuklear_atlas_memory_size;
-  nuklear_state.bump_permanent.base = nuklear_atlas_memory;
-  nuklear_state.bump_permanent.used = 0;
-
-  grouped_allocator_reset(&(nuklear_state.allocator_permanent), &(nuklear_state.bump_permanent));
-
-  // allocating from transient memory as we're only expecting transient allocations to occur during this function
-  usize nuklear_atlas_transient_memory_size = megabytes(6);
-  void *nuklear_atlas_transient_memory = (void*)BUMP_ALLOC(&game_state->arena_transient, nuklear_atlas_transient_memory_size);
-
-  nuklear_state.bump_transient.size = nuklear_atlas_transient_memory_size;
-  nuklear_state.bump_transient.base = nuklear_atlas_transient_memory;
-  nuklear_state.bump_transient.used = 0;
-
-  grouped_allocator_reset(&(nuklear_state.allocator_transient), &(nuklear_state.bump_transient));
-
-  // all transient memory operations should happen in-between setting this variable from true to false
-  nuklear_state.transient_allocation_calls_expected = true;
-
-  struct nk_font*       font_to_use;
-  const void*           image;
-  int                   w, h;
-  struct nk_font_config cfg = nk_font_config(0);
-  cfg.oversample_h = 3;
-  cfg.oversample_v = 2;
-  /* Loading one font with different heights is only required if you want higher
-   * quality text otherwise you can just set the font height directly
-   * e.g.: device.ctx->style.font.height = 20. */
-
-  struct nk_font_atlas* atlas = &(nuklear_state.atlas);
-
-  nuklear_state.persistent.alloc = &nuklear_persistent_alloc;
-  nuklear_state.persistent.free = &nuklear_persistent_free;
-
-  nuklear_state.transient.alloc = &nuklear_transient_alloc;
-  nuklear_state.transient.free = &nuklear_transient_free;
-
-  // call nk_font_atlas_init_custom instead
-  nk_font_atlas_init_custom(atlas, &(nuklear_state.persistent), &(nuklear_state.transient));
-  nk_font_atlas_begin(atlas);
-
-#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-  const char* font_ttf = "assets/fonts/Roboto-Regular.ttf";
-  nuklear_media.font_14 = nk_font_atlas_add_from_file(atlas, font_ttf, 14.0f, &cfg);
-  nuklear_media.font_18 = nk_font_atlas_add_from_file(atlas, font_ttf, 18.0f, &cfg);
-  nuklear_media.font_20 = nk_font_atlas_add_from_file(atlas, font_ttf, 20.0f, &cfg);
-  nuklear_media.font_22 = nk_font_atlas_add_from_file(atlas, font_ttf, 22.0f, &cfg);
-  font_to_use = nuklear_media.font_14;
-#else
-  nuklear_media.default_font = nk_font_atlas_add_default(atlas, 14.0f, &cfg);
-  font_to_use = nuklear_media.default_font;
-#endif /*  #ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES */
-
-  image = nk_font_atlas_bake(atlas, &w, &h, NK_FONT_ATLAS_RGBA32);
-  device_upload_atlas(gl, &nuklear_state, image, w, h);
-  nk_font_atlas_end(atlas, nk_handle_id((int)nuklear_state.font_tex), &nuklear_state.null);
-
-  // note: after nk_font_atlas_end is called I'm assuming there won't be any more transient memory allocations
-  nuklear_state.transient_allocation_calls_expected = false;
-
-
-  nk_init_fixed(&nuklear_state.ctx, nuklear_state.nuklear_memory, (nk_size)nuklear_state.nuklear_memory_size,
-                &font_to_use->handle);
-
-
-#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-  /* icons */
-  gl->enable(GL_TEXTURE_2D);
-  nuklear_media.unchecked = icon_load(gl, "assets/icon/unchecked.png");
-  nuklear_media.checked = icon_load(gl, "assets/icon/checked.png");
-  nuklear_media.rocket = icon_load(gl, "assets/icon/rocket.png");
-  nuklear_media.cloud = icon_load(gl, "assets/icon/cloud.png");
-  nuklear_media.pen = icon_load(gl, "assets/icon/pen.png");
-  nuklear_media.play = icon_load(gl, "assets/icon/play.png");
-  nuklear_media.pause = icon_load(gl, "assets/icon/pause.png");
-  nuklear_media.stop = icon_load(gl, "assets/icon/stop.png");
-  nuklear_media.next = icon_load(gl, "assets/icon/next.png");
-  nuklear_media.prev = icon_load(gl, "assets/icon/prev.png");
-  nuklear_media.tools = icon_load(gl, "assets/icon/tools.png");
-  nuklear_media.dir = icon_load(gl, "assets/icon/directory.png");
-  nuklear_media.copy = icon_load(gl, "assets/icon/copy.png");
-  nuklear_media.convert = icon_load(gl, "assets/icon/export.png");
-  nuklear_media.del = icon_load(gl, "assets/icon/delete.png");
-  nuklear_media.edit = icon_load(gl, "assets/icon/edit.png");
-  nuklear_media.menu[0] = icon_load(gl, "assets/icon/home.png");
-  nuklear_media.menu[1] = icon_load(gl, "assets/icon/phone.png");
-  nuklear_media.menu[2] = icon_load(gl, "assets/icon/plane.png");
-  nuklear_media.menu[3] = icon_load(gl, "assets/icon/wifi.png");
-  nuklear_media.menu[4] = icon_load(gl, "assets/icon/settings.png");
-  nuklear_media.menu[5] = icon_load(gl, "assets/icon/volume.png");
-
-  {
-    int i;
-    for (i = 0; i < 9; ++i) {
-      char buffer[256];
-      sprintf(buffer, "assets/images/image%d.png", (i + 1));
-      nuklear_media.images[i] = icon_load(gl, buffer);
-    }
-  }
-#endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
+  nuklear_startup(&nuklear_state, gl, &(game_state->arena_permanent),
+                  &(game_state->arena_transient));
 #endif /*  RONA_NUKLEAR  */
 }
 
@@ -337,7 +206,6 @@ void game_step(GameState* game_state) {
     text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
     text_printf(text_params, "Input Ignored\n");
   }
-
 
   if (key_down(game_state->input, Key_Escape) || key_down(game_state->input, Key_Q)) {
     game_state->quit_game = true;

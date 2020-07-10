@@ -56,10 +56,10 @@ typedef struct {
   struct nk_allocator persistent; // todo: can't these nk_allocators just be local variables?
   struct nk_allocator transient;
 
-  BumpAllocator bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
+  BumpAllocator    bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
   GroupedAllocator allocator_permanent;
 
-  BumpAllocator bump_transient; // reserves transient memory, so should be used with caution
+  BumpAllocator    bump_transient; // reserves transient memory, so should be used with caution
   GroupedAllocator allocator_transient;
 
   bool transient_allocation_calls_expected;
@@ -87,10 +87,9 @@ typedef struct {
 static NuklearState CR_STATE nuklear_state;
 static NuklearMedia CR_STATE nuklear_media;
 
-void *nuklear_persistent_alloc(nk_handle h, void *mem, nk_size bytes);
-void nuklear_persistent_free(nk_handle h, void *mem);
-void *nuklear_transient_alloc(nk_handle h, void *mem, nk_size bytes);
-void nuklear_transient_free(nk_handle h, void *mem);
-
+void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes);
+void  nuklear_persistent_free(nk_handle h, void* mem);
+void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes);
+void  nuklear_transient_free(nk_handle h, void* mem);
 
 #endif /* RONA_NUKLEAR */

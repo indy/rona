@@ -23,8 +23,8 @@
 // define RONA_NUKLEAR to compile in nuklear code
 // define RONA_NUKLEAR_DEMO_WITH_IMAGES to compile nuklear demo that involves loading lots of images
 
-// #define RONA_NUKLEAR
-// #define RONA_NUKLEAR_DEMO_WITH_IMAGES
+#define RONA_NUKLEAR
+#define RONA_NUKLEAR_DEMO_WITH_IMAGES
 
 // Memory allocation sizes
 //

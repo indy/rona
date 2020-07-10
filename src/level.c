@@ -133,7 +133,6 @@ bool try_moving_block(Level* level, Entity* block, Direction direction) {
   return true;
 }
 
-
 bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
