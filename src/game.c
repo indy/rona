@@ -32,16 +32,16 @@ void game_startup(GameState* game_state) {
   level1_startup(game_state->level, game_state);
   renderer_startup(gl, &(game_state->render_struct), &(game_state->arena_permanent));
 
-#ifdef RONA_NUKLEAR
-  nuklear_startup(&nuklear_state, gl, &(game_state->arena_permanent),
-                  &(game_state->arena_transient));
-#endif /*  RONA_NUKLEAR  */
+#ifdef RONA_EDITOR
+  BumpAllocator* permanent = &(game_state->arena_permanent);
+  BumpAllocator* transient = &(game_state->arena_transient);
+  editor_startup(gl, &editor_state, permanent, transient);
+#endif /*  RONA_EDITOR  */
 }
 
 void game_shutdown(GameState* game_state) {
-#ifdef RONA_NUKLEAR
-  nk_free(&nuklear_state.ctx);
-  device_shutdown(game_state->gl, &nuklear_state);
+#ifdef RONA_EDITOR
+  editor_shutdown(game_state->gl, &editor_state);
 #endif
 
   level1_shutdown(game_state->level);
@@ -108,7 +108,9 @@ void game_lib_load(GameState* game_state) {
   RenderStruct*  render_struct = &(game_state->render_struct);
 
   renderer_lib_load(gl, bump_transient, render_struct);
-
+#ifdef RONA_EDITOR
+  editor_lib_load(gl, &editor_state, &(render_struct->shader_editor));
+#endif
   stage_from_window_calc(game_state);
 
   Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -136,12 +138,18 @@ void game_lib_load(GameState* game_state) {
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
+  RenderStruct*  render_struct = &(game_state->render_struct);
+
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
   mesh_lib_unload(game_state->mesh_hero, game_state->gl);
   mesh_lib_unload(game_state->mesh_block, game_state->gl);
   mesh_lib_unload(game_state->mesh_pit, game_state->gl);
-  renderer_lib_unload(game_state->gl);
+
+#ifdef RONA_EDITOR
+  editor_lib_unload(game_state->gl, &editor_state);
+#endif
+  renderer_lib_unload(game_state->gl, render_struct);
 }
 
 Entity* get_hero(Level* level) {
@@ -194,9 +202,9 @@ void game_step(GameState* game_state) {
     game_state->mode = game_state->mode == GameMode_Edit ? GameMode_Play : GameMode_Edit;
   }
 
-#ifdef RONA_NUKLEAR
+#ifdef RONA_EDITOR
   if (game_state->mode == GameMode_Edit) {
-    struct nk_context* ctx = &nuklear_state.ctx;
+    struct nk_context* ctx = &editor_state.ctx;
     nk_input_begin(ctx);
     int x = (int)game_state->input->mouse_pos.x;
     int y = (int)game_state->input->mouse_pos.y;

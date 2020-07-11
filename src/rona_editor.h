@@ -1,4 +1,19 @@
-#ifdef RONA_NUKLEAR
+// Copyright (C) 2020 Inderjit Gill <email@indy.io>
+
+// This file is part of Rona
+
+// Rona is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Rona is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #define MAX_VERTEX_MEMORY 512 * 1024
 #define MAX_ELEMENT_MEMORY 128 * 1024
@@ -44,23 +59,16 @@ typedef struct {
 
   struct nk_buffer            cmds;
   struct nk_draw_null_texture null;
-  GLuint                      vbo, vao, ebo;
-  GLuint                      prog;
-  GLuint                      vert_shdr;
-  GLuint                      frag_shdr;
-  GLint                       attrib_pos;
-  GLint                       attrib_uv;
-  GLint                       attrib_col;
-  GLint                       uniform_tex;
-  GLint                       uniform_proj;
-  GLuint                      font_tex;
-} NuklearState;
 
-static NuklearState CR_STATE nuklear_state;
+  GLuint                      vbo, vao, ebo;
+
+  GLuint                      font_tex;
+
+} EditorState;
+
+static EditorState CR_STATE editor_state;
 
 void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes);
 void  nuklear_persistent_free(nk_handle h, void* mem);
 void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes);
 void  nuklear_transient_free(nk_handle h, void* mem);
-
-#endif /* RONA_NUKLEAR */

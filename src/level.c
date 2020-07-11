@@ -74,7 +74,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction) {
   }
 
   i32 new_tile_index = new_pos.x + (new_pos.y * level->width);
-  if (level->tiles[new_tile_index].tile_type == TileType_Void) {
+  if (level->tiles[new_tile_index].type == TileType_Void) {
     return false;
   }
 
@@ -144,7 +144,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
   }
 
   i32 new_tile_index = new_pos.x + (new_pos.y * level->width);
-  if (level->tiles[new_tile_index].tile_type == TileType_Void) {
+  if (level->tiles[new_tile_index].type == TileType_Void) {
     return false;
   }
 
@@ -253,14 +253,33 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
     for (i32 i = 0; i < dbl_width; i += 2) {
       i32 tile_index = (i / 2) + (j * width);
+
+      Tile *tile = &(level->tiles[tile_index]);
+
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
         i32 tile_y = j;
 
-        level->tiles[tile_index].tile_type = TileType_Floor;
+        tile->type = TileType_Floor;
+        tile->sprite = TS_Debug4Corners;
 
-        if (plan_line[i] == 'H') { // hero
-          Entity* hero = &(level->entities[0]);
+        Entity *hero, *block, *pit;
+
+        switch(plan_line[i]) {
+        case '0': tile->type = TileType_Void; tile->sprite = TS_WallHorizontal; break;
+        case '1': tile->type = TileType_Void; tile->sprite = TS_WallVertical; break;
+        case '2': tile->type = TileType_Void; tile->sprite = TS_WallHorizontalPoint; break;
+        case '3': tile->type = TileType_Void; tile->sprite = TS_WallTLCorner; break;
+        case '4': tile->type = TileType_Void; tile->sprite = TS_WallTRCorner; break;
+        case '5': tile->type = TileType_Void; tile->sprite = TS_WallBLCorner; break;
+        case '6': tile->type = TileType_Void; tile->sprite = TS_WallBRCorner; break;
+        case '7': tile->type = TileType_Void; tile->sprite = TS_WallTeeLeft; break;
+        case '8': tile->type = TileType_Void; tile->sprite = TS_WallTeeRight; break;
+        case '9': tile->type = TileType_Void; tile->sprite = TS_WallTeeDown; break;
+        case 'a': tile->type = TileType_Void; tile->sprite = TS_WallTeeUp; break;
+        case 'b': tile->type = TileType_Void; tile->sprite = TS_WallCross; break;
+        case 'H':
+          hero = &(level->entities[0]);
 
           have_hero = true;
           hero->exists = true;
@@ -270,11 +289,11 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           hero->world_max_speed = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
           entity_colour_as_hsluv(hero, 290.0f, 90.0f, 30.0f);
-
-        } else if (plan_line[i] == 'B') { // block
+          break;
+        case 'B':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          Entity* block = &(level->entities[next_non_hero_entity_index++]);
+          block = &(level->entities[next_non_hero_entity_index++]);
 
           block->exists = true;
           block->entity_type = EntityType_Block;
@@ -283,11 +302,11 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
           entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
-
-        } else if (plan_line[i] == 'U') { // pit
+          break;
+        case 'U':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          Entity* pit = &(level->entities[next_non_hero_entity_index++]);
+          pit = &(level->entities[next_non_hero_entity_index++]);
 
           pit->exists = true;
           pit->entity_type = EntityType_Pit;
@@ -296,9 +315,12 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
           entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);
+          break;
         }
+
       } else {
-        level->tiles[tile_index].tile_type = TileType_Void;
+        tile->type = TileType_Void;
+        tile->sprite = TS_DebugBlank;
       }
     }
   }
@@ -326,9 +348,6 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-  Vec2 sprite = tileset_get_uv(tileset, TS_Debug4Corners);
-  f32  u = sprite.u;
-  f32  v = sprite.v;
   f32  ud = tileset->uv_unit.u;
   f32  vd = tileset->uv_unit.v;
 
@@ -339,7 +358,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
   //
   i32 num_floor_tiles = 0;
   for (i32 i = 0; i < level->width * level->height; i++) {
-    if (level->tiles[i].tile_type == TileType_Floor) {
+    if (level->tiles[i].sprite != TS_DebugBlank) {
       num_floor_tiles++;
     }
   }
@@ -360,7 +379,13 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
   f32 *e;
   for (i32 j = 0; j < level->height; j++) {
     for (i32 i = 0; i < level->width; i++) {
-      if (level->tiles[i + (j * level->width)].tile_type == TileType_Floor) {
+      Tile *tile = &(level->tiles[i + (j * level->width)]);
+      if (tile->sprite != TS_DebugBlank) {
+        Vec2 sprite = tileset_get_uv(tileset, tile->sprite);
+        f32  u = sprite.u;
+        f32  v = sprite.v;
+
+
         i32 e_index = tile_count * stride;
         e = &vertices[e_index];
 

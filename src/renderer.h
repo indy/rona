@@ -22,7 +22,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bu
 void renderer_shutdown(RonaGL* gl);
 
 void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct);
-void renderer_lib_unload(RonaGL* gl);
+void renderer_lib_unload(RonaGL* gl, RenderStruct* render_struct);
 
 void renderer_render(GameState* game_state);
 

@@ -16,7 +16,7 @@ EXT_SRC=ext/*.h
 GAME_SRC=src/*.c
 GAME_HEADERS=src/*.h
 
-SHADERS_OUT=./target/tile.vert.c ./target/tile.frag.c ./target/screen.vert.c ./target/screen.frag.c
+SHADERS_OUT=./target/tile.vert.c ./target/tile.frag.c ./target/screen.vert.c ./target/screen.frag.c ./target/editor.vert.c ./target/editor.frag.c
 
 # the shared library with the game code
 #
@@ -57,6 +57,10 @@ tags: $(TAGS_OUT)
 ./target/screen.vert.c: src/shaders/screen.vert
 	xxd -i $< > $@
 ./target/screen.frag.c: src/shaders/screen.frag
+	xxd -i $< > $@
+./target/editor.vert.c: src/shaders/editor.vert
+	xxd -i $< > $@
+./target/editor.frag.c: src/shaders/editor.frag
 	xxd -i $< > $@
 
 $(GUEST_OUT): $(GUEST_MAIN) $(GAME_SRC) $(EXT_SRC) $(GAME_HEADERS) Makefile $(SHADERS_OUT)

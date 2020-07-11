@@ -44,13 +44,13 @@ void renderer_render(GameState* game_state) {
   f32 stage_width = (f32)render_struct->stage_width;
   f32 stage_height = (f32)render_struct->stage_height;
 
-  // use the RenderStruct's tile_shader for all tile based entities
+  // use the RenderStruct's shader_tile for all tile based entities
   //
-  gl->useProgram(render_struct->tile_shader.program);
-  gl->uniform1i(render_struct->tile_shader.uniform_texture, 1);
+  gl->useProgram(render_struct->shader_tile.program);
+  gl->uniform1i(render_struct->shader_tile.uniform_texture, 1);
 
   Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
-  gl->uniformMatrix4fv(render_struct->tile_shader.uniform_proj_matrix, 1, false,
+  gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
   // render level's floor
@@ -59,7 +59,7 @@ void renderer_render(GameState* game_state) {
 
   Vec3 stage_from_world =
       vec3(level->offset_stage_from_world.x, level->offset_stage_from_world.y, 0.0f);
-  gl->uniform3f(render_struct->tile_shader.uniform_pos, stage_from_world.x, stage_from_world.y,
+  gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_from_world.x, stage_from_world.y,
                 2.0f);
 
   // RONA_LOG("level vao %d\n", mesh->vao);
@@ -75,7 +75,7 @@ void renderer_render(GameState* game_state) {
     }
     Mesh* mesh = entity->mesh;
     Vec3  stage_pos = vec3_add(entity->world_pos, stage_from_world);
-    gl->uniform3f(render_struct->tile_shader.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
+    gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
 
     // RONA_LOG("entity vao %d\n", mesh->vao);
     gl->bindVertexArray(mesh->vao);
@@ -87,18 +87,18 @@ void renderer_render(GameState* game_state) {
   //
   // gl->activeTexture(GL_TEXTURE2);
   // gl->bindTexture(GL_TEXTURE_2D, render_struct->font_texture_id);
-  // gl->uniform1i(render_struct->tile_shader.uniform_texture, 2);
+  // gl->uniform1i(render_struct->shader_tile.uniform_texture, 2);
 
-  gl->uniform3f(render_struct->tile_shader.uniform_pos, 0.0f, 0.0f, 0.0f);
+  gl->uniform3f(render_struct->shader_tile.uniform_pos, 0.0f, 0.0f, 0.0f);
   gl->bindVertexArray(render_struct->text_vao);
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
                    GL_UNSIGNED_INT, 0);
 
   // --------------------------------------------------------------------------------
 
-  // if RONA_NUKLEAR isn't defined just render as if GameMode_Play was selected
+  // if RONA_EDITOR isn't defined just render as if GameMode_Play was selected
 
-#ifdef RONA_NUKLEAR
+#ifdef RONA_EDITOR
   if (game_state->mode == GameMode_Play) {
 #endif
 
@@ -108,7 +108,7 @@ void renderer_render(GameState* game_state) {
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    gl->useProgram(render_struct->screen_shader.program);
+    gl->useProgram(render_struct->shader_screen.program);
 
     f32 aspect_ratio = stage_width / stage_height;
     f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
@@ -118,18 +118,18 @@ void renderer_render(GameState* game_state) {
       f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
       f32  v_pad = (v - stage_height) / 2.0f;
       Mat4 m = mat4_ortho(0.0f, stage_width, v - v_pad, -v_pad, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
                            (GLfloat*)&(m.v));
     } else {
       // window is more elongated horizontally than desired
       f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
       f32  h_pad = (h - stage_width) / 2.0f;
       Mat4 m = mat4_ortho(-h_pad, h - h_pad, stage_height, 0.0f, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
                            (GLfloat*)&(m.v));
     }
 
-    gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
+    gl->uniform1i(render_struct->shader_screen.uniform_texture, 0);
     gl->activeTexture(GL_TEXTURE0);
 
     gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
@@ -137,25 +137,25 @@ void renderer_render(GameState* game_state) {
     gl->bindVertexArray(screen->vao);
     gl->drawElements(GL_TRIANGLES, screen->num_elements, GL_UNSIGNED_INT, 0);
 
-#ifdef RONA_NUKLEAR
+#ifdef RONA_EDITOR
   } else {
     // GameMode_Edit
 
-    // render the stage onto another texture using the screen_shader
+    // render the stage onto another texture using the shader_screen
     // this will perform sRGB colour conversion (and any other post processing effects)
     //
-    bind_framebuffer(gl, nuklear_state.framebuffer_id, render_struct->stage_width,
+    bind_framebuffer(gl, editor_state.framebuffer_id, render_struct->stage_width,
                      render_struct->stage_height);
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    gl->useProgram(render_struct->screen_shader.program);
+    gl->useProgram(render_struct->shader_screen.program);
 
     Mat4 m = mat4_ortho(0.0f, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->screen_shader.uniform_proj_matrix, 1, false,
+    gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
                          (GLfloat*)&(m.v));
 
-    gl->uniform1i(render_struct->screen_shader.uniform_texture, 0);
+    gl->uniform1i(render_struct->shader_screen.uniform_texture, 0);
     gl->activeTexture(GL_TEXTURE0);
 
     gl->bindTexture(GL_TEXTURE_2D, render_struct->stage_texture_id);
@@ -169,12 +169,13 @@ void renderer_render(GameState* game_state) {
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    tiny_demo(&nuklear_state.ctx);
-    tex_demo(&nuklear_state.ctx, nuklear_state.stage_in_nuklear_texture_id);
+    tiny_demo(&editor_state.ctx);
+    tex_demo(&editor_state.ctx, editor_state.stage_in_nuklear_texture_id);
 
     int width = render_struct->window_width;
     int height = render_struct->window_height;
-    nuklear_render(gl, &nuklear_state, width, height, NK_ANTI_ALIASING_ON);
+
+    editor_render(gl, &editor_state, width, height, &(render_struct->shader_editor));
   }
 #endif
 }
@@ -189,13 +190,13 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
 #include "../target/tile.frag.c"
   SHADER_AS_STRING(transient, tileFragmentSource, tile_frag);
 
-  ShaderTile* tile_shader = &(render_struct->tile_shader);
-  tile_shader->program = create_shader_program(gl, tileVertexSource, tileFragmentSource);
-  tile_shader->uniform_texture = gl->getUniformLocation(tile_shader->program, "tilesheet");
-  tile_shader->uniform_colour_fg = gl->getUniformLocation(tile_shader->program, "colour_fg");
-  tile_shader->uniform_colour_bg = gl->getUniformLocation(tile_shader->program, "colour_bg");
-  tile_shader->uniform_proj_matrix = gl->getUniformLocation(tile_shader->program, "proj_matrix");
-  tile_shader->uniform_pos = gl->getUniformLocation(tile_shader->program, "pos");
+  ShaderTile* shader_tile = &(render_struct->shader_tile);
+  shader_tile->program = create_shader_program(gl, tileVertexSource, tileFragmentSource);
+  shader_tile->uniform_texture = gl->getUniformLocation(shader_tile->program, "tilesheet");
+  shader_tile->uniform_colour_fg = gl->getUniformLocation(shader_tile->program, "colour_fg");
+  shader_tile->uniform_colour_bg = gl->getUniformLocation(shader_tile->program, "colour_bg");
+  shader_tile->uniform_proj_matrix = gl->getUniformLocation(shader_tile->program, "proj_matrix");
+  shader_tile->uniform_pos = gl->getUniformLocation(shader_tile->program, "pos");
 
 #include "../target/screen.vert.c"
   SHADER_AS_STRING(transient, screenVertexSource, screen_vert);
@@ -203,16 +204,51 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
 #include "../target/screen.frag.c"
   SHADER_AS_STRING(transient, screenFragmentSource, screen_frag);
 
-  ShaderScreen* screen_shader = &(render_struct->screen_shader);
-  screen_shader->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
-  screen_shader->uniform_texture = gl->getUniformLocation(screen_shader->program, "screen_texture");
-  screen_shader->uniform_proj_matrix =
-      gl->getUniformLocation(screen_shader->program, "proj_matrix");
+  ShaderScreen* shader_screen = &(render_struct->shader_screen);
+  shader_screen->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
+  shader_screen->uniform_texture = gl->getUniformLocation(shader_screen->program, "screen_texture");
+  shader_screen->uniform_proj_matrix =
+      gl->getUniformLocation(shader_screen->program, "proj_matrix");
+
+  // --------------------------------------------------------------------------------
+
+#ifdef RONA_EDITOR
+
+#include "../target/editor.vert.c"
+  SHADER_AS_STRING(transient, editorVertexSource, editor_vert);
+
+#include "../target/editor.frag.c"
+  SHADER_AS_STRING(transient, editorFragmentSource, editor_frag);
+
+  ShaderEditor* shader_editor = &(render_struct->shader_editor);
+  shader_editor->prog = create_shader_program(gl, editorVertexSource, editorFragmentSource);
+
+  shader_editor->uniform_tex = gl->getUniformLocation(shader_editor->prog, "Texture");
+  shader_editor->uniform_proj = gl->getUniformLocation(shader_editor->prog, "ProjMtx");
+
+  shader_editor->attrib_pos = gl->getAttribLocation(shader_editor->prog, "Position");
+  shader_editor->attrib_uv = gl->getAttribLocation(shader_editor->prog, "TexCoord");
+  shader_editor->attrib_col = gl->getAttribLocation(shader_editor->prog, "Color");
+#endif
+  // --------------------------------------------------------------------------------
 
   gl->clearColor(bg.element[0], bg.element[1], bg.element[2], 0.0);
 }
 
-void renderer_lib_unload(RonaGL* gl) {
+void renderer_lib_unload(RonaGL* gl, RenderStruct* render_struct) {
+  // the earlier calls to deleteShader mean that deleteProgram  will also delete the shaders
+
+  ShaderTile* shader_tile = &(render_struct->shader_tile);
+  gl->deleteProgram(shader_tile->program);
+
+  ShaderScreen* shader_screen = &(render_struct->shader_screen);
+  gl->deleteProgram(shader_screen->program);
+
+#ifdef RONA_EDITOR
+  ShaderEditor* shader_editor = &(render_struct->shader_editor);
+  gl->deleteProgram(shader_editor->prog);
+#endif
+
   gl->disableVertexAttribArray(0);
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -471,6 +507,8 @@ GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* f
     RONA_ERROR("%s\n", info);
   }
 
+  // http://docs.gl/gl3/glDeleteShader
+  // If a shader object to be deleted is attached to a program object, it will be flagged for deletion
   gl->deleteShader(fragmentShader);
   gl->deleteShader(vertexShader);
 

@@ -146,3 +146,85 @@ void rona_free(GroupedAllocator* ga, void* mem) {
     ga->available_large = block;
   }
 }
+
+void* rona_permanent_malloc(usize bytes) {
+  void* addr;
+#ifdef SYS_MALLOC
+  addr = malloc(bytes);
+#else
+  addr = rona_malloc(&(g_game_state->allocator_permanent), bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called malloc %d bytes -> %p\n", bytes, addr);
+#endif
+
+  return addr;
+}
+
+void* rona_permanent_realloc(void* mem, usize bytes) {
+  void* addr;
+#ifdef SYS_MALLOC
+  addr = realloc(mem, bytes);
+#else
+  addr = rona_realloc(&(g_game_state->allocator_permanent), mem, bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called realloc %p to %d bytes -> %p\n", mem, bytes, addr);
+#endif
+
+  return addr;
+}
+
+void rona_permanent_free(void* mem) {
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called free %p\n", mem);
+#endif
+#ifdef SYS_MALLOC
+  free(mem);
+#else
+  rona_free(&(g_game_state->allocator_permanent), mem);
+#endif
+}
+
+void* rona_transient_malloc(usize bytes) {
+  void* addr;
+#ifdef SYS_MALLOC
+  addr = malloc(bytes);
+#else
+  addr = rona_malloc(&(g_game_state->allocator_transient), bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called malloc %d bytes -> %p\n", bytes, addr);
+#endif
+
+  return addr;
+}
+
+void* rona_transient_realloc(void* mem, usize bytes) {
+  void* addr;
+#ifdef SYS_MALLOC
+  addr = realloc(mem, bytes);
+#else
+  addr = rona_realloc(&(g_game_state->allocator_transient), mem, bytes);
+#endif
+
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called realloc %p to %d bytes -> %p\n", mem, bytes, addr);
+#endif
+
+  return addr;
+}
+
+void rona_transient_free(void* mem) {
+#ifdef DEBUG_MALLOC
+  RONA_LOG("called free %p\n", mem);
+#endif
+#ifdef SYS_MALLOC
+  free(mem);
+#else
+  rona_free(&(g_game_state->allocator_transient), mem);
+#endif
+}
