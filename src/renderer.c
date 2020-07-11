@@ -169,11 +169,6 @@ void renderer_render(GameState* game_state) {
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-    button_demo(&nuklear_state.ctx, &nuklear_media);
-    basic_demo(&nuklear_state.ctx, &nuklear_media);
-#endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
-
     tiny_demo(&nuklear_state.ctx);
     tex_demo(&nuklear_state.ctx, nuklear_state.stage_in_nuklear_texture_id);
 

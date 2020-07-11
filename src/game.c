@@ -40,28 +40,7 @@ void game_startup(GameState* game_state) {
 
 void game_shutdown(GameState* game_state) {
 #ifdef RONA_NUKLEAR
-
-#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-  RonaGL* gl = game_state->gl;
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.unchecked.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.checked.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.rocket.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.cloud.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.pen.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.play.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.pause.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.stop.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.next.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.prev.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.tools.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.dir.handle.id);
-  gl->deleteTextures(1, (const GLuint*)&nuklear_media.del.handle.id);
-
-  nk_font_atlas_clear(&nuklear_state.atlas);
-#endif /*  RONA_NUKLEAR_DEMO_WITH_IMAGES   */
-
   nk_free(&nuklear_state.ctx);
-
   device_shutdown(game_state->gl, &nuklear_state);
 #endif
 

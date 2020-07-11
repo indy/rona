@@ -13,41 +13,13 @@
 #endif
 
 typedef struct {
-#ifdef RONA_NUKLEAR_DEMO_WITH_IMAGES
-  struct nk_font* font_14;
-  struct nk_font* font_18;
-  struct nk_font* font_20;
-  struct nk_font* font_22;
-
-  struct nk_image unchecked;
-  struct nk_image checked;
-  struct nk_image rocket;
-  struct nk_image cloud;
-  struct nk_image pen;
-  struct nk_image play;
-  struct nk_image pause;
-  struct nk_image stop;
-  struct nk_image prev;
-  struct nk_image next;
-  struct nk_image tools;
-  struct nk_image dir;
-  struct nk_image copy;
-  struct nk_image convert;
-  struct nk_image del;
-  struct nk_image edit;
-  struct nk_image images[9];
-  struct nk_image menu[6];
-#else
-  struct nk_font* default_font;
-#endif /* RONA_NUKLEAR_DEMO_WITH_IMAGES */
-} NuklearMedia;
-
-typedef struct {
   struct nk_font_atlas atlas;
   struct nk_context    ctx;
 
   usize nuklear_memory_size;
   void* nuklear_memory;
+
+  struct nk_font* default_font;
 
   // -----------------------------------------------------------------------------
   //
@@ -85,7 +57,6 @@ typedef struct {
 } NuklearState;
 
 static NuklearState CR_STATE nuklear_state;
-static NuklearMedia CR_STATE nuklear_media;
 
 void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes);
 void  nuklear_persistent_free(nk_handle h, void* mem);
