@@ -279,6 +279,7 @@ void game_step(GameState* game_state) {
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity* e = &(level->entities[i]);
+
     if (e->exists == false) {
       break;
     }
@@ -315,7 +316,6 @@ void game_step(GameState* game_state) {
     if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
       e->entity_state = EntityState_Standing;
     }
-    // }
   }
 
   text_send_to_gpu(render_struct, gl);

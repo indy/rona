@@ -2,13 +2,13 @@
 
 precision mediump float;
 
-uniform sampler2D Texture;
+uniform sampler2D nuklear_texture;
 
-in vec2 Frag_UV;
-in vec4 Frag_Color;
+in vec2 frag_tex_coord;
+in vec4 frag_colour;
 
 out vec4 Out_Color;
 
 void main(){
-  Out_Color = Frag_Color * texture(Texture, Frag_UV.st);
+  Out_Color = frag_colour * texture(nuklear_texture, frag_tex_coord.st);
 };

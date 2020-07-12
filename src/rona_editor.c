@@ -222,13 +222,13 @@ void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor* shader
   gl->bindBuffer(GL_ARRAY_BUFFER, editor_state->vbo);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, editor_state->ebo);
 
-  gl->enableVertexAttribArray((GLuint)shader_editor->attrib_pos);
-  gl->enableVertexAttribArray((GLuint)shader_editor->attrib_uv);
-  gl->enableVertexAttribArray((GLuint)shader_editor->attrib_col);
+  gl->enableVertexAttribArray(0);
+  gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
 
-  gl->vertexAttribPointer((GLuint)shader_editor->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
-  gl->vertexAttribPointer((GLuint)shader_editor->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
-  gl->vertexAttribPointer((GLuint)shader_editor->attrib_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs,
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
+  gl->vertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs,
                           (void*)vc);
 
   gl->bindTexture(GL_TEXTURE_2D, 0);
@@ -273,9 +273,9 @@ void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,
   gl->activeTexture(GL_TEXTURE0);
 
   /* setup program */
-  gl->useProgram(shader_editor->prog);
-  gl->uniform1i(shader_editor->uniform_tex, 0);
-  gl->uniformMatrix4fv(shader_editor->uniform_proj, 1, GL_FALSE, &ortho[0][0]);
+  gl->useProgram(shader_editor->program);
+  gl->uniform1i(shader_editor->uniform_texture, 0);
+  gl->uniformMatrix4fv(shader_editor->uniform_proj_matrix, 1, GL_FALSE, &ortho[0][0]);
   {
     /* convert from command queue into draw list and draw to screen */
     const struct nk_draw_command* cmd;

@@ -543,13 +543,11 @@ typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
 
 typedef struct {
   GLuint program;
-
-  int uniform_texture;
-  int uniform_colour_fg;
-  int uniform_colour_bg;
-  int uniform_proj_matrix;
-  int uniform_pos;
-
+  int    uniform_texture;
+  int    uniform_colour_fg;
+  int    uniform_colour_bg;
+  int    uniform_proj_matrix;
+  int    uniform_pos;
 } ShaderTile;
 
 typedef struct {
@@ -560,16 +558,9 @@ typedef struct {
 
 #ifdef RONA_EDITOR
 typedef struct {
-  GLuint prog;
-  // GLuint                      vert_shdr;
-  // GLuint                      frag_shdr;
-
-  GLint attrib_pos;
-  GLint attrib_uv;
-  GLint attrib_col;
-
-  GLint uniform_tex;
-  GLint uniform_proj;
+  GLuint program;
+  GLint  uniform_texture;
+  GLint  uniform_proj_matrix;
 } ShaderEditor;
 #endif
 
@@ -577,7 +568,7 @@ typedef struct {
   ShaderType shader_type;
   GLuint     vao;
 
-  i32 num_elements; // used in by gl->drawElements
+  i32 num_elements; // used by gl->drawElements
 } Mesh;
 
 typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;

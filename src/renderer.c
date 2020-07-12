@@ -221,14 +221,12 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
   SHADER_AS_STRING(transient, editorFragmentSource, editor_frag);
 
   ShaderEditor* shader_editor = &(render_struct->shader_editor);
-  shader_editor->prog = create_shader_program(gl, editorVertexSource, editorFragmentSource);
+  shader_editor->program = create_shader_program(gl, editorVertexSource, editorFragmentSource);
 
-  shader_editor->uniform_tex = gl->getUniformLocation(shader_editor->prog, "Texture");
-  shader_editor->uniform_proj = gl->getUniformLocation(shader_editor->prog, "ProjMtx");
-
-  shader_editor->attrib_pos = gl->getAttribLocation(shader_editor->prog, "Position");
-  shader_editor->attrib_uv = gl->getAttribLocation(shader_editor->prog, "TexCoord");
-  shader_editor->attrib_col = gl->getAttribLocation(shader_editor->prog, "Color");
+  shader_editor->uniform_texture =
+      gl->getUniformLocation(shader_editor->program, "nuklear_texture");
+  shader_editor->uniform_proj_matrix =
+      gl->getUniformLocation(shader_editor->program, "proj_matrix");
 #endif
   // --------------------------------------------------------------------------------
 
@@ -246,7 +244,7 @@ void renderer_lib_unload(RonaGL* gl, RenderStruct* render_struct) {
 
 #ifdef RONA_EDITOR
   ShaderEditor* shader_editor = &(render_struct->shader_editor);
-  gl->deleteProgram(shader_editor->prog);
+  gl->deleteProgram(shader_editor->program);
 #endif
 
   gl->disableVertexAttribArray(0);
