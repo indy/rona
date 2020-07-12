@@ -43,11 +43,11 @@ typedef struct {
   struct nk_allocator persistent; // todo: can't these nk_allocators just be local variables?
   struct nk_allocator transient;
 
-  BumpAllocator    bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
-  GroupedAllocator allocator_permanent;
+  BumpAllocator bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
+  FixedBlockAllocator allocator_permanent;
 
-  BumpAllocator    bump_transient; // reserves transient memory, so should be used with caution
-  GroupedAllocator allocator_transient;
+  BumpAllocator       bump_transient; // reserves transient memory, so should be used with caution
+  FixedBlockAllocator allocator_transient;
 
   bool transient_allocation_calls_expected;
   // -----------------------------------------------------------------------------
@@ -60,9 +60,9 @@ typedef struct {
   struct nk_buffer            cmds;
   struct nk_draw_null_texture null;
 
-  GLuint                      vbo, vao, ebo;
+  GLuint vbo, vao, ebo;
 
-  GLuint                      font_tex;
+  GLuint font_tex;
 
 } EditorState;
 

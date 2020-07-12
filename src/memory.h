@@ -27,16 +27,16 @@ void* bump_head(BumpAllocator* ba);
 
 #define BUMP_ALLOC(bump, size) bump_alloc((bump), (size));
 
-void  grouped_allocator_reset(GroupedAllocator* ga, BumpAllocator* bump);
-void* rona_malloc(GroupedAllocator* ga, usize bytes);
-void  rona_free(GroupedAllocator* ga, void* mem);
-void* rona_realloc(GroupedAllocator* ga, void* mem, usize bytes);
+void  grouped_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump);
+void* rona_malloc(FixedBlockAllocator* fba, usize bytes);
+void  rona_free(FixedBlockAllocator* fba, void* mem);
+void* rona_realloc(FixedBlockAllocator* fba, void* mem, usize bytes);
 
 void* rona_permanent_malloc(usize bytes);
 void* rona_permanent_realloc(void* mem, usize bytes);
-void rona_permanent_free(void* mem);
+void  rona_permanent_free(void* mem);
 void* rona_transient_malloc(usize bytes);
 void* rona_transient_realloc(void* mem, usize bytes);
-void rona_transient_free(void* mem);
+void  rona_transient_free(void* mem);
 
 #endif /* MEMORY_H */

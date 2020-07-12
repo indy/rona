@@ -524,9 +524,9 @@ typedef struct MemoryBlock {
   struct MemoryBlock* next;
 } MemoryBlock;
 
-// lifetimes: BumpAllocator > GroupedAllocator > MemoryBlock
+// lifetimes: BumpAllocator > FixedBlockAllocator > MemoryBlock
 //
-// GroupedAllocator builds upon BumpAllocator by have 3 single linked
+// FixedBlockAllocator builds upon BumpAllocator by have 3 single linked
 // lists of freed memory (binned by block size) which are used by the
 // rona_malloc, rona_realloc, rona_free functions
 //
@@ -537,7 +537,7 @@ typedef struct {
   MemoryBlock* available_150_kilobyte;
   MemoryBlock* available_one_megabyte;
   MemoryBlock* available_large;
-} GroupedAllocator;
+} FixedBlockAllocator;
 
 typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
 
@@ -560,16 +560,16 @@ typedef struct {
 
 #ifdef RONA_EDITOR
 typedef struct {
-  GLuint                      prog;
+  GLuint prog;
   // GLuint                      vert_shdr;
   // GLuint                      frag_shdr;
 
-  GLint                       attrib_pos;
-  GLint                       attrib_uv;
-  GLint                       attrib_col;
+  GLint attrib_pos;
+  GLint attrib_uv;
+  GLint attrib_col;
 
-  GLint                       uniform_tex;
-  GLint                       uniform_proj;
+  GLint uniform_tex;
+  GLint uniform_proj;
 } ShaderEditor;
 #endif
 
@@ -606,10 +606,11 @@ typedef enum { Direction_North, Direction_South, Direction_East, Direction_West 
 
 typedef enum {
   TileType_Void,
-  TileType_Floor, } TileType;
+  TileType_Floor,
+} TileType;
 
 typedef struct {
-  TileType type;
+  TileType      type;
   TilesetSprite sprite;
 } Tile;
 
@@ -848,8 +849,8 @@ typedef struct {
   BumpAllocator arena_permanent;
   BumpAllocator arena_transient;
 
-  GroupedAllocator allocator_permanent;
-  GroupedAllocator allocator_transient;
+  FixedBlockAllocator allocator_permanent;
+  FixedBlockAllocator allocator_transient;
 
   Mesh* mesh_screen;
   Mesh* mesh_hero;

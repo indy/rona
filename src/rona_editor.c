@@ -108,7 +108,7 @@ void upload_atlas(RonaGL* gl, EditorState* dev, const void* image, int width, in
 }
 
 void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* permanent,
-                           BumpAllocator* transient) {
+                    BumpAllocator* transient) {
   // memory management code
   //
 
@@ -152,10 +152,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->transient.alloc = &nuklear_transient_alloc;
   editor_state->transient.free = &nuklear_transient_free;
 
-
   // nk_buffer_init_default(&editor_state->cmds);
-  nk_buffer_init(&editor_state->cmds, &(editor_state->persistent),
-                 NK_BUFFER_DEFAULT_INITIAL_SIZE);
+  nk_buffer_init(&editor_state->cmds, &(editor_state->persistent), NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
   editor_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   editor_state->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
@@ -209,7 +207,7 @@ void editor_shutdown(RonaGL* gl, EditorState* dev) {
   nk_buffer_free(&dev->cmds);
 }
 
-void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor *shader_editor) {
+void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor* shader_editor) {
   /* buffer setup */
   GLsizei vs = sizeof(struct nk_glfw_vertex);
   size_t  vp = offsetof(struct nk_glfw_vertex, position);
@@ -228,10 +226,8 @@ void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor *shader
   gl->enableVertexAttribArray((GLuint)shader_editor->attrib_uv);
   gl->enableVertexAttribArray((GLuint)shader_editor->attrib_col);
 
-  gl->vertexAttribPointer((GLuint)shader_editor->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs,
-                          (void*)vp);
-  gl->vertexAttribPointer((GLuint)shader_editor->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs,
-                          (void*)vt);
+  gl->vertexAttribPointer((GLuint)shader_editor->attrib_pos, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
+  gl->vertexAttribPointer((GLuint)shader_editor->attrib_uv, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
   gl->vertexAttribPointer((GLuint)shader_editor->attrib_col, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs,
                           (void*)vc);
 
@@ -239,7 +235,6 @@ void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor *shader
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   gl->bindVertexArray(0);
-
 }
 void editor_lib_unload(RonaGL* gl, EditorState* editor_state) {
   gl->deleteBuffers(1, &editor_state->vbo);
@@ -248,7 +243,8 @@ void editor_lib_unload(RonaGL* gl, EditorState* editor_state) {
   gl->deleteVertexArrays(1, &editor_state->vao);
 }
 
-void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height, ShaderEditor* shader_editor) {
+void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,
+                   ShaderEditor* shader_editor) {
 
   enum nk_anti_aliasing AA = NK_ANTI_ALIASING_ON;
 

@@ -48,64 +48,64 @@ void* memory_block(BumpAllocator* bump, usize bytes_to_allocate, usize bytes_req
   return block;
 }
 
-void grouped_allocator_reset(GroupedAllocator* ga, BumpAllocator* bump) {
-  ga->bump = bump;
-  ga->available_one_kilobyte = NULL;
-  ga->available_150_kilobyte = NULL;
-  ga->available_one_megabyte = NULL;
-  ga->available_large = NULL;
+void grouped_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) {
+  fba->bump = bump;
+  fba->available_one_kilobyte = NULL;
+  fba->available_150_kilobyte = NULL;
+  fba->available_one_megabyte = NULL;
+  fba->available_large = NULL;
 }
 
-void* rona_malloc(GroupedAllocator* ga, usize bytes) {
+void* rona_malloc(FixedBlockAllocator* fba, usize bytes) {
   MemoryBlock* block;
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
 
   if (bytes_to_use < kilobytes(1)) {
-    if (ga->available_one_kilobyte) {
-      block = ga->available_one_kilobyte;
-      ga->available_one_kilobyte = block->next;
+    if (fba->available_one_kilobyte) {
+      block = fba->available_one_kilobyte;
+      fba->available_one_kilobyte = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
-      block = memory_block(ga->bump, kilobytes(1), bytes);
+      block = memory_block(fba->bump, kilobytes(1), bytes);
     }
   } else if (bytes_to_use < kilobytes(150)) {
-    if (ga->available_150_kilobyte) {
-      block = ga->available_150_kilobyte;
-      ga->available_150_kilobyte = block->next;
+    if (fba->available_150_kilobyte) {
+      block = fba->available_150_kilobyte;
+      fba->available_150_kilobyte = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
-      block = memory_block(ga->bump, kilobytes(150), bytes);
+      block = memory_block(fba->bump, kilobytes(150), bytes);
     }
   } else if (bytes_to_use < megabytes(1)) {
-    if (ga->available_one_megabyte) {
-      block = ga->available_one_megabyte;
-      ga->available_one_megabyte = block->next;
+    if (fba->available_one_megabyte) {
+      block = fba->available_one_megabyte;
+      fba->available_one_megabyte = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
-      block = memory_block(ga->bump, megabytes(1), bytes);
+      block = memory_block(fba->bump, megabytes(1), bytes);
     }
   } else {
     // stupid simple method of just looking at the head of the list to see if it's big enough
-    if (ga->available_large && ga->available_large->bytes_allocated > bytes_to_use) {
-      block = ga->available_large;
-      ga->available_large = block->next;
+    if (fba->available_large && fba->available_large->bytes_allocated > bytes_to_use) {
+      block = fba->available_large;
+      fba->available_large = block->next;
       block->next = NULL;
       block->bytes_requested = bytes;
     } else {
-      block = memory_block(ga->bump, bytes_to_use, bytes);
+      block = memory_block(fba->bump, bytes_to_use, bytes);
     }
   }
 
   return (void*)((byte*)block + sizeof(MemoryBlock));
 }
 
-void* rona_realloc(GroupedAllocator* ga, void* mem, usize bytes) {
+void* rona_realloc(FixedBlockAllocator* fba, void* mem, usize bytes) {
   if (!mem) {
-    return rona_malloc(ga, bytes);
+    return rona_malloc(fba, bytes);
   }
 
   MemoryBlock* block = (MemoryBlock*)((byte*)mem - sizeof(MemoryBlock));
@@ -118,32 +118,32 @@ void* rona_realloc(GroupedAllocator* ga, void* mem, usize bytes) {
     return mem;
   }
 
-  void* new_mem = rona_malloc(ga, bytes);
+  void* new_mem = rona_malloc(fba, bytes);
   memcpy(new_mem, mem, block->bytes_requested);
 
-  rona_free(ga, mem);
+  rona_free(fba, mem);
 
   return new_mem;
 }
 
-void rona_free(GroupedAllocator* ga, void* mem) {
+void rona_free(FixedBlockAllocator* fba, void* mem) {
   if (!mem) {
     return;
   }
   MemoryBlock* block = (MemoryBlock*)((byte*)mem - sizeof(MemoryBlock));
 
   if (block->bytes_allocated <= kilobytes(1)) {
-    block->next = ga->available_one_kilobyte;
-    ga->available_one_kilobyte = block;
+    block->next = fba->available_one_kilobyte;
+    fba->available_one_kilobyte = block;
   } else if (block->bytes_allocated <= kilobytes(150)) {
-    block->next = ga->available_150_kilobyte;
-    ga->available_150_kilobyte = block;
+    block->next = fba->available_150_kilobyte;
+    fba->available_150_kilobyte = block;
   } else if (block->bytes_allocated <= megabytes(1)) {
-    block->next = ga->available_one_megabyte;
-    ga->available_one_megabyte = block;
+    block->next = fba->available_one_megabyte;
+    fba->available_one_megabyte = block;
   } else {
-    block->next = ga->available_large;
-    ga->available_large = block;
+    block->next = fba->available_large;
+    fba->available_large = block;
   }
 }
 

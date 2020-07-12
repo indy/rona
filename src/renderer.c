@@ -508,7 +508,8 @@ GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* f
   }
 
   // http://docs.gl/gl3/glDeleteShader
-  // If a shader object to be deleted is attached to a program object, it will be flagged for deletion
+  // If a shader object to be deleted is attached to a program object, it will be flagged for
+  // deletion
   gl->deleteShader(fragmentShader);
   gl->deleteShader(vertexShader);
 

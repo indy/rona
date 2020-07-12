@@ -138,7 +138,7 @@ void game_lib_load(GameState* game_state) {
 
 // changes have been made to the game client, this old version will be unloaded
 void game_lib_unload(GameState* game_state) {
-  RenderStruct*  render_struct = &(game_state->render_struct);
+  RenderStruct* render_struct = &(game_state->render_struct);
 
   level1_lib_unload(game_state->level, game_state->gl);
   mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);

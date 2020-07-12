@@ -254,7 +254,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
     for (i32 i = 0; i < dbl_width; i += 2) {
       i32 tile_index = (i / 2) + (j * width);
 
-      Tile *tile = &(level->tiles[tile_index]);
+      Tile* tile = &(level->tiles[tile_index]);
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
@@ -265,19 +265,55 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
         Entity *hero, *block, *pit;
 
-        switch(plan_line[i]) {
-        case '0': tile->type = TileType_Void; tile->sprite = TS_WallHorizontal; break;
-        case '1': tile->type = TileType_Void; tile->sprite = TS_WallVertical; break;
-        case '2': tile->type = TileType_Void; tile->sprite = TS_WallHorizontalPoint; break;
-        case '3': tile->type = TileType_Void; tile->sprite = TS_WallTLCorner; break;
-        case '4': tile->type = TileType_Void; tile->sprite = TS_WallTRCorner; break;
-        case '5': tile->type = TileType_Void; tile->sprite = TS_WallBLCorner; break;
-        case '6': tile->type = TileType_Void; tile->sprite = TS_WallBRCorner; break;
-        case '7': tile->type = TileType_Void; tile->sprite = TS_WallTeeLeft; break;
-        case '8': tile->type = TileType_Void; tile->sprite = TS_WallTeeRight; break;
-        case '9': tile->type = TileType_Void; tile->sprite = TS_WallTeeDown; break;
-        case 'a': tile->type = TileType_Void; tile->sprite = TS_WallTeeUp; break;
-        case 'b': tile->type = TileType_Void; tile->sprite = TS_WallCross; break;
+        switch (plan_line[i]) {
+        case '0':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallHorizontal;
+          break;
+        case '1':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallVertical;
+          break;
+        case '2':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallHorizontalPoint;
+          break;
+        case '3':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTLCorner;
+          break;
+        case '4':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTRCorner;
+          break;
+        case '5':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallBLCorner;
+          break;
+        case '6':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallBRCorner;
+          break;
+        case '7':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTeeLeft;
+          break;
+        case '8':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTeeRight;
+          break;
+        case '9':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTeeDown;
+          break;
+        case 'a':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallTeeUp;
+          break;
+        case 'b':
+          tile->type = TileType_Void;
+          tile->sprite = TS_WallCross;
+          break;
         case 'H':
           hero = &(level->entities[0]);
 
@@ -348,8 +384,8 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
   gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
   gl->bindVertexArray(mesh->vao);
 
-  f32  ud = tileset->uv_unit.u;
-  f32  vd = tileset->uv_unit.v;
+  f32 ud = tileset->uv_unit.u;
+  f32 vd = tileset->uv_unit.v;
 
   f32 half_dim_x = TILE_WIDTH * 0.5f;
   f32 half_dim_y = TILE_HEIGHT * 0.5f;
