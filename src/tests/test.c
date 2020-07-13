@@ -54,10 +54,32 @@ static MunitResult test_rona_memory(const MunitParameter params[], void* user_da
   return MUNIT_OK;
 }
 
+static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_data) {
+
+  Vec2i *arr = NULL;
+
+  sb_push(arr, vec2i(10, 10));
+  sb_push(arr, vec2i(20, 10));
+  sb_push(arr, vec2i(30, 10));
+  sb_push(arr, vec2i(40, 10));
+  sb_push(arr, vec2i(50, 10));
+
+  munit_assert(arr[0].x == 10);
+  munit_assert(arr[1].x == 20);
+  munit_assert(arr[2].x == 30);
+  munit_assert(arr[3].x == 40);
+  munit_assert(arr[4].x == 50);
+
+  munit_assert(sb_count(arr) == 5);
+
+  return MUNIT_OK;
+}
+
 static MunitTest test_suite_tests[] = {
     {(char*)"/rona/types", test_rona_types, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {(char*)"/rona/math", test_rona_math, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {(char*)"/rona/memory", test_rona_memory, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
+    {(char*)"/rona/stretchy", test_rona_stretchy, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL},
     {NULL, NULL, NULL, NULL, MUNIT_TEST_OPTION_NONE, NULL}};
 
 static const MunitSuite test_suite = {(char*)"", test_suite_tests, NULL, 1,

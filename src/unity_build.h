@@ -77,6 +77,8 @@ static GameState* g_game_state = 0;
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
 
+// #include "stretchy_buffer.h"
+
 #ifdef RONA_EDITOR
 #include "rona_editor.c"
 #endif
