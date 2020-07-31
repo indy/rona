@@ -640,11 +640,31 @@ typedef struct CommandBuffer {
   usize                 used; // used is in number of Command structs
 } CommandBuffer;
 
+// the dimension of each chunk in tiles
+#define CHUNK_WIDTH 10
+#define CHUNK_HEIGHT 10
+
+#define CHUNK_MAX_PER_LEVEL 20
+
 typedef struct {
-  BumpAllocator mem;
+  TileType      type;
+  TilesetSprite sprite;
+} ChunkTile;
+
+typedef struct {
+  Vec2i pos; // chunk space
+  ChunkTile* tiles;
+} Chunk;
+
+typedef struct {
+  BumpAllocator allocator;
 
   i32     max_num_entities;
   Entity* entities;
+
+  // chunky tile representation
+  Chunk chunks[CHUNK_MAX_PER_LEVEL];
+  usize num_chunks;
 
   i32   width;
   i32   height;

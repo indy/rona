@@ -23,9 +23,9 @@ void game_startup(GameState* game_state) {
 
   u64 level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
   game_state->level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
-  game_state->level->mem.base = game_state->level + sizeof(Level);
-  game_state->level->mem.size = level_memory_arena_size - sizeof(Level);
-  game_state->level->mem.used = 0;
+  game_state->level->allocator.base = game_state->level + sizeof(Level);
+  game_state->level->allocator.size = level_memory_arena_size - sizeof(Level);
+  game_state->level->allocator.used = 0;
 
   RonaGL* gl = game_state->gl;
 

@@ -77,7 +77,7 @@ CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
 }
 
 bool command_buffer_startup(Level* level) {
-  CommandBuffer* cb = command_buffer_allocate(&(level->mem));
+  CommandBuffer* cb = command_buffer_allocate(&(level->allocator));
   if (!cb) {
     RONA_ERROR("command_buffer_startup failed\n");
     return false;
@@ -141,7 +141,7 @@ Command* command_add(Level* level) {
 
   if (level->command_index_next_free >= cb->size) {
     // allocate another CommandBuffer
-    CommandBuffer* new_cb = command_buffer_allocate(&(level->mem));
+    CommandBuffer* new_cb = command_buffer_allocate(&(level->allocator));
     if (!new_cb) {
       RONA_ERROR("command_add failed to allocate new CommandBuffer\n");
       return NULL;

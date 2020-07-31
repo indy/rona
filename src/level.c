@@ -224,7 +224,7 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]) {
   level->max_num_entities = 10;
-  level->entities = (Entity*)BUMP_ALLOC(&(level->mem), sizeof(Entity) * level->max_num_entities);
+  level->entities = (Entity*)BUMP_ALLOC(&(level->allocator), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }
@@ -237,13 +237,13 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
       vec2(((f32)STAGE_WIDTH - (((f32)dbl_width / 2.0f) * TILE_WIDTH)) / 2.0f,
            ((f32)height * TILE_HEIGHT) / 2.0f);
 
-  level->mesh_floor = (Mesh*)BUMP_ALLOC(&(level->mem), sizeof(Mesh));
+  level->mesh_floor = (Mesh*)BUMP_ALLOC(&(level->allocator), sizeof(Mesh));
 
   i32 width = dbl_width / 2;
   level->width = width;
   level->height = height;
   i32 num_tiles = level->width * level->height;
-  level->tiles = (Tile*)BUMP_ALLOC(&(level->mem), sizeof(Tile) * num_tiles);
+  level->tiles = (Tile*)BUMP_ALLOC(&(level->allocator), sizeof(Tile) * num_tiles);
 
   const f32 max_speed = 9.0f;
 

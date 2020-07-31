@@ -50,7 +50,7 @@ void level1_startup(Level* level, GameState* game_state) {
 
 void level1_shutdown(Level* level) {
   command_buffer_shutdown(level);
-  level->mem.used = 0;
+  level->allocator.used = 0;
 }
 
 void level1_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
