@@ -27,7 +27,7 @@ void* bump_head(BumpAllocator* ba);
 
 #define BUMP_ALLOC(bump, size) bump_alloc((bump), (size));
 
-void  grouped_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump);
+void  fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump);
 void* rona_malloc(FixedBlockAllocator* fba, usize bytes);
 void  rona_free(FixedBlockAllocator* fba, void* mem);
 void* rona_realloc(FixedBlockAllocator* fba, void* mem, usize bytes);

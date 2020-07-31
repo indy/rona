@@ -132,7 +132,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_permanent.base = nuklear_atlas_memory;
   editor_state->bump_permanent.used = 0;
 
-  grouped_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
+  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
 
   // allocating from transient memory as we're only expecting transient allocations to occur during
   // this function
@@ -144,7 +144,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_transient.base = nuklear_atlas_transient_memory;
   editor_state->bump_transient.used = 0;
 
-  grouped_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient));
+  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient));
 
   editor_state->persistent.alloc = &nuklear_persistent_alloc;
   editor_state->persistent.free = &nuklear_persistent_free;

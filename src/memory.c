@@ -48,7 +48,7 @@ void* memory_block(BumpAllocator* bump, usize bytes_to_allocate, usize bytes_req
   return block;
 }
 
-void grouped_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) {
+void fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) {
   fba->bump = bump;
   fba->available_one_kilobyte = NULL;
   fba->available_150_kilobyte = NULL;

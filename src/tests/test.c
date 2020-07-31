@@ -35,7 +35,7 @@ static MunitResult test_rona_memory(const MunitParameter params[], void* user_da
   arena.used = 0;
 
   FixedBlockAllocator ma;
-  grouped_allocator_reset(&ma, &arena);
+  fixed_block_allocator_reset(&ma, &arena);
 
   void* ptr = rona_malloc(&ma, 500);
   munit_assert(ma.available_one_kilobyte == NULL);
