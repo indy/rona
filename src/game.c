@@ -26,6 +26,7 @@ void game_startup(GameState* game_state) {
   game_state->level->allocator.base = game_state->level + sizeof(Level);
   game_state->level->allocator.size = level_memory_arena_size - sizeof(Level);
   game_state->level->allocator.used = 0;
+  fixed_block_allocator_reset(&game_state->level->fb_allocator, &game_state->level->allocator);
 
   RonaGL* gl = game_state->gl;
 

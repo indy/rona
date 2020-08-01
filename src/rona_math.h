@@ -43,6 +43,8 @@ f32 to_radians(f32 degrees);
 f32 lerp(f32 a, f32 t, f32 b);
 f32 clamp(f32 min, f32 val, f32 max);
 
+Dim2 dim2(usize x, usize y);
+
 Vec2i vec2i(i32 x, i32 y);
 Vec2i vec2i_clone(Vec2i* v2i);
 void  vec2i_set(Vec2i* dest, i32 x, i32 y);

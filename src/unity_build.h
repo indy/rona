@@ -64,6 +64,7 @@ static GameState* g_game_state = 0;
 #include "mesh_screen.h"
 #include "renderer.h"
 #include "rona_math.h"
+#include "stretchy.h"
 #include "tileset.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -76,8 +77,6 @@ static GameState* g_game_state = 0;
 
 #define STB_SPRINTF_IMPLEMENTATION
 #include "stb_sprintf.h"
-
-// #include "stretchy_buffer.h"
 
 #ifdef RONA_EDITOR
 #include "rona_editor.c"

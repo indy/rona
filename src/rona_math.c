@@ -27,6 +27,15 @@ f32 clamp(f32 min, f32 val, f32 max) {
   return val < min ? min : val > max ? max : val;
 }
 
+Dim2 dim2(usize width, usize height) {
+  Dim2 res;
+
+  res.width = width;
+  res.height = height;
+
+  return res;
+}
+
 Vec2i vec2i(i32 x, i32 y) {
   Vec2i res;
 

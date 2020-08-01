@@ -512,6 +512,12 @@ typedef struct Mat4 {
   };
 } Mat4;
 
+
+/*
+** Memory management
+**
+ */
+
 typedef struct {
   void* base;
   u64   size;
@@ -526,7 +532,7 @@ typedef struct MemoryBlock {
 
 // lifetimes: BumpAllocator > FixedBlockAllocator > MemoryBlock
 //
-// FixedBlockAllocator builds upon BumpAllocator by have 3 single linked
+// FixedBlockAllocator builds upon BumpAllocator by have 4 single linked
 // lists of freed memory (binned by block size) which are used by the
 // rona_malloc, rona_realloc, rona_free functions
 //
@@ -644,8 +650,6 @@ typedef struct CommandBuffer {
 #define CHUNK_WIDTH 10
 #define CHUNK_HEIGHT 10
 
-#define CHUNK_MAX_PER_LEVEL 20
-
 typedef struct {
   TileType      type;
   TilesetSprite sprite;
@@ -657,21 +661,29 @@ typedef struct {
 } Chunk;
 
 typedef struct {
+  Vec2i pos;   // position of top left corner
+  Dim2  dim;
+} TileViewport;
+
+typedef struct {
   BumpAllocator allocator;
+  FixedBlockAllocator fb_allocator;
 
   i32     max_num_entities;
   Entity* entities;
 
   // chunky tile representation
-  Chunk chunks[CHUNK_MAX_PER_LEVEL];
-  usize num_chunks;
+  Chunk* chunks;  // stretchy buffer
+  TileViewport viewport;
 
+  // old tile representation
   i32   width;
   i32   height;
   Tile* tiles;
-  Mesh* mesh_floor;
-
   Vec2 offset_stage_from_world;
+
+  // mesh
+  Mesh* mesh_floor;
 
   // undo/redo system
   //

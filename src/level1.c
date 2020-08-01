@@ -46,6 +46,28 @@ void level1_startup(Level* level, GameState* game_state) {
   if (!command_buffer_startup(level)) {
     RONA_ERROR("level1_startup: command_buffer_startup failed\n");
   }
+
+#if 1
+  Chunk chunk;
+  chunk.pos.x = 2;
+  chunk.pos.y = 4;
+  chunk.tiles = NULL;
+  sb_push(&level->fb_allocator, level->chunks, chunk);
+
+  chunk.pos.x = 1;
+  chunk.pos.y = 7;
+  chunk.tiles = NULL;
+  sb_push(&level->fb_allocator, level->chunks, chunk);
+
+  for(int i = 0; i < sb_count(level->chunks); i++) {
+    RONA_LOG("x = %d\n", level->chunks[i].pos.x);
+  }
+
+  RONA_LOG("count = %d\n", sb_count(level->chunks));
+#endif
+
+  level->viewport.pos = vec2i(10, 10);
+  level->viewport.dim = dim2(10, 10);
 }
 
 void level1_shutdown(Level* level) {
