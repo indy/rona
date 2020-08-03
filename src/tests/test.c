@@ -56,7 +56,7 @@ static MunitResult test_rona_memory(const MunitParameter params[], void* user_da
 
 static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_data) {
 
-  Vec2i *arr = NULL;
+  Vec2i* arr = NULL;
 
   sb_push(arr, vec2i(10, 10));
   sb_push(arr, vec2i(20, 10));

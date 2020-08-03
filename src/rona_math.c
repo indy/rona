@@ -36,6 +36,24 @@ Dim2 dim2(usize width, usize height) {
   return res;
 }
 
+Rect rect(i32 x, i32 y, usize width, usize height) {
+  Rect r;
+
+  r.x = x;
+  r.y = y;
+  r.width = width;
+  r.height = height;
+
+  return r;
+}
+
+bool rect_contains_point(Rect rect, Vec2i point) {
+  return point.x >= rect.x &&
+    point.x < (rect.x + rect.width) &&
+    point.y >= rect.y &&
+    point.y < (rect.y + rect.height);
+}
+
 Vec2i vec2i(i32 x, i32 y) {
   Vec2i res;
 
@@ -89,6 +107,13 @@ Vec2i vec2i_div(Vec2i a, Vec2i b) {
   Vec2i res;
   res.x = a.x / b.x;
   res.y = a.y / b.y;
+  return res;
+}
+
+Vec2i vec2i_mod(Vec2i a, i32 m) {
+  Vec2i res;
+  res.x = a.x % m;
+  res.y = a.y % m;
   return res;
 }
 

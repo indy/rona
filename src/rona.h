@@ -413,6 +413,13 @@ typedef struct {
 } Vec2i;
 
 typedef struct {
+  i32 x;
+  i32 y;
+  usize width;
+  usize height;
+} Rect;
+
+typedef struct {
   union {
     struct {
       f32 x;
@@ -512,11 +519,10 @@ typedef struct Mat4 {
   };
 } Mat4;
 
-
 /*
 ** Memory management
 **
- */
+*/
 
 typedef struct {
   void* base;
@@ -647,6 +653,7 @@ typedef struct CommandBuffer {
 } CommandBuffer;
 
 // the dimension of each chunk in tiles
+#define CHUNK_DIM 10
 #define CHUNK_WIDTH 10
 #define CHUNK_HEIGHT 10
 
@@ -656,31 +663,26 @@ typedef struct {
 } ChunkTile;
 
 typedef struct {
-  Vec2i pos; // chunk space
+  Vec2i      pos; // chunk space
   ChunkTile* tiles;
 } Chunk;
 
 typedef struct {
-  Vec2i pos;   // position of top left corner
-  Dim2  dim;
-} TileViewport;
-
-typedef struct {
-  BumpAllocator allocator;
+  BumpAllocator       allocator;
   FixedBlockAllocator fb_allocator;
 
   i32     max_num_entities;
   Entity* entities;
 
   // chunky tile representation
-  Chunk* chunks;  // stretchy buffer
-  TileViewport viewport;
+  Chunk*       chunks; // stretchy buffer
+  Rect viewport;
 
   // old tile representation
   i32   width;
   i32   height;
   Tile* tiles;
-  Vec2 offset_stage_from_world;
+  Vec2  offset_stage_from_world;
 
   // mesh
   Mesh* mesh_floor;
@@ -707,6 +709,7 @@ typedef struct {
 #define STAGE_HEIGHT 288
 //#define STAGE_WIDTH 640
 //#define STAGE_HEIGHT 360
+#define TILE_DIM 16
 #define TILE_WIDTH 16.0
 #define TILE_HEIGHT 16.0
 #define TILE_CHAR_WIDTH 8

@@ -224,7 +224,8 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]) {
   level->max_num_entities = 10;
-  level->entities = (Entity*)BUMP_ALLOC(&(level->allocator), sizeof(Entity) * level->max_num_entities);
+  level->entities =
+      (Entity*)BUMP_ALLOC(&(level->allocator), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }

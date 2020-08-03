@@ -28,6 +28,14 @@
 #endif
 
 typedef struct {
+
+  // position of cursor on the stage (valid if in range 0..STAGE_WIDTH, 0..STAGE_HEIGHT)
+  Vec2i cursor_in_stage_coords;
+  // how much should the stage be magnified
+  i32 stage_scalar;
+
+  // -----------------------------------
+
   struct nk_font_atlas atlas;
   struct nk_context    ctx;
 
@@ -61,7 +69,6 @@ typedef struct {
   struct nk_draw_null_texture null;
 
   GLuint vbo, vao, ebo;
-
   GLuint font_tex;
 
 } EditorState;

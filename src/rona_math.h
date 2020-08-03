@@ -45,6 +45,9 @@ f32 clamp(f32 min, f32 val, f32 max);
 
 Dim2 dim2(usize x, usize y);
 
+Rect rect(i32 x, i32 y, usize width, usize height);
+bool rect_contains_point(Rect rect, Vec2i point);
+
 Vec2i vec2i(i32 x, i32 y);
 Vec2i vec2i_clone(Vec2i* v2i);
 void  vec2i_set(Vec2i* dest, i32 x, i32 y);
@@ -53,6 +56,7 @@ Vec2i vec2i_add(Vec2i a, Vec2i b);
 Vec2i vec2i_sub(Vec2i a, Vec2i b);
 Vec2i vec2i_mul(Vec2i a, Vec2i b);
 Vec2i vec2i_div(Vec2i a, Vec2i b);
+Vec2i vec2i_mod(Vec2i a, i32 m);
 i32   vec2i_dot(Vec2i a, Vec2i b);
 i32   vec2i_length_squared(Vec2i a);
 

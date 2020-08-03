@@ -169,9 +169,6 @@ void renderer_render(GameState* game_state) {
     gl->clearColor(0.0f, 0.0f, 0.0f, 0.0f);
     gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    tiny_demo(&editor_state.ctx);
-    tex_demo(&editor_state.ctx, editor_state.stage_in_nuklear_texture_id);
-
     int width = render_struct->window_width;
     int height = render_struct->window_height;
 

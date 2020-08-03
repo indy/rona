@@ -207,13 +207,20 @@ void game_step(GameState* game_state) {
   if (game_state->mode == GameMode_Edit) {
     struct nk_context* ctx = &editor_state.ctx;
     nk_input_begin(ctx);
-    int x = (int)game_state->input->mouse_pos.x;
-    int y = (int)game_state->input->mouse_pos.y;
-    nk_input_motion(ctx, x, y);
-    nk_input_button(ctx, NK_BUTTON_LEFT, x, y, mouse_down(game_state->input, MouseButton_Left));
-    nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, mouse_down(game_state->input, MouseButton_Middle));
-    nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, mouse_down(game_state->input, MouseButton_Right));
+    {
+      int x = (int)game_state->input->mouse_pos.x;
+      int y = (int)game_state->input->mouse_pos.y;
+      nk_input_motion(ctx, x, y);
+      nk_input_button(ctx, NK_BUTTON_LEFT, x, y, mouse_down(game_state->input, MouseButton_Left));
+      nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y,
+                      mouse_down(game_state->input, MouseButton_Middle));
+      nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, mouse_down(game_state->input, MouseButton_Right));
+      // todo: will also need to input all keyboard state here as well
+      // see https://immediate-mode-ui.github.io/Nuklear/doc/nuklear.html#nuklear/api/input
+    }
     nk_input_end(ctx);
+
+    editor_step(&editor_state, game_state);
   }
 #endif
 
@@ -221,19 +228,6 @@ void game_step(GameState* game_state) {
   Entity*   hero = get_hero(level);
   Direction direction;
   bool      moved = false;
-
-#if 0
-  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
-  text_printf(text_params, "command-index-next-free %d", level->command_index_next_free);
-  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
-  text_printf(text_params, "command-index-furthest-future %d", level->command_index_furthest_future);
-  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
-  text_printf(text_params, "%p", level->command_buffer);
-  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
-  text_printf(text_params, "cb size %d used %d", level->command_buffer->size, level->command_buffer->used);
-  text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
-  text_printf(text_params, "cb prev %p next %p", level->command_buffer->prev, level->command_buffer->next);
-#endif
 
   /*
    * NOTE: The window event: LostFocus isn't always quick or reliable,

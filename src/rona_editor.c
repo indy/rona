@@ -37,12 +37,27 @@ void nuklear_transient_free(nk_handle h, void* mem) {
   rona_free(&(editor_state.allocator_transient), mem);
 }
 
-static void tiny_demo(struct nk_context* ctx) {
-  enum { EASY, HARD };
-  static int   op = EASY;
-  static float value = 0.6f;
+char* rona_sprintf(BumpAllocator* transient, char* fmt, ...) {
 
-  if (nk_begin(ctx, "Show", nk_rect(50, 50, 220, 220),
+  char*   buffer = (char*)bump_head(transient);
+  u64     bump_space_available = transient->size - transient->used;
+  va_list va;
+
+  va_start(va, fmt);
+  stbsp_vsnprintf(buffer, bump_space_available, fmt, va);
+  va_end(va);
+
+  return buffer;
+}
+
+void declare_stage_info(EditorState* editor_state, GameState* game_state) {
+  BumpAllocator*     transient = &(game_state->arena_transient);
+  struct nk_context* ctx = &(editor_state->ctx);
+
+  Vec2i screen = game_state->input->mouse_pos;
+  Vec2i stage = editor_state->cursor_in_stage_coords;
+
+  if (nk_begin(ctx, "Stage Info", nk_rect(50, 50, 220, 220),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
     /* fixed widget pixel width */
     nk_layout_row_static(ctx, 30, 80, 1);
@@ -50,46 +65,105 @@ static void tiny_demo(struct nk_context* ctx) {
       /* event handling */
     }
 
-    /* fixed widget window ratio width */
-    nk_layout_row_dynamic(ctx, 30, 2);
-    if (nk_option_label(ctx, "easy", op == EASY))
-      op = EASY;
-    if (nk_option_label(ctx, "hard", op == HARD))
-      op = HARD;
-
-    /* custom widget pixel width */
-    nk_layout_row_begin(ctx, NK_STATIC, 30, 2);
+    nk_layout_row_begin(ctx, NK_DYNAMIC, 30, 2);
     {
-      nk_layout_row_push(ctx, 50);
-      nk_label(ctx, "Volume:", NK_TEXT_LEFT);
-      nk_layout_row_push(ctx, 110);
-      nk_slider_float(ctx, 0, &value, 1.0f, 0.1f);
+      nk_layout_row_push(ctx, 0.5f);
+      nk_label(ctx, "Screen Coords:", NK_TEXT_RIGHT);
+      nk_layout_row_push(ctx, 0.5f);
+
+      char* b = rona_sprintf(transient, "%d, %d", screen.x, screen.y);
+      nk_text(ctx, b, strlen(b), NK_TEXT_LEFT);
+    }
+    nk_layout_row_end(ctx);
+
+    nk_layout_row_begin(ctx, NK_DYNAMIC, 30, 2);
+    {
+      nk_layout_row_push(ctx, 0.5f);
+      nk_label(ctx, "Stage Coords:", NK_TEXT_RIGHT);
+      nk_layout_row_push(ctx, 0.5f);
+      char* b = rona_sprintf(transient, "%d, %d", stage.x, stage.y);
+      nk_text(ctx, b, strlen(b), NK_TEXT_LEFT);
     }
     nk_layout_row_end(ctx);
   }
   nk_end(ctx);
 }
 
-void tex_demo(struct nk_context* ctx, GLuint stage_texture) {
-  if (nk_begin(ctx, "in-game", nk_rect(50, 250, STAGE_WIDTH, STAGE_HEIGHT + 65),
-               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
-    // NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE
+void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
+  struct nk_context* ctx = &(editor_state->ctx);
+  GLuint             stage_texture = editor_state->stage_in_nuklear_texture_id;
 
-    /* custom widget pixel width */
-    nk_layout_row_begin(ctx, NK_DYNAMIC, 300, 1);
+#define HACK_WINDOW_WIDTH_EXTRA 25
+#define HACK_WINDOW_HEIGHT_EXTRA 55
+
+  if (nk_begin(ctx, "Stage Preview",
+               nk_rect(50, 250, editor_state->stage_scalar * (STAGE_WIDTH + HACK_WINDOW_WIDTH_EXTRA),
+                       editor_state->stage_scalar * (STAGE_HEIGHT + HACK_WINDOW_HEIGHT_EXTRA)),
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
+    nk_layout_row_begin(ctx, NK_STATIC, editor_state->stage_scalar * STAGE_HEIGHT, 1);
     {
-      // nk_layout_row_push(ctx, 300);
-      nk_layout_row_push(ctx, STAGE_WIDTH / STAGE_HEIGHT);
+      nk_layout_row_push(ctx, editor_state->stage_scalar * STAGE_WIDTH);
 
       struct nk_image stage_image = nk_image_id(stage_texture);
-      // stage_image.w = STAGE_WIDTH;
-      // stage_image.h = STAGE_HEIGHT;
+      struct nk_rect  stage_region = nk_window_get_content_region(ctx);
+
+      // calculate where the cursor is in relation to the stage preview
+      Vec2i stage_window = vec2i((i32)stage_region.x, (i32)stage_region.y);
+      Vec2i stage_window_offset_to_stage_texture = vec2i(0, 4);
+      Vec2i screen = game_state->input->mouse_pos;
+      editor_state->cursor_in_stage_coords =
+          vec2i_sub(screen, vec2i_add(stage_window, stage_window_offset_to_stage_texture));
+      editor_state->cursor_in_stage_coords.x /= editor_state->stage_scalar;
+      editor_state->cursor_in_stage_coords.y /= editor_state->stage_scalar;
 
       nk_image(ctx, stage_image);
     }
     nk_layout_row_end(ctx);
   }
   nk_end(ctx);
+}
+
+void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
+  struct nk_context* ctx = &(editor_state->ctx);
+
+  if (nk_begin(ctx, "Stage Toolbar", nk_rect(350, 50, 220, 220),
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
+    /* fixed widget pixel width */
+    nk_layout_row_static(ctx, 30, 80, 1);
+    if (nk_button_label(ctx, "button")) {
+      /* event handling */
+    }
+  }
+  nk_end(ctx);
+}
+
+void cursor_in_chunk_coords(Vec2i *out_chunk_coords, Vec2i *out_tile_offset, Vec2i cursor_in_stage_coords, Vec2i viewport) {
+  Vec2i cursor_in_stage_tile_space = vec2i_div(cursor_in_stage_coords, vec2i(TILE_DIM, TILE_DIM));
+  Vec2i cursor_in_world_tile_space = vec2i_add(cursor_in_stage_tile_space, viewport);
+  Vec2i cursor_in_chunk_space = vec2i_div(cursor_in_world_tile_space, vec2i(CHUNK_DIM, CHUNK_DIM));
+  Vec2i chunk_space = vec2i_mul(cursor_in_chunk_space, vec2i(CHUNK_DIM, CHUNK_DIM));
+  Vec2i tile_offset = vec2i_sub(cursor_in_world_tile_space, chunk_space);
+
+  out_chunk_coords->x = cursor_in_chunk_space.x;
+  out_chunk_coords->y = cursor_in_chunk_space.y;
+
+  out_tile_offset->x = tile_offset.x;
+  out_tile_offset->y = tile_offset.y;
+}
+
+void editor_step(EditorState* editor_state, GameState* game_state) {
+  declare_stage_preview(editor_state, game_state);
+  declare_stage_info(editor_state, game_state);
+  declare_stage_toolbar(editor_state, game_state);
+
+  if (mouse_pressed(game_state->input, MouseButton_Left)) {
+    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT), editor_state->cursor_in_stage_coords)) {
+      Vec2i viewport = vec2i(game_state->level->viewport.x, game_state->level->viewport.y);
+      Vec2i chunk_coords, tile_offset;
+      cursor_in_chunk_coords(&chunk_coords, &tile_offset, editor_state->cursor_in_stage_coords, viewport);
+      RONA_LOG("%d, %d    %d,%d\n", chunk_coords.x, chunk_coords.y, tile_offset.x, tile_offset.y);
+    }
+  }
 }
 
 struct nk_glfw_vertex {
@@ -132,7 +206,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_permanent.base = nuklear_atlas_memory;
   editor_state->bump_permanent.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
+  fixed_block_allocator_reset(&(editor_state->allocator_permanent),
+                              &(editor_state->bump_permanent));
 
   // allocating from transient memory as we're only expecting transient allocations to occur during
   // this function
@@ -144,7 +219,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_transient.base = nuklear_atlas_transient_memory;
   editor_state->bump_transient.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient));
+  fixed_block_allocator_reset(&(editor_state->allocator_transient),
+                              &(editor_state->bump_transient));
 
   editor_state->persistent.alloc = &nuklear_persistent_alloc;
   editor_state->persistent.free = &nuklear_persistent_free;
@@ -198,6 +274,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 
   nk_init_fixed(&editor_state->ctx, editor_state->nuklear_memory,
                 (nk_size)editor_state->nuklear_memory_size, &(editor_state->default_font->handle));
+
+  editor_state->stage_scalar = 2;
 }
 
 void editor_shutdown(RonaGL* gl, EditorState* dev) {
@@ -228,8 +306,7 @@ void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor* shader
 
   gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, vs, (void*)vp);
   gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, vs, (void*)vt);
-  gl->vertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs,
-                          (void*)vc);
+  gl->vertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, vs, (void*)vc);
 
   gl->bindTexture(GL_TEXTURE_2D, 0);
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
