@@ -47,9 +47,7 @@ static void* stb__sbgrowf(FixedBlockAllocator* alloc, void* arr, int increment, 
     p[0] = m;
     return p + 2;
   } else {
-#ifdef STRETCHY_BUFFER_OUT_OF_MEMORY
-    STRETCHY_BUFFER_OUT_OF_MEMORY;
-#endif
+    RONA_ASSERT(p);
     return (void*)(2 * sizeof(int)); // try to force a NULL pointer exception later
   }
 }

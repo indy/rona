@@ -48,10 +48,8 @@ Rect rect(i32 x, i32 y, usize width, usize height) {
 }
 
 bool rect_contains_point(Rect rect, Vec2i point) {
-  return point.x >= rect.x &&
-    point.x < (rect.x + rect.width) &&
-    point.y >= rect.y &&
-    point.y < (rect.y + rect.height);
+  return point.x >= rect.x && point.x < (rect.x + rect.width) && point.y >= rect.y &&
+         point.y < (rect.y + rect.height);
 }
 
 Vec2i vec2i(i32 x, i32 y) {
@@ -117,6 +115,10 @@ Vec2i vec2i_mod(Vec2i a, i32 m) {
   return res;
 }
 
+bool vec2i_eq(Vec2i a, Vec2i b) {
+  return a.x == b.x && a.y == b.y;
+}
+
 i32 vec2i_dot(Vec2i a, Vec2i b) {
   i32 res;
   res = (a.x * b.x) + (a.y * b.y);
@@ -125,6 +127,10 @@ i32 vec2i_dot(Vec2i a, Vec2i b) {
 
 i32 vec2i_length_squared(Vec2i a) {
   return vec2i_dot(a, a);
+}
+
+void vec2i_log(char* msg, Vec2i a) {
+  RONA_LOG("%s: (%d,%d)\n", msg, a.x, a.y);
 }
 
 Vec2 vec2(f32 x, f32 y) {

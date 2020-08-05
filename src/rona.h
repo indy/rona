@@ -413,8 +413,8 @@ typedef struct {
 } Vec2i;
 
 typedef struct {
-  i32 x;
-  i32 y;
+  i32   x;
+  i32   y;
   usize width;
   usize height;
 } Rect;
@@ -668,6 +668,11 @@ typedef struct {
 } Chunk;
 
 typedef struct {
+  Vec2i chunk_pos;
+  Vec2i tile_offset;
+} ChunkPos;
+
+typedef struct {
   BumpAllocator       allocator;
   FixedBlockAllocator fb_allocator;
 
@@ -675,8 +680,8 @@ typedef struct {
   Entity* entities;
 
   // chunky tile representation
-  Chunk*       chunks; // stretchy buffer
-  Rect viewport;
+  Chunk* chunks; // stretchy buffer
+  Rect   viewport;
 
   // old tile representation
   i32   width;

@@ -24,7 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-  // clang-format off
+// clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 10
@@ -66,7 +66,7 @@ void level1_startup(Level* level, GameState* game_state) {
   RONA_LOG("count = %d\n", sb_count(level->chunks));
 #endif
 
-  level->viewport = rect(3, 4, 5, 6);
+  level->viewport = rect(3, 4, 10, 10);
 }
 
 void level1_shutdown(Level* level) {

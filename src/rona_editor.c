@@ -97,7 +97,8 @@ void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
 #define HACK_WINDOW_HEIGHT_EXTRA 55
 
   if (nk_begin(ctx, "Stage Preview",
-               nk_rect(50, 250, editor_state->stage_scalar * (STAGE_WIDTH + HACK_WINDOW_WIDTH_EXTRA),
+               nk_rect(50, 250,
+                       editor_state->stage_scalar * (STAGE_WIDTH + HACK_WINDOW_WIDTH_EXTRA),
                        editor_state->stage_scalar * (STAGE_HEIGHT + HACK_WINDOW_HEIGHT_EXTRA)),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
     nk_layout_row_begin(ctx, NK_STATIC, editor_state->stage_scalar * STAGE_HEIGHT, 1);
@@ -137,31 +138,21 @@ void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
   nk_end(ctx);
 }
 
-void cursor_in_chunk_coords(Vec2i *out_chunk_coords, Vec2i *out_tile_offset, Vec2i cursor_in_stage_coords, Vec2i viewport) {
-  Vec2i cursor_in_stage_tile_space = vec2i_div(cursor_in_stage_coords, vec2i(TILE_DIM, TILE_DIM));
-  Vec2i cursor_in_world_tile_space = vec2i_add(cursor_in_stage_tile_space, viewport);
-  Vec2i cursor_in_chunk_space = vec2i_div(cursor_in_world_tile_space, vec2i(CHUNK_DIM, CHUNK_DIM));
-  Vec2i chunk_space = vec2i_mul(cursor_in_chunk_space, vec2i(CHUNK_DIM, CHUNK_DIM));
-  Vec2i tile_offset = vec2i_sub(cursor_in_world_tile_space, chunk_space);
-
-  out_chunk_coords->x = cursor_in_chunk_space.x;
-  out_chunk_coords->y = cursor_in_chunk_space.y;
-
-  out_tile_offset->x = tile_offset.x;
-  out_tile_offset->y = tile_offset.y;
-}
-
 void editor_step(EditorState* editor_state, GameState* game_state) {
   declare_stage_preview(editor_state, game_state);
   declare_stage_info(editor_state, game_state);
   declare_stage_toolbar(editor_state, game_state);
 
   if (mouse_pressed(game_state->input, MouseButton_Left)) {
-    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT), editor_state->cursor_in_stage_coords)) {
-      Vec2i viewport = vec2i(game_state->level->viewport.x, game_state->level->viewport.y);
-      Vec2i chunk_coords, tile_offset;
-      cursor_in_chunk_coords(&chunk_coords, &tile_offset, editor_state->cursor_in_stage_coords, viewport);
-      RONA_LOG("%d, %d    %d,%d\n", chunk_coords.x, chunk_coords.y, tile_offset.x, tile_offset.y);
+    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT),
+                            editor_state->cursor_in_stage_coords)) {
+      Level*   level = game_state->level;
+      Vec2i    viewport = vec2i(level->viewport.x, level->viewport.y);
+      ChunkPos chunk_pos =
+          chunk_pos_from_stage_coords(editor_state->cursor_in_stage_coords, viewport);
+      Chunk* chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
+      vec2i_log("chunk position", chunk->pos);
+      chunk_pos_log("Clicked at", chunk_pos);
     }
   }
 }

@@ -53,6 +53,7 @@ static GameState* g_game_state = 0;
 
 #endif /* RONA_EDITOR */
 
+#include "chunk.h"
 #include "colour.h"
 #include "command.h"
 #include "entity.h"
@@ -82,6 +83,7 @@ static GameState* g_game_state = 0;
 #include "rona_editor.c"
 #endif
 
+#include "chunk.c"
 #include "colour.c"
 #include "command.c"
 #include "game.c"
