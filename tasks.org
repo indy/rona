@@ -1,0 +1,13 @@
+
+* todo [/]
+  1. [ ] [[undo/redo in editor should clarify which bump allocator is being used]]
+
+
+
+
+
+* details
+** <<undo/redo in editor should clarify which bump allocator is being used>>
+   <2020-08-07 Fri>
+
+   maybe tie in the level's bump allocator to the editor system, otherwise we'll be using the permanent storage for the editor without a chance of reclaiming the memory
