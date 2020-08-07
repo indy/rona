@@ -19,14 +19,18 @@ bool chunk_pos_eq(Vec2i chunk_pos, Chunk* chunk) {
   return vec2i_eq(chunk_pos, chunk->pos);
 }
 
+void chunktile_construct(ChunkTile* chunk_tile) {
+  chunk_tile->type = TileType_Void;
+  chunk_tile->sprite = TS_DebugBlank;
+}
+
 void chunk_construct(Chunk* chunk, BumpAllocator* allocator, Vec2i pos) {
   chunk->pos = pos;
   chunk->tiles = BUMP_ALLOC(allocator, sizeof(ChunkTile) * CHUNK_WIDTH * CHUNK_HEIGHT);
   RONA_ASSERT(chunk->tiles);
 
   for (int i = 0; i < CHUNK_WIDTH * CHUNK_HEIGHT; i++) {
-      chunk->tiles[i].type = TileType_Void;
-      chunk->tiles[i].sprite = TS_DebugBlank;
+    chunktile_construct(&chunk->tiles[i]);
   }
 }
 

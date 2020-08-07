@@ -267,9 +267,16 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
                 (nk_size)editor_state->nuklear_memory_size, &(editor_state->default_font->handle));
 
   editor_state->stage_scalar = 2;
+
+  // todo: is bump_permanent the best BumpAllocator to use?
+  if (!command_buffer_startup(&(editor_state->bump_permanent), &(editor_state->undo_redo))) {
+    RONA_ERROR("editor_startup: command_buffer_startup failed\n");
+  }
 }
 
 void editor_shutdown(RonaGL* gl, EditorState* dev) {
+  command_buffer_shutdown(&(dev->undo_redo));
+
   nk_free(&dev->ctx);
 
   gl->deleteTextures(1, &dev->font_tex);

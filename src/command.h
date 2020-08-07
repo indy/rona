@@ -18,23 +18,23 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-bool command_buffer_startup(Level* level);
-void command_buffer_shutdown(Level* level);
+bool command_buffer_startup(BumpAllocator* allocator, UndoRedo* undo_redo);
+void command_buffer_shutdown(UndoRedo* undo_redo);
 
-bool command_transaction_begin(Level* level);
-bool command_transaction_end(Level* level);
+bool command_transaction_begin(UndoRedo* undo_redo);
+bool command_transaction_end(UndoRedo* undo_redo);
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(Level* level);
+Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo);
 
-bool command_undo(Level* level);
-bool command_redo(Level* level);
+bool command_undo(UndoRedo* undo_redo);
+bool command_redo(UndoRedo* undo_redo);
 
 typedef enum { CommandExecute_Play, CommandExecute_Undo, CommandExecute_Redo } CommandExecute;
 
 void command_execute(Command* command, CommandExecute execute_type);
 
 void command_pretty_print(Command* command, bool undo, const char* msg);
-void command_debug(Level* level);
+void command_debug(UndoRedo* undo_redo);
 
 #endif /* COMMAND_H */

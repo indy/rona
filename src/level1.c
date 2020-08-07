@@ -24,7 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-// clang-format off
+  // clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 10
@@ -43,7 +43,7 @@ void level1_startup(Level* level, GameState* game_state) {
   // clang-format on
 
   level_build(game_state, level, L1_WIDTH * 2, L1_HEIGHT, layout);
-  if (!command_buffer_startup(level)) {
+  if (!command_buffer_startup(&level->allocator, &level->undo_redo)) {
     RONA_ERROR("level1_startup: command_buffer_startup failed\n");
   }
 
@@ -70,7 +70,7 @@ void level1_startup(Level* level, GameState* game_state) {
 }
 
 void level1_shutdown(Level* level) {
-  command_buffer_shutdown(level);
+  command_buffer_shutdown(&level->undo_redo);
   level->allocator.used = 0;
 }
 

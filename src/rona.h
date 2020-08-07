@@ -652,6 +652,15 @@ typedef struct CommandBuffer {
   usize                 used; // used is in number of Command structs
 } CommandBuffer;
 
+typedef struct {
+  bool           in_command_transaction;
+  usize          command_index_next_free;       // the next command in the current command_buffer
+  CommandBuffer* command_buffer;                // the active command buffer
+  usize          command_index_furthest_future; // index of the furthest future point
+  CommandBuffer*
+      command_buffer_furthest_future; // buffer that contains command_index_furthest_future
+} UndoRedo;
+
 // the dimension of each chunk in tiles
 #define CHUNK_DIM 10
 #define CHUNK_WIDTH 10
@@ -692,14 +701,9 @@ typedef struct {
   // mesh
   Mesh* mesh_floor;
 
-  // undo/redo system
+  // in-game undo/redo system for player moves
   //
-  bool           in_command_transaction;
-  usize          command_index_next_free; // index of the next command in the current command_buffer
-  CommandBuffer* command_buffer;          // the currently active command buffer
-  usize          command_index_furthest_future; // the index of the furthest future point
-  CommandBuffer*
-      command_buffer_furthest_future; // the command buffer that contains the command_furthest_index
+  UndoRedo undo_redo;
 } Level;
 
 typedef struct {

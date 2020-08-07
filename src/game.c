@@ -236,16 +236,16 @@ void game_step(GameState* game_state) {
    */
 
   if (key_pressed(game_state->input, Key_Z)) {
-    command_undo(level);
+    command_undo(&level->undo_redo);
   }
 
   if (key_pressed(game_state->input, Key_A)) {
-    command_redo(level);
+    command_redo(&level->undo_redo);
   }
 
 #if 0
   if (key_pressed(game_state->input, Key_D)) {
-    command_debug(level);
+    command_debug(&level->undo_redo);
   }
 #endif
 
@@ -264,9 +264,9 @@ void game_step(GameState* game_state) {
       moved = true;
     }
     if (moved) {
-      command_transaction_begin(level);
+      command_transaction_begin(&level->undo_redo);
       try_moving_hero(level, hero, direction);
-      command_transaction_end(level);
+      command_transaction_end(&level->undo_redo);
     }
   }
 

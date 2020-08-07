@@ -29,6 +29,8 @@
 
 typedef struct {
 
+  UndoRedo undo_redo;
+
   // position of cursor on the stage (valid if in range 0..STAGE_WIDTH, 0..STAGE_HEIGHT)
   Vec2i cursor_in_stage_coords;
   // how much should the stage be magnified

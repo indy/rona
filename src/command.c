@@ -76,72 +76,72 @@ CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
   return cb;
 }
 
-bool command_buffer_startup(Level* level) {
-  CommandBuffer* cb = command_buffer_allocate(&(level->allocator));
+bool command_buffer_startup(BumpAllocator* allocator, UndoRedo* undo_redo) {
+  CommandBuffer* cb = command_buffer_allocate(allocator);
   if (!cb) {
     RONA_ERROR("command_buffer_startup failed\n");
     return false;
   }
 
-  level->command_buffer = cb;
-  level->in_command_transaction = false;
-  level->command_index_next_free = 0;
+  undo_redo->command_buffer = cb;
+  undo_redo->in_command_transaction = false;
+  undo_redo->command_index_next_free = 0;
 
-  level->command_index_furthest_future = 0;
-  level->command_buffer_furthest_future = NULL;
+  undo_redo->command_index_furthest_future = 0;
+  undo_redo->command_buffer_furthest_future = NULL;
 
   return true;
 }
 
-void command_buffer_shutdown(Level* level) {
+void command_buffer_shutdown(UndoRedo* undo_redo) {
 }
 
-bool command_transaction_begin(Level* level) {
-  if (level->in_command_transaction) {
+bool command_transaction_begin(UndoRedo* undo_redo) {
+  if (undo_redo->in_command_transaction) {
     RONA_ERROR("command_transaction_begin: already in transaction\n");
     return false;
   }
 
-  level->in_command_transaction = true;
+  undo_redo->in_command_transaction = true;
 
   return true;
 }
 
-bool command_transaction_end(Level* level) {
-  if (!(level->in_command_transaction)) {
+bool command_transaction_end(UndoRedo* undo_redo) {
+  if (!(undo_redo->in_command_transaction)) {
     RONA_ERROR("command_transaction_end: not in transaction\n");
     return false;
   }
 
-  level->in_command_transaction = false;
+  undo_redo->in_command_transaction = false;
 
-  if (level->command_index_next_free == 0 && level->command_buffer->prev == NULL) {
+  if (undo_redo->command_index_next_free == 0 && undo_redo->command_buffer->prev == NULL) {
     // there are no commands, so just return
     return true;
-  } else if (level->command_index_next_free == 0 && level->command_buffer->prev) {
+  } else if (undo_redo->command_index_next_free == 0 && undo_redo->command_buffer->prev) {
     // have just added a command that has caused a new command buffer to be allocated
     // go back to the previous command buffer and set the last command to be the last one in the
     // transaction
-    CommandBuffer* cb = level->command_buffer->prev;
+    CommandBuffer* cb = undo_redo->command_buffer->prev;
     cb->command[cb->used - 1].is_last_in_transaction = true;
     return true;
   } else {
-    CommandBuffer* cb = level->command_buffer;
-    cb->command[level->command_index_next_free - 1].is_last_in_transaction = true;
+    CommandBuffer* cb = undo_redo->command_buffer;
+    cb->command[undo_redo->command_index_next_free - 1].is_last_in_transaction = true;
     return true;
   }
 }
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(Level* level) {
-  RONA_ASSERT(level->in_command_transaction);
-  RONA_ASSERT(level->command_buffer);
+Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo) {
+  RONA_ASSERT(undo_redo->in_command_transaction);
+  RONA_ASSERT(undo_redo->command_buffer);
 
-  CommandBuffer* cb = level->command_buffer;
+  CommandBuffer* cb = undo_redo->command_buffer;
 
-  if (level->command_index_next_free >= cb->size) {
+  if (undo_redo->command_index_next_free >= cb->size) {
     // allocate another CommandBuffer
-    CommandBuffer* new_cb = command_buffer_allocate(&(level->allocator));
+    CommandBuffer* new_cb = command_buffer_allocate(allocator);
     if (!new_cb) {
       RONA_ERROR("command_add failed to allocate new CommandBuffer\n");
       return NULL;
@@ -149,19 +149,19 @@ Command* command_add(Level* level) {
 
     new_cb->prev = cb;
     cb->next = new_cb;
-    level->command_buffer = new_cb;
-    level->command_index_next_free = 0;
+    undo_redo->command_buffer = new_cb;
+    undo_redo->command_index_next_free = 0;
     cb = new_cb;
   }
 
-  Command* command = &(cb->command[level->command_index_next_free]);
+  Command* command = &(cb->command[undo_redo->command_index_next_free]);
 
-  level->command_index_furthest_future = level->command_index_next_free;
-  level->command_buffer_furthest_future = cb;
+  undo_redo->command_index_furthest_future = undo_redo->command_index_next_free;
+  undo_redo->command_buffer_furthest_future = cb;
 
-  level->command_index_next_free++;
-  if (level->command_index_next_free > cb->used) {
-    cb->used = level->command_index_next_free;
+  undo_redo->command_index_next_free++;
+  if (undo_redo->command_index_next_free > cb->used) {
+    cb->used = undo_redo->command_index_next_free;
   }
 
   command->is_last_in_transaction = false;
@@ -170,40 +170,40 @@ Command* command_add(Level* level) {
 }
 
 // returns the command which was just undone
-Command* command_pop(Level* level) {
+Command* command_pop(UndoRedo* undo_redo) {
 
-  if (level->command_index_next_free == 0) {
-    if (level->command_buffer->prev) {
-      level->command_buffer = level->command_buffer->prev;
-      level->command_index_next_free = level->command_buffer->used - 1;
+  if (undo_redo->command_index_next_free == 0) {
+    if (undo_redo->command_buffer->prev) {
+      undo_redo->command_buffer = undo_redo->command_buffer->prev;
+      undo_redo->command_index_next_free = undo_redo->command_buffer->used - 1;
     } else {
       // already at the earliest point in the command buffer
       return NULL;
     }
   } else {
-    level->command_index_next_free -= 1;
+    undo_redo->command_index_next_free -= 1;
   }
 
-  Command* command = &(level->command_buffer->command[level->command_index_next_free]);
+  Command* command = &(undo_redo->command_buffer->command[undo_redo->command_index_next_free]);
 
   return command;
 }
 
-Command* command_peek(Level* level) {
+Command* command_peek(UndoRedo* undo_redo) {
   usize          command_index_next_free;
   CommandBuffer* command_buffer;
 
-  if (level->command_index_next_free == 0) {
-    if (level->command_buffer->prev) {
-      command_buffer = level->command_buffer->prev;
+  if (undo_redo->command_index_next_free == 0) {
+    if (undo_redo->command_buffer->prev) {
+      command_buffer = undo_redo->command_buffer->prev;
       command_index_next_free = command_buffer->used - 1;
     } else {
       // already at the earliest point in the command buffer
       return NULL;
     }
   } else {
-    command_buffer = level->command_buffer;
-    command_index_next_free = level->command_index_next_free - 1;
+    command_buffer = undo_redo->command_buffer;
+    command_index_next_free = undo_redo->command_index_next_free - 1;
   }
 
   Command* command = &(command_buffer->command[command_index_next_free]);
@@ -211,40 +211,40 @@ Command* command_peek(Level* level) {
   return command;
 }
 
-Command* command_pop_up(Level* level) {
+Command* command_pop_up(UndoRedo* undo_redo) {
   Command* command;
 
-  if (level->command_index_next_free == level->command_buffer->size) {
-    if (level->command_buffer->next) {
+  if (undo_redo->command_index_next_free == undo_redo->command_buffer->size) {
+    if (undo_redo->command_buffer->next) {
 
-      level->command_buffer = level->command_buffer->next;
-      level->command_index_next_free = 1;
+      undo_redo->command_buffer = undo_redo->command_buffer->next;
+      undo_redo->command_index_next_free = 1;
 
-      command = &(level->command_buffer->command[0]);
+      command = &(undo_redo->command_buffer->command[0]);
     } else {
       RONA_ERROR("command_pop_up: cannot pop forward\n");
       return NULL;
     }
   } else {
 
-    if (level->command_index_next_free > level->command_index_furthest_future) {
-      if (level->command_buffer->next == NULL) {
+    if (undo_redo->command_index_next_free > undo_redo->command_index_furthest_future) {
+      if (undo_redo->command_buffer->next == NULL) {
         // can't go any further
         RONA_ERROR("command_pop_up: at the furthest future command\n");
         return NULL;
       }
     }
 
-    command = &(level->command_buffer->command[level->command_index_next_free]);
-    level->command_index_next_free += 1;
+    command = &(undo_redo->command_buffer->command[undo_redo->command_index_next_free]);
+    undo_redo->command_index_next_free += 1;
   }
 
   return command;
 }
 
-bool command_undo(Level* level) {
+bool command_undo(UndoRedo* undo_redo) {
   // always pop and undo the top command
-  Command* command = command_pop(level);
+  Command* command = command_pop(undo_redo);
   if (command == NULL) {
     return false;
   }
@@ -256,18 +256,18 @@ bool command_undo(Level* level) {
   // now peek at the preceeding commands if they're not is_last_in_transaction
   // that means they're part of this transaction and should be undone as well
   //
-  command = command_peek(level);
+  command = command_peek(undo_redo);
   if (command == NULL) {
     RONA_ERROR("command_undo: command_peek returned null\n");
     return false;
   }
 
   while (!command->is_last_in_transaction) {
-    command = command_pop(level);
+    command = command_pop(undo_redo);
     command_execute(command, CommandExecute_Undo);
 
     // peek at the previous command in the undo stack
-    command = command_peek(level);
+    command = command_peek(undo_redo);
     if (command == NULL) {
       RONA_ERROR("command_undo: command_peek returned null\n");
       return false;
@@ -277,14 +277,14 @@ bool command_undo(Level* level) {
   return true;
 }
 
-bool command_redo(Level* level) {
-  if (!level->command_buffer_furthest_future) {
+bool command_redo(UndoRedo* undo_redo) {
+  if (!undo_redo->command_buffer_furthest_future) {
     // haven't added any commands yet
     return false;
   }
 
-  if (level->command_buffer_furthest_future == level->command_buffer &&
-      level->command_index_furthest_future == (level->command_index_next_free - 1)) {
+  if (undo_redo->command_buffer_furthest_future == undo_redo->command_buffer &&
+      undo_redo->command_index_furthest_future == (undo_redo->command_index_next_free - 1)) {
     // this is the furthest future point in this 'timeline'
     return false;
   }
@@ -292,7 +292,7 @@ bool command_redo(Level* level) {
   Command* command;
 
   do {
-    command = command_pop_up(level);
+    command = command_pop_up(undo_redo);
     RONA_ASSERT(command);
 
     command_execute(command, CommandExecute_Redo);
@@ -331,14 +331,15 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
   }
 }
 
-void command_debug(Level* level) {
+void command_debug(UndoRedo* undo_redo) {
   RONA_LOG("\n");
-  RONA_LOG("in_command_transaction %d\n", level->in_command_transaction);
-  RONA_LOG("command_index_next_free %d\n", level->command_index_next_free);
-  RONA_LOG("command_index_furthest_future %d\n", level->command_index_furthest_future);
+  RONA_LOG("undo_redo.in_command_transaction %d\n", undo_redo->in_command_transaction);
+  RONA_LOG("undo_redo.command_index_next_free %d\n", undo_redo->command_index_next_free);
+  RONA_LOG("undo_redo.command_index_furthest_future %d\n",
+           undo_redo->command_index_furthest_future);
 
-  for (int i = 0; i <= level->command_index_furthest_future; i++) {
+  for (int i = 0; i <= undo_redo->command_index_furthest_future; i++) {
     RONA_LOG("command %d:\n", i);
-    command_pretty_print(&(level->command_buffer->command[i]), true, "    ");
+    command_pretty_print(&(undo_redo->command_buffer->command[i]), true, "    ");
   }
 }

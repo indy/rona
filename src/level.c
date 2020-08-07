@@ -107,7 +107,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction) {
   }
 
   {
-    Command* command = command_add(level);
+    Command* command = command_add(&level->allocator, &level->undo_redo);
 
     command->type = CommandType_EntityMove;
     command->entity = block;
@@ -182,7 +182,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction) {
   }
 
   {
-    Command* command = command_add(level);
+    Command* command = command_add(&level->allocator, &level->undo_redo);
 
     command->type = CommandType_EntityMove;
     command->entity = hero;
