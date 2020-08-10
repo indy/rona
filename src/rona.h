@@ -617,7 +617,40 @@ typedef struct {
   TilesetSprite sprite;
 } Tile;
 
-typedef enum { CommandType_Delimiter = 0, CommandType_EntityMove } CommandType;
+// the dimension of each chunk in tiles
+#define CHUNK_DIM 10
+#define CHUNK_WIDTH 10
+#define CHUNK_HEIGHT 10
+
+typedef struct {
+  TileType      type;
+  TilesetSprite sprite;
+} ChunkTile;
+
+typedef struct {
+  Vec2i      pos; // chunk space
+  ChunkTile* tiles;
+} Chunk;
+
+typedef struct {
+  Vec2i chunk_pos;
+  Vec2i tile_offset;
+} ChunkPos;
+
+// --------------------------------------------------------------------------------
+
+// Command structures for Undo Redo
+//
+// --------------------------------------------------------------------------------
+
+typedef enum {
+  CommandType_Delimiter = 0,
+  CommandType_EntityMove,
+#ifdef RONA_EDITOR
+  CommandType_Editor_ChangeTile,
+#endif
+  CommandType_End
+} CommandType;
 
 typedef struct {
   Vec2i       board_pos;
@@ -640,6 +673,13 @@ typedef struct {
     struct {
       i32 some_i;
     } entity_rotate;
+#ifdef RONA_EDITOR
+    struct {
+      ChunkPos  chunk_pos;
+      ChunkTile old_tile;
+      ChunkTile new_tile;
+    } editor_change_tile;
+#endif
   } data;
 } Command;
 
@@ -661,25 +701,11 @@ typedef struct {
       command_buffer_furthest_future; // buffer that contains command_index_furthest_future
 } UndoRedo;
 
-// the dimension of each chunk in tiles
-#define CHUNK_DIM 10
-#define CHUNK_WIDTH 10
-#define CHUNK_HEIGHT 10
-
-typedef struct {
-  TileType      type;
-  TilesetSprite sprite;
-} ChunkTile;
-
-typedef struct {
-  Vec2i      pos; // chunk space
-  ChunkTile* tiles;
-} Chunk;
-
-typedef struct {
-  Vec2i chunk_pos;
-  Vec2i tile_offset;
-} ChunkPos;
+// --------------------------------------------------------------------------------
+//
+// Level
+//
+// --------------------------------------------------------------------------------
 
 typedef struct {
   BumpAllocator       allocator;

@@ -55,8 +55,7 @@ Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos) {
   Chunk* c = chunk_get(level->chunks, chunk_pos);
 
   if (!c) {
-    level->chunks = sb_add(&level->fb_allocator, level->chunks, 1);
-    c = &sb_last(level->chunks);
+    c = sb_add(&level->fb_allocator, level->chunks, 1);
     chunk_construct(c, &level->allocator, chunk_pos);
   }
 
@@ -71,4 +70,17 @@ Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos) {
     }
   }
   return NULL;
+}
+
+ChunkTile* chunktile_ensure_get(Level* level, ChunkPos cp) {
+  RONA_ASSERT(level);
+  RONA_ASSERT(cp.tile_offset.x < CHUNK_WIDTH);
+  RONA_ASSERT(cp.tile_offset.y < CHUNK_HEIGHT);
+
+  Chunk* chunk = chunk_ensure_get(level, cp.chunk_pos);
+  RONA_ASSERT(chunk);
+
+  ChunkTile* res = &chunk->tiles[(cp.tile_offset.y * CHUNK_WIDTH) + cp.tile_offset.x];
+
+  return res;
 }

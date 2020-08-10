@@ -26,4 +26,6 @@ Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos);
 
 Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos);
 
+ChunkTile* chunktile_ensure_get(Level* level, ChunkPos cp);
+
 #endif // CHUNK_H

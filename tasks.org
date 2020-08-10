@@ -1,13 +1,29 @@
 
-* todo [/]
-  1. [ ] [[undo/redo in editor should clarify which bump allocator is being used]]
+* todo [1/1]
+  1. [X] [[undo/redo in editor should clarify which bump allocator is being used]]
 
 
 
 
 
-* details
-** <<undo/redo in editor should clarify which bump allocator is being used>>
+* todo details
+** DONE <<undo/redo in editor should clarify which bump allocator is being used>>
    <2020-08-07 Fri>
-
    maybe tie in the level's bump allocator to the editor system, otherwise we'll be using the permanent storage for the editor without a chance of reclaiming the memory
+   <2020-08-10 Mon>
+   extra function "editor_changed_level" called
+
+
+
+
+
+
+* design decisions
+
+** why isn't the editor part of the game struct
+   <2020-08-10 Mon>
+   this would mean the host would need to be aware of all the nuklear structs
+   the same defines would be required before includeing nuklear.h
+   as I'm using my own malloc/free, these would also need to be specified in the host
+
+   it's much simpler to just keep the editor_struct as a static that's purely on the guest side

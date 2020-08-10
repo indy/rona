@@ -37,6 +37,7 @@ void game_startup(GameState* game_state) {
   BumpAllocator* permanent = &(game_state->arena_permanent);
   BumpAllocator* transient = &(game_state->arena_transient);
   editor_startup(gl, &editor_state, permanent, transient);
+  editor_changed_level(&editor_state, game_state->level);
 #endif /*  RONA_EDITOR  */
 }
 

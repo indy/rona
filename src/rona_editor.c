@@ -130,10 +130,19 @@ void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
   if (nk_begin(ctx, "Stage Toolbar", nk_rect(350, 50, 220, 220),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
     /* fixed widget pixel width */
-    nk_layout_row_static(ctx, 30, 80, 1);
-    if (nk_button_label(ctx, "button")) {
-      /* event handling */
+    nk_layout_row_dynamic(ctx, 30, 2);
+    if (nk_button_label(ctx, "undo")) {
+      command_undo(&editor_state->undo_redo);
     }
+    if (nk_button_label(ctx, "redo")) {
+      command_redo(&editor_state->undo_redo);
+    }
+
+    nk_layout_row_dynamic(ctx, 30, 1);
+    // clang-format off
+    if (nk_option_label(ctx, "void",  editor_state->active_tile_type == 0)) editor_state->active_tile_type = 0;
+    if (nk_option_label(ctx, "floor", editor_state->active_tile_type == 1)) editor_state->active_tile_type = 1;
+    // clang-format on
   }
   nk_end(ctx);
 }
@@ -146,13 +155,36 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
   if (mouse_pressed(game_state->input, MouseButton_Left)) {
     if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT),
                             editor_state->cursor_in_stage_coords)) {
+
       Level*   level = game_state->level;
       Vec2i    viewport = vec2i(level->viewport.x, level->viewport.y);
       ChunkPos chunk_pos =
           chunk_pos_from_stage_coords(editor_state->cursor_in_stage_coords, viewport);
-      Chunk* chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
-      vec2i_log("chunk position", chunk->pos);
-      chunk_pos_log("Clicked at", chunk_pos);
+
+      command_transaction_begin(&editor_state->undo_redo);
+      {
+        Command* command = command_add(&level->allocator, &editor_state->undo_redo);
+
+        command->type = CommandType_Editor_ChangeTile;
+        command->data.editor_change_tile.chunk_pos = chunk_pos;
+
+        ChunkTile* chunktile = chunktile_ensure_get(level, chunk_pos);
+        ChunkTile  newTile;
+
+        if (editor_state->active_tile_type == 0) {
+          newTile.type = TileType_Void;
+          newTile.sprite = TS_DebugBlank;
+        } else {
+          newTile.type = TileType_Floor;
+          newTile.sprite = TS_Debug4Corners;
+        }
+
+        command->data.editor_change_tile.old_tile = *chunktile;
+        command->data.editor_change_tile.new_tile = newTile;
+
+        command_execute(command, CommandExecute_Play);
+      }
+      command_transaction_end(&editor_state->undo_redo);
     }
   }
 }
@@ -213,14 +245,11 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   fixed_block_allocator_reset(&(editor_state->allocator_transient),
                               &(editor_state->bump_transient));
 
-  editor_state->persistent.alloc = &nuklear_persistent_alloc;
-  editor_state->persistent.free = &nuklear_persistent_free;
+  struct nk_allocator nk_allocator_permanent;
+  nk_allocator_permanent.alloc = &nuklear_persistent_alloc;
+  nk_allocator_permanent.free = &nuklear_persistent_free;
 
-  editor_state->transient.alloc = &nuklear_transient_alloc;
-  editor_state->transient.free = &nuklear_transient_free;
-
-  // nk_buffer_init_default(&editor_state->cmds);
-  nk_buffer_init(&editor_state->cmds, &(editor_state->persistent), NK_BUFFER_DEFAULT_INITIAL_SIZE);
+  nk_buffer_init(&editor_state->cmds, &nk_allocator_permanent, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
   editor_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   editor_state->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
@@ -238,6 +267,10 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   // false
   editor_state->transient_allocation_calls_expected = true;
 
+  struct nk_allocator nk_allocator_transient;
+  nk_allocator_transient.alloc = &nuklear_transient_alloc;
+  nk_allocator_transient.free = &nuklear_transient_free;
+
   const void*           image;
   int                   w, h;
   struct nk_font_config cfg = nk_font_config(0);
@@ -250,7 +283,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   struct nk_font_atlas* atlas = &(editor_state->atlas);
 
   // call nk_font_atlas_init_custom instead
-  nk_font_atlas_init_custom(atlas, &(editor_state->persistent), &(editor_state->transient));
+  nk_font_atlas_init_custom(atlas, &nk_allocator_permanent, &nk_allocator_transient);
   nk_font_atlas_begin(atlas);
 
   editor_state->default_font = nk_font_atlas_add_default(atlas, 14.0f, &cfg);
@@ -267,11 +300,6 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
                 (nk_size)editor_state->nuklear_memory_size, &(editor_state->default_font->handle));
 
   editor_state->stage_scalar = 2;
-
-  // todo: is bump_permanent the best BumpAllocator to use?
-  if (!command_buffer_startup(&(editor_state->bump_permanent), &(editor_state->undo_redo))) {
-    RONA_ERROR("editor_startup: command_buffer_startup failed\n");
-  }
 }
 
 void editor_shutdown(RonaGL* gl, EditorState* dev) {
@@ -311,11 +339,22 @@ void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor* shader
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   gl->bindVertexArray(0);
 }
+
 void editor_lib_unload(RonaGL* gl, EditorState* editor_state) {
   gl->deleteBuffers(1, &editor_state->vbo);
   gl->deleteBuffers(1, &editor_state->ebo);
 
   gl->deleteVertexArrays(1, &editor_state->vao);
+}
+
+void editor_changed_level(EditorState* editor_state, Level* level) {
+  RONA_ASSERT(editor_state);
+  RONA_ASSERT(level);
+
+  // use the level's bump allocator to store undo/redo information
+  if (!command_buffer_startup(&(level->allocator), &(editor_state->undo_redo))) {
+    RONA_ERROR("editor_startup: command_buffer_startup failed\n");
+  }
 }
 
 void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,

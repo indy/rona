@@ -23,9 +23,7 @@ void command_execute(Command* command, CommandExecute execute_type) {
   switch (command->type) {
 
     /*
-     *
      * Entity Move
-     *
      */
   case CommandType_EntityMove:
     switch (execute_type) {
@@ -48,8 +46,25 @@ void command_execute(Command* command, CommandExecute execute_type) {
       e->entity_state = command->data.entity_move.new_params.entity_state;
       break;
     }
-
     break;
+
+#ifdef RONA_EDITOR
+
+    /*
+     * Editor ChangeTile
+     */
+  case CommandType_Editor_ChangeTile:
+    switch (execute_type) {
+    case CommandExecute_Play:
+      break;
+    case CommandExecute_Undo:
+      break;
+    case CommandExecute_Redo:
+      break;
+    }
+    break;
+#endif // RONA_EDITOR
+
   default:
     RONA_ERROR("command_execute: unknown command type %d\n", command->type);
     break;
@@ -134,6 +149,7 @@ bool command_transaction_end(UndoRedo* undo_redo) {
 
 // returns Command for caller to fill out, call within a transaction
 Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo) {
+  RONA_ASSERT(allocator);
   RONA_ASSERT(undo_redo->in_command_transaction);
   RONA_ASSERT(undo_redo->command_buffer);
 

@@ -28,8 +28,11 @@
 #endif
 
 typedef struct {
-
+  // use the level's allocator for undo/redo
   UndoRedo undo_redo;
+
+  // _temporary_ tile selection
+  int active_tile_type; // 0 == void, 1 == floor
 
   // position of cursor on the stage (valid if in range 0..STAGE_WIDTH, 0..STAGE_HEIGHT)
   Vec2i cursor_in_stage_coords;
@@ -50,9 +53,6 @@ typedef struct {
   //
   // memory management variables for font atlas functionality
   //
-  struct nk_allocator persistent; // todo: can't these nk_allocators just be local variables?
-  struct nk_allocator transient;
-
   BumpAllocator bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
   FixedBlockAllocator allocator_permanent;
 
@@ -81,3 +81,16 @@ void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes);
 void  nuklear_persistent_free(nk_handle h, void* mem);
 void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes);
 void  nuklear_transient_free(nk_handle h, void* mem);
+
+void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* permanent,
+                    BumpAllocator* transient);
+void editor_shutdown(RonaGL* gl, EditorState* dev);
+
+void editor_lib_load(RonaGL* gl, EditorState* editor_state, ShaderEditor* shader_editor);
+void editor_lib_unload(RonaGL* gl, EditorState* editor_state);
+
+void editor_changed_level(EditorState* editor_state, Level* level);
+
+void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,
+                   ShaderEditor* shader_editor);
+void editor_step(EditorState* editor_state, GameState* game_state);

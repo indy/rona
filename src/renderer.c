@@ -53,6 +53,10 @@ void renderer_render(GameState* game_state) {
   gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
+#ifdef RONA_EDITOR
+  // render the chunktiles
+#endif
+
   // render level's floor
   //
   Mesh* mesh = level->mesh_floor;
