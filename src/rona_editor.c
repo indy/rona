@@ -166,6 +166,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
         Command* command = command_add(&level->allocator, &editor_state->undo_redo);
 
         command->type = CommandType_Editor_ChangeTile;
+        command->data.editor_change_tile.level = level;
         command->data.editor_change_tile.chunk_pos = chunk_pos;
 
         ChunkTile* chunktile = chunktile_ensure_get(level, chunk_pos);
@@ -179,10 +180,16 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
           newTile.sprite = TS_Debug4Corners;
         }
 
-        command->data.editor_change_tile.old_tile = *chunktile;
-        command->data.editor_change_tile.new_tile = newTile;
+        command->data.editor_change_tile.tile_old = *chunktile;
+        command->data.editor_change_tile.tile_new = newTile;
 
-        command_execute(command, CommandExecute_Play);
+
+        // perform the actual command
+        // chunktile->type = newTile.type;
+        // chunktile->sprite = newTile.sprite;
+        command_execute(command, CommandExecute_Redo);
+
+
       }
       command_transaction_end(&editor_state->undo_redo);
     }

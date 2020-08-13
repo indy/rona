@@ -449,20 +449,19 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
-  GLuint vbo;
-  gl->genBuffers(1, &vbo);
-  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
+  gl->genBuffers(1, &mesh->vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof_vertices, vertices,
                  GL_STATIC_DRAW); // the data is set only once and used many times.
   gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
-  GLuint ebo;
-  gl->genBuffers(1, &ebo);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+  gl->genBuffers(1, &mesh->ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof_indices, indices, GL_STATIC_DRAW);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
   gl->enableVertexAttribArray(2);
@@ -476,7 +475,7 @@ void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Til
   gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(4 * sizeof(float)));
   gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(8 * sizeof(float)));
 
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
 
   gl->bindVertexArray(0);
 }

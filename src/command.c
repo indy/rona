@@ -49,18 +49,23 @@ void command_execute(Command* command, CommandExecute execute_type) {
     break;
 
 #ifdef RONA_EDITOR
-
+    // not expecting to offer a playback mode for editor commands (why would there be a demo mode just for the editor?) so only deal with undo and redo command executions
     /*
      * Editor ChangeTile
      */
   case CommandType_Editor_ChangeTile:
-    switch (execute_type) {
-    case CommandExecute_Play:
-      break;
-    case CommandExecute_Undo:
-      break;
-    case CommandExecute_Redo:
-      break;
+    {
+      ChunkTile* chunktile = chunktile_ensure_get(command->data.editor_change_tile.level,
+                                                  command->data.editor_change_tile.chunk_pos);
+      switch (execute_type) {
+      case CommandExecute_Play: break;
+      case CommandExecute_Undo:
+        *chunktile = command->data.editor_change_tile.tile_old;
+        break;
+      case CommandExecute_Redo:
+        *chunktile = command->data.editor_change_tile.tile_new;
+        break;
+      }
     }
     break;
 #endif // RONA_EDITOR

@@ -30,6 +30,8 @@ Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo);
 bool command_undo(UndoRedo* undo_redo);
 bool command_redo(UndoRedo* undo_redo);
 
+// Play is here to enable autoplay demo mode in the future
+//
 typedef enum { CommandExecute_Play, CommandExecute_Undo, CommandExecute_Redo } CommandExecute;
 
 void command_execute(Command* command, CommandExecute execute_type);

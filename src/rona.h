@@ -579,6 +579,8 @@ typedef struct {
 typedef struct {
   ShaderType shader_type;
   GLuint     vao;
+  GLuint     vbo; // GL_ARRAY_BUFFER for vertices
+  GLuint     ebo; // GL_ELEMENT_ARRAY_BUFFER for indices
 
   i32 num_elements; // used by gl->drawElements
 } Mesh;
@@ -659,6 +661,8 @@ typedef struct {
   EntityState entity_state;
 } CommandParamsEntityMove;
 
+struct Level;
+
 typedef struct {
   CommandType type;
   bool        is_last_in_transaction;
@@ -675,9 +679,10 @@ typedef struct {
     } entity_rotate;
 #ifdef RONA_EDITOR
     struct {
+      struct Level     *level;
       ChunkPos  chunk_pos;
-      ChunkTile old_tile;
-      ChunkTile new_tile;
+      ChunkTile tile_old;
+      ChunkTile tile_new;
     } editor_change_tile;
 #endif
   } data;
@@ -707,7 +712,7 @@ typedef struct {
 //
 // --------------------------------------------------------------------------------
 
-typedef struct {
+typedef struct Level {
   BumpAllocator       allocator;
   FixedBlockAllocator fb_allocator;
 
@@ -717,6 +722,8 @@ typedef struct {
   // chunky tile representation
   Chunk* chunks; // stretchy buffer
   Rect   viewport;
+
+  Mesh*  mesh_chunk; // allocate some large amount of memory for this mesh
 
   // old tile representation
   i32   width;

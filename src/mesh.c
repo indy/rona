@@ -56,9 +56,8 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
-  GLuint vbo;
-  gl->genBuffers(1, &vbo);
-  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
+  gl->genBuffers(1, &mesh->vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW); // the data is set only once and used many times.
 
@@ -82,9 +81,8 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
   gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
                           (void*)(8 * sizeof(float)));
 
-  GLuint ebo;
-  gl->genBuffers(1, &ebo);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  gl->genBuffers(1, &mesh->ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   gl->bindVertexArray(0);
