@@ -80,7 +80,7 @@ $(TAGS_OUT): $(GAME_SRC) $(GAME_HEADERS)
 fmt: $(GAME_SRC) $(GAME_HEADERS)
 	find src -name '*.[ch]' | xargs clang-format -i -style=file
 
-.PHONY: clean
+.PHONY: clean watch
 
 clean:
 	rm target/*
@@ -89,3 +89,6 @@ all: guest host
 
 run: $(GUEST_OUT) $(HOST_OUT)
 	$(HOST_OUT)
+
+watch:
+	while true; do inotifywait -e close_write --quiet --recursive src; make; done
