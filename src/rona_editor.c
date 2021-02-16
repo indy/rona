@@ -157,9 +157,8 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
                             editor_state->cursor_in_stage_coords)) {
 
       Level*   level = game_state->level;
-      Vec2i    viewport = vec2i(level->viewport.x, level->viewport.y);
       ChunkPos chunk_pos =
-          chunk_pos_from_stage_coords(editor_state->cursor_in_stage_coords, viewport);
+          chunk_pos_from_stage_coords(editor_state->cursor_in_stage_coords, level->viewport.pos);
 
       command_transaction_begin(&editor_state->undo_redo);
       {
@@ -188,8 +187,6 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
         // chunktile->type = newTile.type;
         // chunktile->sprite = newTile.sprite;
         command_execute(command, CommandExecute_Redo);
-
-
       }
       command_transaction_end(&editor_state->undo_redo);
     }

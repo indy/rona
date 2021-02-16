@@ -40,8 +40,18 @@ ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport) {
   Vec2i pos_in_stage_tile_space = vec2i_div(stage_coords, vec2i(TILE_DIM, TILE_DIM));
   Vec2i pos_in_world_tile_space = vec2i_add(pos_in_stage_tile_space, viewport);
 
-  res.chunk_pos = vec2i_div(pos_in_world_tile_space, vec2i(CHUNK_DIM, CHUNK_DIM));
-  res.tile_offset = vec2i_mod(pos_in_world_tile_space, CHUNK_DIM);
+  res.chunk_pos = vec2i_div(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
+  res.tile_offset = vec2i_mod(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
+
+  // deal with a viewport in negative tile co-ordinates
+  if (pos_in_world_tile_space.x < 0 && res.tile_offset.x != 0) {
+    res.chunk_pos.x -= 1;
+    res.tile_offset.x += CHUNK_WIDTH;
+  }
+  if (pos_in_world_tile_space.y < 0 && res.tile_offset.y != 0) {
+    res.chunk_pos.y -= 1;
+    res.tile_offset.y += CHUNK_HEIGHT;
+  }
 
   return res;
 }
@@ -59,6 +69,7 @@ Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos) {
     chunk_construct(c, &level->allocator, chunk_pos);
   }
 
+  RONA_ASSERT(c);
   return c;
 }
 

@@ -20,6 +20,7 @@
 
 ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport);
 void     chunk_pos_log(char* msg, ChunkPos cp);
+#define  CHUNKPOS_LOG(x) chunk_pos_log(#x,x)
 
 // gets the chunk specified by cp, creating a chunk if it doesn't exist
 Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos);

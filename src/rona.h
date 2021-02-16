@@ -404,19 +404,18 @@ typedef struct {
       i32 x;
       i32 y;
     };
-    struct {
-      i32 width;
-      i32 height;
-    };
     i32 e[2];
   };
 } Vec2i;
 
 typedef struct {
-  i32   x;
-  i32   y;
-  usize width;
-  usize height;
+  // i32   x;
+  // i32   y;
+  // usize width;
+  // usize height;
+
+  Vec2i pos;
+  Dim2  dim;
 } Rect;
 
 typedef struct {
@@ -620,7 +619,6 @@ typedef struct {
 } Tile;
 
 // the dimension of each chunk in tiles
-#define CHUNK_DIM 10
 #define CHUNK_WIDTH 10
 #define CHUNK_HEIGHT 10
 

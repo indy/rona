@@ -47,7 +47,7 @@ void level1_startup(Level* level, GameState* game_state) {
     RONA_ERROR("level1_startup: command_buffer_startup failed\n");
   }
 
-  level->viewport = rect(3, 4, 10, 10);
+  level->viewport = rect(0, 0, 10, 10);
 }
 
 void level1_shutdown(Level* level) {
