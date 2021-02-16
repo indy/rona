@@ -58,11 +58,19 @@ static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_
 
   Vec2i* arr = NULL;
 
-  sb_push(arr, vec2i(10, 10));
-  sb_push(arr, vec2i(20, 10));
-  sb_push(arr, vec2i(30, 10));
-  sb_push(arr, vec2i(40, 10));
-  sb_push(arr, vec2i(50, 10));
+  BumpAllocator arena;
+  arena.size = megabytes(1);
+  arena.base = malloc(arena.size);
+  arena.used = 0;
+
+  FixedBlockAllocator ma;
+  fixed_block_allocator_reset(&ma, &arena);
+
+  sb_push(&ma, arr, vec2i(10, 10));
+  sb_push(&ma, arr, vec2i(20, 10));
+  sb_push(&ma, arr, vec2i(30, 10));
+  sb_push(&ma, arr, vec2i(40, 10));
+  sb_push(&ma, arr, vec2i(50, 10));
 
   munit_assert(arr[0].x == 10);
   munit_assert(arr[1].x == 20);
