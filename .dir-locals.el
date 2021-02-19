@@ -17,11 +17,13 @@
                     ----------------------------------------------------
                     Build   : _g_: guest _h_: host
                     Execute : _r_: run   _t_: test
+                    Magit Commit Hack : _c_
                     "
                      ("g" (compile "make guest -C ~/code/rona"))
                      ("h" (compile "make host  -C ~/code/rona"))
                      ("r" (compile "make run   -C ~/code/rona"))
                      ("t" (compile "make test  -C ~/code/rona"))
+                     ("c" (with-editor-finish))
                      ("RET" nil "quit" :color blue))
 
                    (define-key context-mode-map (kbd "C-c C-c") 'hydra-context/body))))))
