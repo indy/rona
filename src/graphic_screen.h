@@ -15,11 +15,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef MESH_SCREEN_H
-#define MESH_SCREEN_H
+#ifndef GRAPHIC_SCREEN_H
+#define GRAPHIC_SCREEN_H
 
-// void mesh_screen_render(Mesh *mesh, RonaGL *gl, Mat4 *proj_matrix);
-void mesh_screen_lib_load(Mesh* mesh, RonaGL* gl, RenderStruct* render_struct);
-void mesh_screen_lib_unload(Mesh* mesh, RonaGL* gl);
+// void graphic_screen_render(Graphic *graphic, RonaGL *gl, Mat4 *proj_matrix);
+void graphic_screen_lib_load(Graphic* graphic, RonaGL* gl, RenderStruct* render_struct);
+void graphic_screen_lib_unload(Graphic* graphic, RonaGL* gl);
 
-#endif /* MESH_SCREEN_H */
+#endif /* GRAPHIC_SCREEN_H */

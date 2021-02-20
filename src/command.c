@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void command_execute(Command* command, CommandExecute execute_type) {
+void command_execute(Command* command, CommandExecute execute_type, GameState* game_state) {
   Entity* e = command->entity;
 
   //  command_pretty_print(command, undo, "execute");
@@ -49,25 +49,31 @@ void command_execute(Command* command, CommandExecute execute_type) {
     break;
 
 #ifdef RONA_EDITOR
-    // not expecting to offer a playback mode for editor commands (why would there be a demo mode just for the editor?) so only deal with undo and redo command executions
+    // not expecting to offer a playback mode for editor commands (why would there be a demo mode
+    // just for the editor?) so only deal with undo and redo command executions
     /*
      * Editor ChangeTile
      */
-  case CommandType_Editor_ChangeTile:
-    {
-      ChunkTile* chunktile = chunktile_ensure_get(command->data.editor_change_tile.level,
-                                                  command->data.editor_change_tile.chunk_pos);
-      switch (execute_type) {
-      case CommandExecute_Play: break;
-      case CommandExecute_Undo:
-        *chunktile = command->data.editor_change_tile.tile_old;
-        break;
-      case CommandExecute_Redo:
-        *chunktile = command->data.editor_change_tile.tile_new;
-        break;
-      }
+  case CommandType_Editor_ChangeTile: {
+    ChunkTile* chunktile = chunktile_ensure_get(command->data.editor_change_tile.level,
+                                                command->data.editor_change_tile.chunk_pos);
+    switch (execute_type) {
+    case CommandExecute_Play:
+      return; // early return, no need to do anything here
+    case CommandExecute_Undo:
+      *chunktile = command->data.editor_change_tile.tile_old;
+      break;
+    case CommandExecute_Redo:
+      *chunktile = command->data.editor_change_tile.tile_new;
+      break;
     }
-    break;
+
+    // update the level's chunk geometry now that it's been changed
+    Level*   level = game_state->level;
+    RonaGL*  gl = game_state->gl;
+    Tileset* tileset = &(game_state->render_struct.tileset);
+    chunk_regenerate_geometry(level, gl, tileset);
+  } break;
 #endif // RONA_EDITOR
 
   default:
@@ -83,14 +89,14 @@ CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
     return NULL;
   }
 
-  cb->command = (Command*)BUMP_ALLOC(bump, sizeof(Command) * MEMORY_COMMANDS_IN_BUFFER);
+  cb->command = (Command*)BUMP_ALLOC(bump, sizeof(Command) * MEMORY_RESERVE_COMMANDS_IN_BUFFER);
   if (!cb->command) {
     RONA_ERROR("command_buffer_allocate\n");
     return NULL;
   }
   cb->prev = NULL;
   cb->next = NULL;
-  cb->size = MEMORY_COMMANDS_IN_BUFFER;
+  cb->size = MEMORY_RESERVE_COMMANDS_IN_BUFFER;
   cb->used = 0;
 
   return cb;
@@ -263,7 +269,7 @@ Command* command_pop_up(UndoRedo* undo_redo) {
   return command;
 }
 
-bool command_undo(UndoRedo* undo_redo) {
+bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
   // always pop and undo the top command
   Command* command = command_pop(undo_redo);
   if (command == NULL) {
@@ -272,7 +278,7 @@ bool command_undo(UndoRedo* undo_redo) {
 
   // this latest command will always have is_last_in_transaction == true
 
-  command_execute(command, CommandExecute_Undo);
+  command_execute(command, CommandExecute_Undo, game_state);
 
   // now peek at the preceeding commands if they're not is_last_in_transaction
   // that means they're part of this transaction and should be undone as well
@@ -285,7 +291,7 @@ bool command_undo(UndoRedo* undo_redo) {
 
   while (!command->is_last_in_transaction) {
     command = command_pop(undo_redo);
-    command_execute(command, CommandExecute_Undo);
+    command_execute(command, CommandExecute_Undo, game_state);
 
     // peek at the previous command in the undo stack
     command = command_peek(undo_redo);
@@ -298,7 +304,7 @@ bool command_undo(UndoRedo* undo_redo) {
   return true;
 }
 
-bool command_redo(UndoRedo* undo_redo) {
+bool command_redo(UndoRedo* undo_redo, GameState* game_state) {
   if (!undo_redo->command_buffer_furthest_future) {
     // haven't added any commands yet
     return false;
@@ -316,7 +322,7 @@ bool command_redo(UndoRedo* undo_redo) {
     command = command_pop_up(undo_redo);
     RONA_ASSERT(command);
 
-    command_execute(command, CommandExecute_Redo);
+    command_execute(command, CommandExecute_Redo, game_state);
   } while (!command->is_last_in_transaction);
 
   return true;
@@ -347,7 +353,7 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
     //    }
     break;
   default:
-    RONA_ERROR("command_execute: unknown command type %d\n", command->type);
+    RONA_ERROR("command_pretty_print: unknown command type %d\n", command->type);
     break;
   }
 }

@@ -430,7 +430,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
 
   // geometry
 
-  f32 *e = &(render_struct->text_vertices[TILED_QUAD_GEOMETRY_SIZEOF_1 * render_struct->num_characters]);
+  f32 *e = &(render_struct->text_vertices[TILED_QUAD_NUM_FLOATS * render_struct->num_characters]);
 
   Vec2 uv = tileset_get_uv_char(tileset, c);
   f32 u = uv.u;
@@ -483,7 +483,7 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
 
   // indices
 
-  u32 *i = &(render_struct->text_indices[TILED_QUAD_INDICES_SIZEOF_1 * render_struct->num_characters]);
+  u32 *i = &(render_struct->text_indices[TILED_QUAD_NUM_INDICES * render_struct->num_characters]);
   i32 offset = render_struct->num_characters * 4;
 
   *i++ = offset + 0;

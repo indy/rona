@@ -30,6 +30,10 @@ static GameState* g_game_state = 0;
 // #define SYS_MALLOC
 // #define DEBUG_MALLOC
 
+#ifndef RONA_EDITOR
+#include <stdio.h>
+#endif
+
 #ifdef SYS_MALLOC
 #include "stdlib.h"
 #endif
@@ -58,11 +62,11 @@ static GameState* g_game_state = 0;
 #include "command.h"
 #include "entity.h"
 #include "game.h"
+#include "graphic.h"
+#include "graphic_screen.h"
 #include "input.h"
 #include "level.h"
 #include "level1.h"
-#include "mesh.h"
-#include "mesh_screen.h"
 #include "renderer.h"
 #include "rona_math.h"
 #include "stretchy.h"
@@ -87,12 +91,12 @@ static GameState* g_game_state = 0;
 #include "colour.c"
 #include "command.c"
 #include "game.c"
+#include "graphic.c"
+#include "graphic_screen.c"
 #include "input.c"
 #include "level.c"
 #include "level1.c"
 #include "memory.c"
-#include "mesh.c"
-#include "mesh_screen.c"
 #include "renderer.c"
 #include "rona_math.c"
 #include "tileset.c"

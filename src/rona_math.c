@@ -48,8 +48,8 @@ Rect rect(i32 x, i32 y, usize width, usize height) {
 }
 
 bool rect_contains_point(Rect rect, Vec2i point) {
-  return point.x >= rect.pos.x && point.x < (rect.pos.x + rect.dim.width) && point.y >= rect.pos.y &&
-         point.y < (rect.pos.y + rect.dim.height);
+  return point.x >= rect.pos.x && point.x < (rect.pos.x + rect.dim.width) &&
+         point.y >= rect.pos.y && point.y < (rect.pos.y + rect.dim.height);
 }
 
 Vec2i vec2i(i32 x, i32 y) {

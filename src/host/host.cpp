@@ -99,6 +99,7 @@ static void LoadGLFunctions(RonaGL *gl) {
   gl->deleteBuffers = (PFNGLDELETEBUFFERSPROC)GLProcAddress("glDeleteBuffers");
   gl->bindBuffer = (PFNGLBINDBUFFERPROC)GLProcAddress("glBindBuffer");
   gl->bufferData = (PFNGLBUFFERDATAPROC)GLProcAddress("glBufferData");
+  gl->bufferSubData = (PFNGLBUFFERSUBDATAPROC)GLProcAddress("glBufferSubData");
   gl->mapBuffer = (PFNGLMAPBUFFERPROC)GLProcAddress("glMapBuffer");
   gl->unmapBuffer = (PFNGLUNMAPBUFFERPROC)GLProcAddress("glUnmapBuffer");
   gl->enableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GLProcAddress("glEnableVertexAttribArray");

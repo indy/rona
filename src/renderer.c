@@ -23,7 +23,7 @@ void renderer_render(GameState* game_state) {
   RonaGL*       gl = game_state->gl;
   Level*        level = game_state->level;
   RenderStruct* render_struct = &game_state->render_struct;
-  Mesh*         screen = game_state->mesh_screen;
+  Graphic*      screen = &(game_state->graphic_screen);
 
   // render the scene onto the stage texture
   //
@@ -53,22 +53,19 @@ void renderer_render(GameState* game_state) {
   gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false,
                        (GLfloat*)&(proj_matrix.v));
 
-#ifdef RONA_EDITOR
-  // render the chunktiles
-#endif
-
-  // render level's floor
+  // render level's chunks
   //
-  Mesh* mesh = level->mesh_floor;
+  {
+    Graphic* graphic = &(level->chunk_graphic);
+    gl->uniform3f(render_struct->shader_tile.uniform_pos,
+                  (f32)(-level->viewport.pos.x * TILE_WIDTH),
+                  (f32)(-level->viewport.pos.y * TILE_HEIGHT), 2.0f);
+    gl->bindVertexArray(graphic->vao);
+    gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
+  }
 
   Vec3 stage_from_world =
-      vec3(level->offset_stage_from_world.x, level->offset_stage_from_world.y, 0.0f);
-  gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_from_world.x, stage_from_world.y,
-                2.0f);
-
-  // RONA_LOG("level vao %d\n", mesh->vao);
-  gl->bindVertexArray(mesh->vao);
-  gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
+      vec3(-level->viewport.pos.x * TILE_WIDTH, -level->viewport.pos.y * TILE_HEIGHT, 0.0f);
 
   // render entities
   //
@@ -77,14 +74,14 @@ void renderer_render(GameState* game_state) {
     if (!entity->exists) {
       break;
     }
-    Mesh* mesh = entity->mesh;
-    Vec3  stage_pos = vec3_add(entity->world_pos, stage_from_world);
+    Graphic* graphic = entity->graphic;
+    Vec3     stage_pos = vec3_add(entity->world_pos, stage_from_world);
     gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
 
-    // RONA_LOG("entity vao %d\n", mesh->vao);
-    gl->bindVertexArray(mesh->vao);
+    // RONA_LOG("entity vao %d\n", graphic->vao);
+    gl->bindVertexArray(graphic->vao);
 
-    gl->drawElements(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, 0);
+    gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
   }
 
   // render text
@@ -95,7 +92,7 @@ void renderer_render(GameState* game_state) {
 
   gl->uniform3f(render_struct->shader_tile.uniform_pos, 0.0f, 0.0f, 0.0f);
   gl->bindVertexArray(render_struct->text_vao);
-  gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_INDICES_SIZEOF_1,
+  gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_NUM_INDICES,
                    GL_UNSIGNED_INT, 0);
 
   // --------------------------------------------------------------------------------

@@ -15,12 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef GRAPHIC_H
+#define GRAPHIC_H
 
-// void mesh_hero_render(Mesh *mesh, RonaGL *gl, Mat4 *proj_matrix);
-void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
-                               Colour fg_col, Colour bg_col);
-void mesh_lib_unload(Mesh* mesh, RonaGL* gl);
+// void graphic_hero_render(Graphic *graphic, RonaGL *gl, Mat4 *proj_matrix);
+void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset,
+                                  TilesetSprite tile_sprite, Colour fg_col, Colour bg_col);
+void graphic_lib_unload(Graphic* graphic, RonaGL* gl);
 
-#endif /* MESH_H */
+#endif /* GRAPHIC_H */

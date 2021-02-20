@@ -27,14 +27,14 @@ bool command_transaction_end(UndoRedo* undo_redo);
 // returns Command for caller to fill out, call within a transaction
 Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo);
 
-bool command_undo(UndoRedo* undo_redo);
-bool command_redo(UndoRedo* undo_redo);
+bool command_undo(UndoRedo* undo_redo, GameState* game_state);
+bool command_redo(UndoRedo* undo_redo, GameState* game_state);
 
 // Play is here to enable autoplay demo mode in the future
 //
 typedef enum { CommandExecute_Play, CommandExecute_Undo, CommandExecute_Redo } CommandExecute;
 
-void command_execute(Command* command, CommandExecute execute_type);
+void command_execute(Command* command, CommandExecute execute_type, GameState* game_state);
 
 void command_pretty_print(Command* command, bool undo, const char* msg);
 void command_debug(UndoRedo* undo_redo);

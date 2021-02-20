@@ -15,13 +15,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_screen_lib_load(Mesh* mesh, RonaGL* gl, RenderStruct* render_struct) {
+void graphic_screen_lib_load(Graphic* graphic, RonaGL* gl, RenderStruct* render_struct) {
 
-  mesh->num_elements = 6;
-  mesh->shader_type = ShaderType_Screen;
+  graphic->num_elements = 6;
+  graphic->shader_type = ShaderType_Screen;
 
-  gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
-  gl->bindVertexArray(mesh->vao);
+  gl->genVertexArrays(1, &graphic->vao); // Vertex Array Object
+  gl->bindVertexArray(graphic->vao);
 
   f32 width = (f32)render_struct->stage_width;
   f32 height = (f32)render_struct->stage_height;
@@ -70,6 +70,6 @@ void mesh_screen_lib_load(Mesh* mesh, RonaGL* gl, RenderStruct* render_struct) {
   gl->bindVertexArray(0);
 }
 
-void mesh_screen_lib_unload(Mesh* mesh, RonaGL* gl) {
-  gl->deleteVertexArrays(1, &mesh->vao);
+void graphic_screen_lib_unload(Graphic* graphic, RonaGL* gl) {
+  gl->deleteVertexArrays(1, &graphic->vao);
 }

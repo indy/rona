@@ -1,8 +1,6 @@
 
-* todo [1/1]
-  1. [X] [[undo/redo in editor should clarify which bump allocator is being used]]
-
-
+* todo [0/1]
+  1. [ ] foo
 
 
 
@@ -12,11 +10,6 @@
    maybe tie in the level's bump allocator to the editor system, otherwise we'll be using the permanent storage for the editor without a chance of reclaiming the memory
    <2020-08-10 Mon>
    extra function "editor_changed_level" called
-
-
-
-
-
 
 * design decisions
 

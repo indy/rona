@@ -16,10 +16,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void game_startup(GameState* game_state) {
-  game_state->mesh_screen = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
-  game_state->mesh_hero = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
-  game_state->mesh_block = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
-  game_state->mesh_pit = (Mesh*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Mesh));
+  // game_state->graphic_screen = (Graphic*)BUMP_ALLOC(&game_state->arena_permanent,
+  // sizeof(Graphic)); game_state->graphic_hero = (Graphic*)BUMP_ALLOC(&game_state->arena_permanent,
+  // sizeof(Graphic)); game_state->graphic_block =
+  // (Graphic*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Graphic)); game_state->graphic_pit =
+  // (Graphic*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Graphic));
 
   u64 level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
   game_state->level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
@@ -28,9 +29,23 @@ void game_startup(GameState* game_state) {
   game_state->level->allocator.used = 0;
   fixed_block_allocator_reset(&game_state->level->fb_allocator, &game_state->level->allocator);
 
-  RonaGL* gl = game_state->gl;
+  // work out how many tiles are required to cover the stage along each dimension
+  //
+  i32 w = STAGE_WIDTH / TILE_WIDTH;
+  if (w * TILE_WIDTH < STAGE_WIDTH) {
+    w++;
+  }
+  i32 h = STAGE_HEIGHT / TILE_HEIGHT;
+  if (h * TILE_HEIGHT < STAGE_HEIGHT) {
+    h++;
+  }
+  RONA_INFO("w %d, h %d\n", w, h);
+  game_state->level->viewport = rect(-3, -3, w, h);
 
+  level_startup(game_state->level, game_state);
   level1_startup(game_state->level, game_state);
+
+  RonaGL* gl = game_state->gl;
   renderer_startup(gl, &(game_state->render_struct), &(game_state->arena_permanent));
 
 #ifdef RONA_EDITOR
@@ -47,6 +62,7 @@ void game_shutdown(GameState* game_state) {
 #endif
 
   level1_shutdown(game_state->level);
+  level_shutdown(game_state->level);
   renderer_shutdown(game_state->gl);
 }
 
@@ -118,11 +134,13 @@ void game_lib_load(GameState* game_state) {
   Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
   Colour red = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
 
-  mesh_lib_load_single_tile(game_state->mesh_pit, gl, tileset, TS_PressurePadActivated, red,
-                            transparent);
-  mesh_lib_load_single_tile(game_state->mesh_block, gl, tileset, TS_Block, red, transparent);
-  mesh_lib_load_single_tile(game_state->mesh_hero, gl, tileset, TS_Hero, red, transparent);
-  mesh_screen_lib_load(game_state->mesh_screen, gl, render_struct);
+  graphic_lib_load_single_tile(&(game_state->graphic_pit), gl, tileset, TS_PressurePadActivated,
+                               red, transparent);
+  graphic_lib_load_single_tile(&(game_state->graphic_block), gl, tileset, TS_Block, red,
+                               transparent);
+  graphic_lib_load_single_tile(&(game_state->graphic_hero), gl, tileset, TS_Hero, red, transparent);
+  graphic_screen_lib_load(&(game_state->graphic_screen), gl, render_struct);
+
   level1_lib_load(game_state->level, gl, bump_transient, tileset);
 
   Colour text_colour_fg;
@@ -143,10 +161,10 @@ void game_lib_unload(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
 
   level1_lib_unload(game_state->level, game_state->gl);
-  mesh_screen_lib_unload(game_state->mesh_screen, game_state->gl);
-  mesh_lib_unload(game_state->mesh_hero, game_state->gl);
-  mesh_lib_unload(game_state->mesh_block, game_state->gl);
-  mesh_lib_unload(game_state->mesh_pit, game_state->gl);
+  graphic_screen_lib_unload(&(game_state->graphic_screen), game_state->gl);
+  graphic_lib_unload(&(game_state->graphic_hero), game_state->gl);
+  graphic_lib_unload(&(game_state->graphic_block), game_state->gl);
+  graphic_lib_unload(&(game_state->graphic_pit), game_state->gl);
 
 #ifdef RONA_EDITOR
   editor_lib_unload(game_state->gl, &editor_state);
@@ -237,11 +255,11 @@ void game_step(GameState* game_state) {
    */
 
   if (key_pressed(game_state->input, Key_Z)) {
-    command_undo(&level->undo_redo);
+    command_undo(&level->undo_redo, game_state);
   }
 
   if (key_pressed(game_state->input, Key_A)) {
-    command_redo(&level->undo_redo);
+    command_redo(&level->undo_redo, game_state);
   }
 
 #if 0
@@ -266,7 +284,7 @@ void game_step(GameState* game_state) {
     }
     if (moved) {
       command_transaction_begin(&level->undo_redo);
-      try_moving_hero(level, hero, direction);
+      try_moving_hero(level, hero, direction, game_state);
       command_transaction_end(&level->undo_redo);
     }
   }

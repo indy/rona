@@ -7,23 +7,24 @@
                    (define-minor-mode context-mode
                      "A temporary minor mode to be activated only specific to a buffer."
                      nil
-                     :lighter " [C-c C-c]-Context"
+                     :lighter " [C-c m]-Context"
                      context-mode-map)
                    (context-mode 1)
 
                    (defhydra hydra-context (:color pink :exit t)
                     "
-                    Rona Commands
+                    Rona Make Commands
                     ----------------------------------------------------
                     Build   : _g_: guest _h_: host
                     Execute : _r_: run   _t_: test
-                    Magit Commit Hack : _c_
+                    Misc    : _n_: tags  _f_: format
                     "
                      ("g" (compile "make guest -C ~/code/rona"))
                      ("h" (compile "make host  -C ~/code/rona"))
                      ("r" (compile "make run   -C ~/code/rona"))
                      ("t" (compile "make test  -C ~/code/rona"))
-                     ("c" (with-editor-finish))
+                     ("n" (compile "make tags  -C ~/code/rona"))
+                     ("f" (compile "make fmt   -C ~/code/rona"))
                      ("RET" nil "quit" :color blue))
 
-                   (define-key context-mode-map (kbd "C-c C-c") 'hydra-context/body))))))
+                   (define-key context-mode-map (kbd "C-c m") 'hydra-context/body))))))

@@ -18,12 +18,12 @@
 #ifndef LEVEL_H
 #define LEVEL_H
 
-bool try_moving_hero(Level* level, Entity* hero, Direction direction);
+void level_startup(Level* level, GameState* game_state);
+void level_shutdown(Level* level);
+
+bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state);
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]);
-
-void mesh_floor_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset);
-void mesh_floor_lib_unload(Level* level, RonaGL* gl);
 
 void world_from_board(Vec3* dst, i32 x, i32 y, f32 z);
 

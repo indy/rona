@@ -28,6 +28,18 @@ void level1_startup(Level* level, GameState* game_state) {
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 10
+  // char layout[L1_HEIGHT][L1_WIDTH * 2] = {
+  //   "                  ",
+  //   "                  ",
+  //   "                  ",
+  //   "                  ",
+  //   "                  ",
+  //   "    H . s         ",
+  //   "                  ",
+  //   "                  ",
+  //   "                  ",
+  //   "                  "
+  // };
   char layout[L1_HEIGHT][L1_WIDTH * 2] = {
     "    3 0 0 0 0 s 4 ",
     "    1 . . U . . 1 ",
@@ -46,8 +58,6 @@ void level1_startup(Level* level, GameState* game_state) {
   if (!command_buffer_startup(&level->allocator, &level->undo_redo)) {
     RONA_ERROR("level1_startup: command_buffer_startup failed\n");
   }
-
-  level->viewport = rect(0, 0, 10, 10);
 }
 
 void level1_shutdown(Level* level) {
@@ -56,7 +66,8 @@ void level1_shutdown(Level* level) {
 }
 
 void level1_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
-  mesh_floor_lib_load(level, gl, transient, tileset);
+  chunk_lib_load(level, gl, transient);
+  chunk_regenerate_geometry(level, gl, tileset);
 
   // Colour hero_colour;
   // colour_from(&hero_colour, ColourFormat_RGB, ColourFormat_HSLuv, 290.0f, 90.0f, 30.0f, 1.0f);
@@ -68,5 +79,5 @@ void level1_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset
   // hero->colour.a = hero_colour.element[3];
 }
 void level1_lib_unload(Level* level, RonaGL* gl) {
-  mesh_floor_lib_unload(level, gl);
+  chunk_lib_unload(level, gl);
 }

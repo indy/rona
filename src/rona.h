@@ -35,7 +35,8 @@
 #define MEMORY_ALLOCATION_NUKLEAR 16
 #define MEMORY_ALLOCATION_NUKLEAR_ATLAS 16
 
-#define MEMORY_COMMANDS_IN_BUFFER 10000
+// Fixed sizes that affect memory on CPU or GPU
+#define MEMORY_RESERVE_COMMANDS_IN_BUFFER 10000
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                           \
@@ -409,13 +410,8 @@ typedef struct {
 } Vec2i;
 
 typedef struct {
-  // i32   x;
-  // i32   y;
-  // usize width;
-  // usize height;
-
-  Vec2i pos;
-  Dim2  dim;
+  Vec2i pos; // the top-left corner
+  Dim2  dim; // width, height
 } Rect;
 
 typedef struct {
@@ -579,10 +575,11 @@ typedef struct {
   ShaderType shader_type;
   GLuint     vao;
   GLuint     vbo; // GL_ARRAY_BUFFER for vertices
-  GLuint     ebo; // GL_ELEMENT_ARRAY_BUFFER for indices
+  u32        sizeof_vbo;
 
-  i32 num_elements; // used by gl->drawElements
-} Mesh;
+  GLuint ebo;          // GL_ELEMENT_ARRAY_BUFFER for indices
+  i32    num_elements; // used by gl->drawElements
+} Graphic;
 
 typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;
 
@@ -596,8 +593,8 @@ typedef struct Entity {
   // there will be no more entites where exists == true
   bool exists;
 
-  Mesh* mesh;
-  Vec4  colour;
+  Graphic* graphic;
+  Vec4     colour;
 
   Vec2i board_pos;
 
@@ -677,10 +674,10 @@ typedef struct {
     } entity_rotate;
 #ifdef RONA_EDITOR
     struct {
-      struct Level     *level;
-      ChunkPos  chunk_pos;
-      ChunkTile tile_old;
-      ChunkTile tile_new;
+      struct Level* level;
+      ChunkPos      chunk_pos;
+      ChunkTile     tile_old;
+      ChunkTile     tile_new;
     } editor_change_tile;
 #endif
   } data;
@@ -718,19 +715,12 @@ typedef struct Level {
   Entity* entities;
 
   // chunky tile representation
-  Chunk* chunks; // stretchy buffer
-  Rect   viewport;
+  Chunk*  chunks; // stretchy buffer
+  Graphic chunk_graphic;
+  f32*    chunk_mesh;
+  u32     chunk_mesh_size_bytes;
 
-  Mesh*  mesh_chunk; // allocate some large amount of memory for this mesh
-
-  // old tile representation
-  i32   width;
-  i32   height;
-  Tile* tiles;
-  Vec2  offset_stage_from_world;
-
-  // mesh
-  Mesh* mesh_floor;
+  Rect viewport;
 
   // in-game undo/redo system for player moves
   //
@@ -757,18 +747,18 @@ typedef struct {
 #define HALF_TILE_WIDTH 8.0
 #define HALF_TILE_HEIGHT 8.0
 
-#define TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY 12
+#define TILED_VERTEX_NUM_FLOATS 12
 
 // number of floats for each quad of geometry
-#define TILED_QUAD_GEOMETRY_SIZEOF_1 (TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY * 4)
+#define TILED_QUAD_NUM_FLOATS (TILED_VERTEX_NUM_FLOATS * 4)
 // number of u32 for each quad
-#define TILED_QUAD_INDICES_SIZEOF_1 6
+#define TILED_QUAD_NUM_INDICES 6
 
 // (x, y, u, v, fg-rgba, bg-rgba) == 12 bytes
 // 12 * 4 bytes per float * 4 vertices per tiled quad == 192
-#define TILED_QUAD_GEOMETRY_BYTES (TILED_QUAD_GEOMETRY_SIZEOF_1 * 4)
+#define TILED_QUAD_GEOMETRY_BYTES (TILED_QUAD_NUM_FLOATS * sizeof(f32))
 // 3 verts per triangle * 2 triangles * 4 bytes per i32 == 24
-#define TILED_QUAD_INDICES_BYTES (TILED_QUAD_INDICES_SIZEOF_1 * 4)
+#define TILED_QUAD_INDICES_BYTES (TILED_QUAD_NUM_INDICES * sizeof(u32))
 
 typedef struct {
   i32 window_width;
@@ -918,10 +908,10 @@ typedef struct {
   FixedBlockAllocator allocator_permanent;
   FixedBlockAllocator allocator_transient;
 
-  Mesh* mesh_screen;
-  Mesh* mesh_hero;
-  Mesh* mesh_block;
-  Mesh* mesh_pit;
+  Graphic graphic_screen;
+  Graphic graphic_hero;
+  Graphic graphic_block;
+  Graphic graphic_pit;
 
   Level* level;
 

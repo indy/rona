@@ -132,10 +132,10 @@ void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
     /* fixed widget pixel width */
     nk_layout_row_dynamic(ctx, 30, 2);
     if (nk_button_label(ctx, "undo")) {
-      command_undo(&editor_state->undo_redo);
+      command_undo(&editor_state->undo_redo, game_state);
     }
     if (nk_button_label(ctx, "redo")) {
-      command_redo(&editor_state->undo_redo);
+      command_redo(&editor_state->undo_redo, game_state);
     }
 
     nk_layout_row_dynamic(ctx, 30, 1);
@@ -182,11 +182,8 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
         command->data.editor_change_tile.tile_old = *chunktile;
         command->data.editor_change_tile.tile_new = newTile;
 
-
         // perform the actual command
-        // chunktile->type = newTile.type;
-        // chunktile->sprite = newTile.sprite;
-        command_execute(command, CommandExecute_Redo);
+        command_execute(command, CommandExecute_Redo, game_state);
       }
       command_transaction_end(&editor_state->undo_redo);
     }

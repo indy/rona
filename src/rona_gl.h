@@ -994,6 +994,8 @@ typedef void(APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers)
 typedef void(APIENTRYP PFNGLBINDBUFFERPROC)(GLenum target, GLuint buffer);
 typedef void(APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data,
                                             GLenum usage);
+typedef void(APIENTRYP PFNGLBUFFERSUBDATAPROC)(GLenum target, GLintptr offset, GLsizeiptr size,
+                                               const void* data);
 typedef void*(APIENTRYP PFNGLMAPBUFFERPROC)(GLenum target, GLenum access);
 typedef GLboolean(APIENTRYP PFNGLUNMAPBUFFERPROC)(GLenum target);
 typedef void(APIENTRYP PFNGLENABLEVERTEXATTRIBARRAYPROC)(GLuint index);
@@ -1068,6 +1070,7 @@ typedef struct {
   PFNGLDELETEBUFFERSPROC            deleteBuffers;
   PFNGLBINDBUFFERPROC               bindBuffer;
   PFNGLBUFFERDATAPROC               bufferData;
+  PFNGLBUFFERSUBDATAPROC            bufferSubData;
   PFNGLMAPBUFFERPROC                mapBuffer;
   PFNGLUNMAPBUFFERPROC              unmapBuffer;
   PFNGLENABLEVERTEXATTRIBARRAYPROC  enableVertexAttribArray;

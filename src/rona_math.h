@@ -62,7 +62,7 @@ i32   vec2i_dot(Vec2i a, Vec2i b);
 i32   vec2i_length_squared(Vec2i a);
 void  vec2i_log(char* msg, Vec2i a);
 
-#define VEC2I_LOG(x) vec2i_log(#x,x)
+#define VEC2I_LOG(x) vec2i_log(#x, x)
 
 Vec2 vec2(f32 x, f32 y);
 Vec2 vec2_clone(Vec2* v2);

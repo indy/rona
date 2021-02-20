@@ -15,22 +15,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
-                               Colour fg_col, Colour bg_col) {
+void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset,
+                                  TilesetSprite tile_sprite, Colour fg_col, Colour bg_col) {
 
   Vec4   fg, bg;
   Colour c;
   vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
   vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
 
-  mesh->num_elements = 6;
-  mesh->shader_type = ShaderType_Tile;
+  graphic->num_elements = 6;
+  graphic->shader_type = ShaderType_Tile;
 
-  gl->genVertexArrays(1, &mesh->vao); // Vertex Array Object
+  gl->genVertexArrays(1, &graphic->vao); // Vertex Array Object
 
-  // RONA_LOG("mesh vao %d\n", mesh->vao);
+  // RONA_LOG("graphic vao %d\n", graphic->vao);
 
-  gl->bindVertexArray(mesh->vao);
+  gl->bindVertexArray(graphic->vao);
 
   Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
   f32  u = sprite.u;
@@ -56,8 +56,8 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
-  gl->genBuffers(1, &mesh->vbo);
-  gl->bindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+  gl->genBuffers(1, &graphic->vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW); // the data is set only once and used many times.
 
@@ -66,7 +66,7 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
   gl->enableVertexAttribArray(2);
   gl->enableVertexAttribArray(3);
 
-  u32 num_floats = TILED_VERTEX_NUM_FLOATS_FOR_GEOMETRY;
+  u32 num_floats = TILED_VERTEX_NUM_FLOATS;
 
   // positions
   gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
@@ -81,13 +81,13 @@ void mesh_lib_load_single_tile(Mesh* mesh, RonaGL* gl, Tileset* tileset, Tileset
   gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
                           (void*)(8 * sizeof(float)));
 
-  gl->genBuffers(1, &mesh->ebo);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+  gl->genBuffers(1, &graphic->ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);
   gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
   gl->bindVertexArray(0);
 }
 
-void mesh_lib_unload(Mesh* mesh, RonaGL* gl) {
-  gl->deleteVertexArrays(1, &mesh->vao);
+void graphic_lib_unload(Graphic* graphic, RonaGL* gl) {
+  gl->deleteVertexArrays(1, &graphic->vao);
 }
