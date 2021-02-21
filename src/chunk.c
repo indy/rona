@@ -19,14 +19,14 @@ bool chunk_pos_eq(Vec2i chunk_pos, Chunk* chunk) {
   return vec2i_eq(chunk_pos, chunk->pos);
 }
 
-void chunktile_construct(ChunkTile* chunk_tile) {
-  chunk_tile->type = TileType_Void;
-  chunk_tile->sprite = TS_DebugBlank;
+void chunktile_construct(Tile* tile) {
+  tile->type = TileType_Void;
+  tile->sprite = TS_DebugBlank;
 }
 
 void chunk_construct(Chunk* chunk, BumpAllocator* allocator, Vec2i pos) {
   chunk->pos = pos;
-  chunk->tiles = BUMP_ALLOC(allocator, sizeof(ChunkTile) * CHUNK_WIDTH * CHUNK_HEIGHT);
+  chunk->tiles = BUMP_ALLOC(allocator, sizeof(Tile) * CHUNK_WIDTH * CHUNK_HEIGHT);
   RONA_ASSERT(chunk->tiles);
 
   for (int i = 0; i < CHUNK_WIDTH * CHUNK_HEIGHT; i++) {
@@ -60,11 +60,11 @@ ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
   return res;
 }
 
-ChunkTile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space) {
-  ChunkPos   chunkpos = chunk_pos_from_world_tile_space(pos_in_world_tile_space);
-  ChunkTile* chunktile = chunktile_ensure_get(level, chunkpos);
+Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space) {
+  ChunkPos chunkpos = chunk_pos_from_world_tile_space(pos_in_world_tile_space);
+  Tile*    tile = chunk_tile_ensure_get(level, chunkpos);
 
-  return chunktile;
+  return tile;
 }
 
 void chunk_pos_log(char* msg, ChunkPos cp) {
@@ -94,7 +94,7 @@ Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos) {
   return NULL;
 }
 
-ChunkTile* chunktile_ensure_get(Level* level, ChunkPos chunkpos) {
+Tile* chunk_tile_ensure_get(Level* level, ChunkPos chunkpos) {
   RONA_ASSERT(level);
   RONA_ASSERT(chunkpos.tile_offset.x < CHUNK_WIDTH);
   RONA_ASSERT(chunkpos.tile_offset.y < CHUNK_HEIGHT);
@@ -102,9 +102,9 @@ ChunkTile* chunktile_ensure_get(Level* level, ChunkPos chunkpos) {
   Chunk* chunk = chunk_ensure_get(level, chunkpos.chunk_pos);
   RONA_ASSERT(chunk);
 
-  ChunkTile* res = &chunk->tiles[(chunkpos.tile_offset.y * CHUNK_WIDTH) + chunkpos.tile_offset.x];
+  Tile* tile = &chunk->tiles[(chunkpos.tile_offset.y * CHUNK_WIDTH) + chunkpos.tile_offset.x];
 
-  return res;
+  return tile;
 }
 
 void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
@@ -140,9 +140,9 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
 
       for (i32 ty = 0; ty < CHUNK_HEIGHT; ty++) {
         for (i32 tx = 0; tx < CHUNK_WIDTH; tx++) {
-          ChunkTile* chunktile = &(chunk->tiles[(ty * CHUNK_WIDTH) + tx]);
-          if (chunktile->sprite != TS_DebugBlank) {
-            TilesetSprite tile_sprite = chunktile->sprite;
+          Tile* tile = &(chunk->tiles[(ty * CHUNK_WIDTH) + tx]);
+          if (tile->sprite != TS_DebugBlank) {
+            TilesetSprite tile_sprite = tile->sprite;
 
             Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
             f32  u = sprite.u;

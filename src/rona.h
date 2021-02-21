@@ -620,13 +620,8 @@ typedef struct {
 #define CHUNK_HEIGHT 10
 
 typedef struct {
-  TileType      type;
-  TilesetSprite sprite;
-} ChunkTile;
-
-typedef struct {
-  Vec2i      pos; // chunk space
-  ChunkTile* tiles;
+  Vec2i pos; // chunk space
+  Tile* tiles;
 } Chunk;
 
 typedef struct {
@@ -644,7 +639,7 @@ typedef enum {
   CommandType_Delimiter = 0,
   CommandType_EntityMove,
 #ifdef RONA_EDITOR
-  CommandType_Editor_ChangeTile,
+  CommandType_Editor_TileChange,
 #endif
   CommandType_End
 } CommandType;
@@ -676,8 +671,8 @@ typedef struct {
     struct {
       struct Level* level;
       ChunkPos      chunk_pos;
-      ChunkTile     tile_old;
-      ChunkTile     tile_new;
+      Tile          tile_old;
+      Tile          tile_new;
     } editor_change_tile;
 #endif
   } data;

@@ -164,23 +164,23 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
       {
         Command* command = command_add(&level->allocator, &editor_state->undo_redo);
 
-        command->type = CommandType_Editor_ChangeTile;
+        command->type = CommandType_Editor_TileChange;
         command->data.editor_change_tile.level = level;
         command->data.editor_change_tile.chunk_pos = chunk_pos;
 
-        ChunkTile* chunktile = chunktile_ensure_get(level, chunk_pos);
-        ChunkTile  newTile;
+        Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
+        Tile  tile_new;
 
         if (editor_state->active_tile_type == 0) {
-          newTile.type = TileType_Void;
-          newTile.sprite = TS_DebugBlank;
+          tile_new.type = TileType_Void;
+          tile_new.sprite = TS_DebugBlank;
         } else {
-          newTile.type = TileType_Floor;
-          newTile.sprite = TS_Debug4Corners;
+          tile_new.type = TileType_Floor;
+          tile_new.sprite = TS_Debug4Corners;
         }
 
-        command->data.editor_change_tile.tile_old = *chunktile;
-        command->data.editor_change_tile.tile_new = newTile;
+        command->data.editor_change_tile.tile_old = *tile_old;
+        command->data.editor_change_tile.tile_new = tile_new;
 
         // perform the actual command
         command_execute(command, CommandExecute_Redo, game_state);

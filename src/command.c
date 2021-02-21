@@ -52,19 +52,19 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
     // not expecting to offer a playback mode for editor commands (why would there be a demo mode
     // just for the editor?) so only deal with undo and redo command executions
     /*
-     * Editor ChangeTile
+     * Editor TileChange
      */
-  case CommandType_Editor_ChangeTile: {
-    ChunkTile* chunktile = chunktile_ensure_get(command->data.editor_change_tile.level,
-                                                command->data.editor_change_tile.chunk_pos);
+  case CommandType_Editor_TileChange: {
+    Tile* tile = chunk_tile_ensure_get(command->data.editor_change_tile.level,
+                                       command->data.editor_change_tile.chunk_pos);
     switch (execute_type) {
     case CommandExecute_Play:
       return; // early return, no need to do anything here
     case CommandExecute_Undo:
-      *chunktile = command->data.editor_change_tile.tile_old;
+      *tile = command->data.editor_change_tile.tile_old;
       break;
     case CommandExecute_Redo:
-      *chunktile = command->data.editor_change_tile.tile_new;
+      *tile = command->data.editor_change_tile.tile_new;
       break;
     }
 

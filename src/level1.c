@@ -28,18 +28,6 @@ void level1_startup(Level* level, GameState* game_state) {
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 10
-  // char layout[L1_HEIGHT][L1_WIDTH * 2] = {
-  //   "                  ",
-  //   "                  ",
-  //   "                  ",
-  //   "                  ",
-  //   "                  ",
-  //   "    H . s         ",
-  //   "                  ",
-  //   "                  ",
-  //   "                  ",
-  //   "                  "
-  // };
   char layout[L1_HEIGHT][L1_WIDTH * 2] = {
     "    3 0 0 0 0 s 4 ",
     "    1 . . U . . 1 ",

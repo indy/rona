@@ -31,11 +31,11 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
 ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport);
 ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space);
 
-ChunkTile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space);
+Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space);
 
 // gets the chunk specified by cp, creating a chunk if it doesn't exist
-Chunk*     chunk_ensure_get(Level* level, Vec2i chunk_pos);
-Chunk*     chunk_get(Chunk* chunks, Vec2i chunk_pos);
-ChunkTile* chunktile_ensure_get(Level* level, ChunkPos cp);
+Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos);
+Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos);
+Tile*  chunk_tile_ensure_get(Level* level, ChunkPos cp);
 
 #endif // CHUNK_H

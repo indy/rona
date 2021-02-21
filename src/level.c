@@ -74,8 +74,8 @@ void world_from_board(Vec3* dst, i32 x, i32 y, f32 z) {
 bool try_moving_block(Level* level, Entity* block, Direction direction, GameState* game_state) {
   Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
 
-  ChunkTile* chunktile = chunk_tile_from_world_tile_space(level, new_pos);
-  if (chunktile->type == TileType_Void) {
+  Tile* tile = chunk_tile_from_world_tile_space(level, new_pos);
+  if (tile->type == TileType_Void) {
     return false;
   }
 
@@ -137,8 +137,8 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
 bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
-  ChunkTile* chunktile = chunk_tile_from_world_tile_space(level, new_pos);
-  if (chunktile->type == TileType_Void) {
+  Tile* tile = chunk_tile_from_world_tile_space(level, new_pos);
+  if (tile->type == TileType_Void) {
     return false;
   }
 
@@ -238,34 +238,34 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
     for (i32 i = 0; i < dbl_width; i += 2) {
 
-      Vec2i      world_tile_coords = vec2i(i / 2, j);
-      ChunkPos   chunkpos = chunk_pos_from_world_tile_space(world_tile_coords);
-      ChunkTile* chunktile = chunktile_ensure_get(level, chunkpos);
+      Vec2i    world_tile_coords = vec2i(i / 2, j);
+      ChunkPos chunkpos = chunk_pos_from_world_tile_space(world_tile_coords);
+      Tile*    tile = chunk_tile_ensure_get(level, chunkpos);
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
         i32 tile_y = j;
 
-        chunktile->type = TileType_Floor;
-        chunktile->sprite = TS_Debug4Corners;
+        tile->type = TileType_Floor;
+        tile->sprite = TS_Debug4Corners;
 
         Entity *hero, *block, *pit;
 
         switch (plan_line[i]) {
         // clang-format off
-        case '0': chunktile->type = TileType_Void; chunktile->sprite = TS_WallHorizontal; break;
-        case '1': chunktile->type = TileType_Void; chunktile->sprite = TS_WallVertical; break;
-        case '2': chunktile->type = TileType_Void; chunktile->sprite = TS_WallHorizontalPoint; break;
-        case '3': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTLCorner; break;
-        case '4': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTRCorner; break;
-        case '5': chunktile->type = TileType_Void; chunktile->sprite = TS_WallBLCorner; break;
-        case '6': chunktile->type = TileType_Void; chunktile->sprite = TS_WallBRCorner; break;
-        case '7': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTeeLeft; break;
-        case '8': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTeeRight; break;
-        case '9': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTeeDown; break;
-        case 'a': chunktile->type = TileType_Void; chunktile->sprite = TS_WallTeeUp; break;
-        case 'b': chunktile->type = TileType_Void; chunktile->sprite = TS_WallCross; break;
-        case 's': chunktile->type = TileType_Void; chunktile->sprite = TS_DoorClosed; break;
+        case '0': tile->type = TileType_Void; tile->sprite = TS_WallHorizontal; break;
+        case '1': tile->type = TileType_Void; tile->sprite = TS_WallVertical; break;
+        case '2': tile->type = TileType_Void; tile->sprite = TS_WallHorizontalPoint; break;
+        case '3': tile->type = TileType_Void; tile->sprite = TS_WallTLCorner; break;
+        case '4': tile->type = TileType_Void; tile->sprite = TS_WallTRCorner; break;
+        case '5': tile->type = TileType_Void; tile->sprite = TS_WallBLCorner; break;
+        case '6': tile->type = TileType_Void; tile->sprite = TS_WallBRCorner; break;
+        case '7': tile->type = TileType_Void; tile->sprite = TS_WallTeeLeft; break;
+        case '8': tile->type = TileType_Void; tile->sprite = TS_WallTeeRight; break;
+        case '9': tile->type = TileType_Void; tile->sprite = TS_WallTeeDown; break;
+        case 'a': tile->type = TileType_Void; tile->sprite = TS_WallTeeUp; break;
+        case 'b': tile->type = TileType_Void; tile->sprite = TS_WallCross; break;
+        case 's': tile->type = TileType_Void; tile->sprite = TS_DoorClosed; break;
         // clang-format on
         case 'H':
           hero = &(level->entities[0]);
@@ -308,8 +308,8 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         }
 
       } else {
-        chunktile->type = TileType_Void;
-        chunktile->sprite = TS_DebugBlank;
+        tile->type = TileType_Void;
+        tile->sprite = TS_DebugBlank;
       }
     }
   }
