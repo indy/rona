@@ -640,6 +640,7 @@ typedef enum {
   CommandType_EntityMove,
 #ifdef RONA_EDITOR
   CommandType_Editor_TileChange,
+  CommandType_Editor_WallsBuild,
 #endif
   CommandType_End
 } CommandType;
@@ -652,6 +653,12 @@ typedef struct {
 } CommandParamsEntityMove;
 
 struct Level;
+
+typedef struct {
+  ChunkPos chunk_pos;
+  Tile     tile_old;
+  Tile     tile_new;
+} CommandParamsTileChange;
 
 typedef struct {
   CommandType type;
@@ -673,7 +680,11 @@ typedef struct {
       ChunkPos      chunk_pos;
       Tile          tile_old;
       Tile          tile_new;
-    } editor_change_tile;
+    } editor_tile_change;
+    struct {
+      struct Level*            level;
+      CommandParamsTileChange* changes;
+    } editor_walls_build;
 #endif
   } data;
 } Command;
@@ -703,14 +714,16 @@ typedef struct {
 // --------------------------------------------------------------------------------
 
 typedef struct Level {
-  BumpAllocator       allocator;
-  FixedBlockAllocator fb_allocator;
+  // bump_allocator manages all the memory that the level will use.
+  BumpAllocator bump_allocator;
+  // fixed_block_allocator references Level::bump_allocator
+  FixedBlockAllocator fixed_block_allocator;
 
   i32     max_num_entities;
   Entity* entities;
 
   // chunky tile representation
-  Chunk*  chunks; // stretchy buffer
+  Chunk*  sb_chunks;
   Graphic chunk_graphic;
   f32*    chunk_mesh;
   u32     chunk_mesh_size_bytes;

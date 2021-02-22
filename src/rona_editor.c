@@ -61,8 +61,31 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
     /* fixed widget pixel width */
     nk_layout_row_static(ctx, 30, 80, 1);
-    if (nk_button_label(ctx, "button")) {
-      /* event handling */
+    if (nk_button_label(ctx, "Build Walls")) {
+      Level* level = game_state->level;
+      command_transaction_begin(&editor_state->undo_redo);
+      {
+        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo);
+
+        command->type = CommandType_Editor_WallsBuild;
+        command->data.editor_tile_change.level = level;
+        // command->data.editor_tile_change.chunk_pos = chunk_pos;
+
+        // Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
+        // Tile  tile_new;
+
+        // if (editor_state->active_tile_type == 0) {
+        //   tile_new.type = TileType_Void;
+        //   tile_new.sprite = TS_DebugBlank;
+        // } else {
+        //   tile_new.type = TileType_Floor;
+        //   tile_new.sprite = TS_Debug4Corners;
+        // }
+
+        // command->data.editor_tile_change.tile_old = *tile_old;
+        // command->data.editor_tile_change.tile_new = tile_new;
+      }
+      command_transaction_end(&editor_state->undo_redo);
     }
 
     nk_layout_row_begin(ctx, NK_DYNAMIC, 30, 2);
@@ -162,11 +185,11 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command = command_add(&level->allocator, &editor_state->undo_redo);
+        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo);
 
         command->type = CommandType_Editor_TileChange;
-        command->data.editor_change_tile.level = level;
-        command->data.editor_change_tile.chunk_pos = chunk_pos;
+        command->data.editor_tile_change.level = level;
+        command->data.editor_tile_change.chunk_pos = chunk_pos;
 
         Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
         Tile  tile_new;
@@ -179,8 +202,8 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
           tile_new.sprite = TS_Debug4Corners;
         }
 
-        command->data.editor_change_tile.tile_old = *tile_old;
-        command->data.editor_change_tile.tile_new = tile_new;
+        command->data.editor_tile_change.tile_old = *tile_old;
+        command->data.editor_tile_change.tile_new = tile_new;
 
         // perform the actual command
         command_execute(command, CommandExecute_Redo, game_state);
@@ -353,7 +376,7 @@ void editor_changed_level(EditorState* editor_state, Level* level) {
   RONA_ASSERT(level);
 
   // use the level's bump allocator to store undo/redo information
-  if (!command_buffer_startup(&(level->allocator), &(editor_state->undo_redo))) {
+  if (!command_buffer_startup(&(level->bump_allocator), &(editor_state->undo_redo))) {
     RONA_ERROR("editor_startup: command_buffer_startup failed\n");
   }
 }

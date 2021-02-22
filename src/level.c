@@ -108,7 +108,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
   }
 
   {
-    Command* command = command_add(&level->allocator, &level->undo_redo);
+    Command* command = command_add(&level->bump_allocator, &level->undo_redo);
 
     command->type = CommandType_EntityMove;
     command->entity = block;
@@ -176,7 +176,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   }
 
   {
-    Command* command = command_add(&level->allocator, &level->undo_redo);
+    Command* command = command_add(&level->bump_allocator, &level->undo_redo);
 
     command->type = CommandType_EntityMove;
     command->entity = hero;
@@ -218,11 +218,11 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
                  char layout[][dbl_width]) {
 
-  level->chunks = NULL;
+  level->sb_chunks = NULL;
 
   level->max_num_entities = 10;
   level->entities =
-      (Entity*)BUMP_ALLOC(&(level->allocator), sizeof(Entity) * level->max_num_entities);
+      (Entity*)BUMP_ALLOC(&(level->bump_allocator), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }

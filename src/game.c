@@ -16,18 +16,14 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void game_startup(GameState* game_state) {
-  // game_state->graphic_screen = (Graphic*)BUMP_ALLOC(&game_state->arena_permanent,
-  // sizeof(Graphic)); game_state->graphic_hero = (Graphic*)BUMP_ALLOC(&game_state->arena_permanent,
-  // sizeof(Graphic)); game_state->graphic_block =
-  // (Graphic*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Graphic)); game_state->graphic_pit =
-  // (Graphic*)BUMP_ALLOC(&game_state->arena_permanent, sizeof(Graphic));
+  u64    level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
+  Level* level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
+  game_state->level = level;
 
-  u64 level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
-  game_state->level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
-  game_state->level->allocator.base = game_state->level + sizeof(Level);
-  game_state->level->allocator.size = level_memory_arena_size - sizeof(Level);
-  game_state->level->allocator.used = 0;
-  fixed_block_allocator_reset(&game_state->level->fb_allocator, &game_state->level->allocator);
+  level->bump_allocator.base = level + sizeof(Level);
+  level->bump_allocator.size = level_memory_arena_size - sizeof(Level);
+  level->bump_allocator.used = 0;
+  fixed_block_allocator_reset(&level->fixed_block_allocator, &level->bump_allocator);
 
   // work out how many tiles are required to cover the stage along each dimension
   //
@@ -40,10 +36,10 @@ void game_startup(GameState* game_state) {
     h++;
   }
   RONA_INFO("w %d, h %d\n", w, h);
-  game_state->level->viewport = rect(-3, -3, w, h);
+  level->viewport = rect(-3, -3, w, h);
 
-  level_startup(game_state->level, game_state);
-  level1_startup(game_state->level, game_state);
+  level_startup(level, game_state);
+  level1_startup(level, game_state);
 
   RonaGL* gl = game_state->gl;
   renderer_startup(gl, &(game_state->render_struct), &(game_state->arena_permanent));
@@ -52,7 +48,7 @@ void game_startup(GameState* game_state) {
   BumpAllocator* permanent = &(game_state->arena_permanent);
   BumpAllocator* transient = &(game_state->arena_transient);
   editor_startup(gl, &editor_state, permanent, transient);
-  editor_changed_level(&editor_state, game_state->level);
+  editor_changed_level(&editor_state, level);
 #endif /*  RONA_EDITOR  */
 }
 

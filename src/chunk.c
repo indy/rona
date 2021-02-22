@@ -24,9 +24,9 @@ void chunktile_construct(Tile* tile) {
   tile->sprite = TS_DebugBlank;
 }
 
-void chunk_construct(Chunk* chunk, BumpAllocator* allocator, Vec2i pos) {
+void chunk_construct(Chunk* chunk, BumpAllocator* bump_allocator, Vec2i pos) {
   chunk->pos = pos;
-  chunk->tiles = BUMP_ALLOC(allocator, sizeof(Tile) * CHUNK_WIDTH * CHUNK_HEIGHT);
+  chunk->tiles = BUMP_ALLOC(bump_allocator, sizeof(Tile) * CHUNK_WIDTH * CHUNK_HEIGHT);
   RONA_ASSERT(chunk->tiles);
 
   for (int i = 0; i < CHUNK_WIDTH * CHUNK_HEIGHT; i++) {
@@ -73,25 +73,22 @@ void chunk_pos_log(char* msg, ChunkPos cp) {
 }
 
 Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos) {
-  Chunk* c = chunk_get(level->chunks, chunk_pos);
-
-  if (!c) {
-    c = sb_add(&level->fb_allocator, level->chunks, 1);
-    chunk_construct(c, &level->allocator, chunk_pos);
-  }
-
-  RONA_ASSERT(c);
-  return c;
-}
-
-Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos) {
-  i32 count = sb_count(chunks);
+  Chunk* chunk = NULL;
+  i32    count = sb_count(level->sb_chunks);
   for (int i = 0; i < count; i++) {
-    if (chunk_pos_eq(chunk_pos, &chunks[i])) {
-      return &chunks[i];
+    if (chunk_pos_eq(chunk_pos, &level->sb_chunks[i])) {
+      chunk = &level->sb_chunks[i];
+      break;
     }
   }
-  return NULL;
+
+  if (!chunk) {
+    chunk = sb_add(&level->fixed_block_allocator, level->sb_chunks, 1);
+    chunk_construct(chunk, &level->bump_allocator, chunk_pos);
+  }
+
+  RONA_ASSERT(chunk);
+  return chunk;
 }
 
 Tile* chunk_tile_ensure_get(Level* level, ChunkPos chunkpos) {
@@ -225,7 +222,7 @@ void chunk_startup(Level* level) {
   // allocate the memory for the tile geometry
   u32 memory_to_allocate = max_number_of_renderable_tiles(level) * TILED_QUAD_NUM_FLOATS;
   RONA_LOG("chunk_startup: memory_to_allocate: %u\n", memory_to_allocate);
-  level->chunk_mesh = (f32*)BUMP_ALLOC(&level->allocator, memory_to_allocate);
+  level->chunk_mesh = (f32*)BUMP_ALLOC(&level->bump_allocator, memory_to_allocate);
 
   level->chunk_graphic.sizeof_vbo = 0;
   level->chunk_graphic.num_elements = 0;

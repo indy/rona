@@ -55,16 +55,16 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      * Editor TileChange
      */
   case CommandType_Editor_TileChange: {
-    Tile* tile = chunk_tile_ensure_get(command->data.editor_change_tile.level,
-                                       command->data.editor_change_tile.chunk_pos);
+    Tile* tile = chunk_tile_ensure_get(command->data.editor_tile_change.level,
+                                       command->data.editor_tile_change.chunk_pos);
     switch (execute_type) {
     case CommandExecute_Play:
       return; // early return, no need to do anything here
     case CommandExecute_Undo:
-      *tile = command->data.editor_change_tile.tile_old;
+      *tile = command->data.editor_tile_change.tile_old;
       break;
     case CommandExecute_Redo:
-      *tile = command->data.editor_change_tile.tile_new;
+      *tile = command->data.editor_tile_change.tile_new;
       break;
     }
 

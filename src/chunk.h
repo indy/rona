@@ -23,19 +23,15 @@ void chunk_shutdown(Level* level);
 void chunk_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient);
 void chunk_lib_unload(Level* level, RonaGL* gl);
 
-void chunk_pos_log(char* msg, ChunkPos cp);
-#define CHUNKPOS_LOG(x) chunk_pos_log(#x, x)
-
 void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
 
+void chunk_pos_log(char* msg, ChunkPos cp);
+#define CHUNKPOS_LOG(x) chunk_pos_log(#x, x)
 ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport);
 ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space);
 
-Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space);
-
-// gets the chunk specified by cp, creating a chunk if it doesn't exist
 Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos);
-Chunk* chunk_get(Chunk* chunks, Vec2i chunk_pos);
-Tile*  chunk_tile_ensure_get(Level* level, ChunkPos cp);
+Tile*  chunk_tile_ensure_get(Level* level, ChunkPos chunkpos);
+Tile*  chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space);
 
 #endif // CHUNK_H
