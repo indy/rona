@@ -55,9 +55,6 @@ static MunitResult test_rona_memory(const MunitParameter params[], void* user_da
 }
 
 static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_data) {
-
-  Vec2i* arr = NULL;
-
   BumpAllocator arena;
   arena.size = megabytes(1);
   arena.base = malloc(arena.size);
@@ -66,19 +63,52 @@ static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_
   FixedBlockAllocator ma;
   fixed_block_allocator_reset(&ma, &arena);
 
-  sb_push(&ma, arr, vec2i(10, 10));
-  sb_push(&ma, arr, vec2i(20, 10));
-  sb_push(&ma, arr, vec2i(30, 10));
-  sb_push(&ma, arr, vec2i(40, 10));
-  sb_push(&ma, arr, vec2i(50, 10));
+  // push existing values onto stretchy buffer
+  {
+    Vec2i* arr = NULL;
 
-  munit_assert(arr[0].x == 10);
-  munit_assert(arr[1].x == 20);
-  munit_assert(arr[2].x == 30);
-  munit_assert(arr[3].x == 40);
-  munit_assert(arr[4].x == 50);
+    sb_push(&ma, arr, vec2i(10, 10));
+    sb_push(&ma, arr, vec2i(20, 10));
+    sb_push(&ma, arr, vec2i(30, 10));
+    sb_push(&ma, arr, vec2i(40, 10));
+    sb_push(&ma, arr, vec2i(50, 10));
 
-  munit_assert(sb_count(arr) == 5);
+    munit_assert(arr[0].x == 10);
+    munit_assert(arr[1].x == 20);
+    munit_assert(arr[2].x == 30);
+    munit_assert(arr[3].x == 40);
+    munit_assert(arr[4].x == 50);
+
+    munit_assert(sb_count(arr) == 5);
+  }
+
+  // grow the stretchy buffer before filling in the values
+  {
+    Vec2i* arr = NULL;
+    sb_add(&ma, arr, 2);
+    arr[0].x = 5;
+    arr[0].y = 5;
+    arr[1].x = 8;
+    arr[1].y = 8;
+    munit_assert(sb_count(arr) == 2);
+
+    sb_add(&ma, arr, 2);
+    arr[2].x = 1;
+    arr[2].y = 2;
+    arr[3].x = 3;
+    arr[3].y = 4;
+    munit_assert(sb_count(arr) == 4);
+
+    munit_assert(arr[0].x == 5);
+    munit_assert(arr[1].x == 8);
+    munit_assert(arr[2].x == 1);
+    munit_assert(arr[3].x == 3);
+
+    Vec2i last = sb_last(arr);
+    munit_assert(last.x == 3);
+    munit_assert(last.y == 4);
+  }
+
 
   return MUNIT_OK;
 }
