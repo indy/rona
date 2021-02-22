@@ -123,10 +123,8 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
   u32 num_tiles = 0;
 
   Rect* viewport = &(level->viewport);
-  for (i32 cy = viewport->pos.y; cy < viewport->pos.y + (i32)viewport->dim.height;
-       cy += CHUNK_HEIGHT) {
-    for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width;
-         cx += CHUNK_WIDTH) {
+  for (i32 cy = viewport->pos.y; cy < viewport->pos.y + (i32)viewport->dim.height; cy += CHUNK_HEIGHT) {
+    for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width; cx += CHUNK_WIDTH) {
       ChunkPos chunk_pos = chunk_pos_from_world_tile_space(vec2i(cx, cy));
       Chunk*   chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
       RONA_ASSERT(chunk);

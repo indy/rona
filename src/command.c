@@ -94,10 +94,9 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 
 bool command_system_startup(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator,
                             usize num_reserved_commands) {
-  undo_redo->sb_command =
-      sb_add(fixed_block_allocator, undo_redo->sb_command, num_reserved_commands);
+  undo_redo->sb_commands = sb_add(fixed_block_allocator, undo_redo->sb_commands, num_reserved_commands);
 
-  undo_redo->in_command_transaction = false;
+  undo_redo->in_transaction = false;
   undo_redo->command_index_next_free = 0;
 
   undo_redo->command_index_furthest_future = 0;
@@ -109,38 +108,37 @@ void command_system_shutdown(UndoRedo* undo_redo) {
 }
 
 bool command_transaction_begin(UndoRedo* undo_redo) {
-  if (undo_redo->in_command_transaction) {
+  if (undo_redo->in_transaction) {
     RONA_ERROR("command_transaction_begin: already in transaction\n");
     return false;
   }
 
-  undo_redo->in_command_transaction = true;
+  undo_redo->in_transaction = true;
 
   return true;
 }
 
 bool command_transaction_end(UndoRedo* undo_redo) {
-  if (!(undo_redo->in_command_transaction)) {
+  if (!(undo_redo->in_transaction)) {
     RONA_ERROR("command_transaction_end: not in transaction\n");
     return false;
   }
 
-  undo_redo->in_command_transaction = false;
+  undo_redo->in_transaction = false;
 
   if (undo_redo->command_index_next_free == 0) {
     // there are no commands, so just return
     return true;
   } else {
-    undo_redo->sb_command[undo_redo->command_index_next_free - 1].is_last_in_transaction = true;
+    undo_redo->sb_commands[undo_redo->command_index_next_free - 1].is_last_in_transaction = true;
     return true;
   }
 }
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator,
-                     GameState* game_state) {
+Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator, GameState* game_state) {
   RONA_ASSERT(fixed_block_allocator);
-  RONA_ASSERT(undo_redo->in_command_transaction);
+  RONA_ASSERT(undo_redo->in_transaction);
 
   // about to add a new command, so kill all the commands on the now invalid future timeline
   //
@@ -151,19 +149,19 @@ Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_alloc
     usize i = undo_redo->command_index_furthest_future + 1;
     do {
       i--;
-      command_execute(&(undo_redo->sb_command[i]), CommandExecute_Kill, game_state);
+      command_execute(&(undo_redo->sb_commands[i]), CommandExecute_Kill, game_state);
     } while (i > undo_redo->command_index_next_free);
   } else {
     // already at the furthest future command, there are no commands that need to be killed
   }
 
   Command* command = NULL;
-  if (undo_redo->command_index_next_free >= sb_count(undo_redo->sb_command)) {
+  if (undo_redo->command_index_next_free >= sb_count(undo_redo->sb_commands)) {
     // RONA_LOG("sb_add (%d, %d)\n", undo_redo->command_index_next_free,
-    // sb_count(undo_redo->sb_command));
-    command = sb_add(fixed_block_allocator, undo_redo->sb_command, 1);
+    // sb_count(undo_redo->sb_commands));
+    command = sb_add(fixed_block_allocator, undo_redo->sb_commands, 1);
   } else {
-    command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
+    command = &(undo_redo->sb_commands[undo_redo->command_index_next_free]);
   }
 
   undo_redo->command_index_furthest_future = undo_redo->command_index_next_free;
@@ -185,7 +183,7 @@ Command* command_pop(UndoRedo* undo_redo) {
     undo_redo->command_index_next_free -= 1;
   }
 
-  Command* command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
+  Command* command = &(undo_redo->sb_commands[undo_redo->command_index_next_free]);
 
   return command;
 }
@@ -200,7 +198,7 @@ Command* command_peek(UndoRedo* undo_redo) {
     command_index_next_free = undo_redo->command_index_next_free - 1;
   }
 
-  Command* command = &(undo_redo->sb_command[command_index_next_free]);
+  Command* command = &(undo_redo->sb_commands[command_index_next_free]);
 
   return command;
 }
@@ -208,7 +206,7 @@ Command* command_peek(UndoRedo* undo_redo) {
 Command* command_pop_up(UndoRedo* undo_redo) {
   Command* command;
 
-  if (undo_redo->command_index_next_free == sb_count(undo_redo->sb_command)) {
+  if (undo_redo->command_index_next_free == sb_count(undo_redo->sb_commands)) {
     RONA_ERROR("command_pop_up: cannot pop forward\n");
     return NULL;
   } else {
@@ -218,7 +216,7 @@ Command* command_pop_up(UndoRedo* undo_redo) {
       return NULL;
     }
 
-    command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
+    command = &(undo_redo->sb_commands[undo_redo->command_index_next_free]);
     undo_redo->command_index_next_free += 1;
   }
 
@@ -316,13 +314,12 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
 
 void command_debug(UndoRedo* undo_redo) {
   RONA_LOG("\n");
-  RONA_LOG("undo_redo.in_command_transaction %d\n", undo_redo->in_command_transaction);
+  RONA_LOG("undo_redo.in_transaction %d\n", undo_redo->in_transaction);
   RONA_LOG("undo_redo.command_index_next_free %d\n", undo_redo->command_index_next_free);
-  RONA_LOG("undo_redo.command_index_furthest_future %d\n",
-           undo_redo->command_index_furthest_future);
+  RONA_LOG("undo_redo.command_index_furthest_future %d\n", undo_redo->command_index_furthest_future);
 
   for (int i = 0; i <= undo_redo->command_index_furthest_future; i++) {
     RONA_LOG("command %d:\n", i);
-    command_pretty_print(&(undo_redo->sb_command[i]), true, "    ");
+    command_pretty_print(&(undo_redo->sb_commands[i]), true, "    ");
   }
 }

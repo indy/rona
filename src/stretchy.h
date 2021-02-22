@@ -24,8 +24,7 @@
 #define sb_free(alloc, a) ((a) ? rona_free((alloc), stb__sbraw(a)), 0 : 0)
 #define sb_push(alloc, a, v) (stb__sbmaybegrow(alloc, a, 1), (a)[stb__sbn(a)++] = (v))
 #define sb_count(a) ((a) ? stb__sbn(a) : 0)
-#define sb_add(alloc, a, n)                                                                        \
-  (stb__sbmaybegrow(alloc, a, n), stb__sbn(a) += (n), &(a)[stb__sbn(a) - (n)])
+#define sb_add(alloc, a, n) (stb__sbmaybegrow(alloc, a, n), stb__sbn(a) += (n), &(a)[stb__sbn(a) - (n)])
 #define sb_last(a) ((a)[stb__sbn(a) - 1])
 
 #define stb__sbraw(a) ((int*)(void*)(a)-2)

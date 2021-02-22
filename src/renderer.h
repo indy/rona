@@ -42,9 +42,9 @@ void   attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint 
 
   The benefit of all this is that hot reloading works on shaders
 */
-#define SHADER_AS_STRING(BUMP, NAME, SHADER)                                                       \
-  char* NAME = (char*)BUMP_ALLOC(BUMP, (src_shaders_##SHADER##_len + 1));                          \
-  memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                  \
+#define SHADER_AS_STRING(BUMP, NAME, SHADER)                                                                 \
+  char* NAME = (char*)BUMP_ALLOC(BUMP, (src_shaders_##SHADER##_len + 1));                                    \
+  memcpy(NAME, src_shaders_##SHADER, src_shaders_##SHADER##_len);                                            \
   NAME[src_shaders_##SHADER##_len] = 0;
 
 GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* fragmentSource);

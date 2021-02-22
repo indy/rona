@@ -67,8 +67,7 @@ Vec2i vec2i_add_direction(Vec2i* pos, Direction direction) {
 }
 
 void world_from_board(Vec3* dst, i32 x, i32 y, f32 z) {
-  vec3_set(dst, ((f32)x * TILE_WIDTH) + HALF_TILE_WIDTH, ((f32)y * TILE_HEIGHT) + HALF_TILE_HEIGHT,
-           z);
+  vec3_set(dst, ((f32)x * TILE_WIDTH) + HALF_TILE_WIDTH, ((f32)y * TILE_HEIGHT) + HALF_TILE_HEIGHT, z);
 }
 
 bool try_moving_block(Level* level, Entity* block, Direction direction, GameState* game_state) {
@@ -81,7 +80,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
 
   // check if this will push any other entities
   Entity* occupants[MAX_OCCUPANTS_ALLOWED];
-  i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
+  i32     num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
 
     bool is_occupier_block = false;
@@ -144,7 +143,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
 
   // check if this will push any other entities
   Entity* occupants[MAX_OCCUPANTS_ALLOWED];
-  i32 num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
+  i32     num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
     bool    is_occupier_block = false;
     bool    is_occupier_pit = false;
@@ -215,14 +214,12 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
   vec4_from_colour(&entity->colour, &c);
 }
 
-void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
-                 char layout[][dbl_width]) {
+void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height, char layout[][dbl_width]) {
 
   level->sb_chunks = NULL;
 
   level->max_num_entities = 10;
-  level->entities =
-      (Entity*)BUMP_ALLOC(&(level->bump_allocator), sizeof(Entity) * level->max_num_entities);
+  level->entities = (Entity*)BUMP_ALLOC(&(level->bump_allocator), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
     level->entities[i].exists = false;
   }

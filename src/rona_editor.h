@@ -53,7 +53,7 @@ typedef struct {
   //
   // memory management variables for font atlas functionality
   //
-  BumpAllocator bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
+  BumpAllocator       bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
   FixedBlockAllocator allocator_permanent;
 
   BumpAllocator       bump_transient; // reserves transient memory, so should be used with caution
@@ -91,6 +91,5 @@ void editor_lib_unload(RonaGL* gl, EditorState* editor_state);
 
 void editor_changed_level(EditorState* editor_state, Level* level);
 
-void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,
-                   ShaderEditor* shader_editor);
+void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height, ShaderEditor* shader_editor);
 void editor_step(EditorState* editor_state, GameState* game_state);

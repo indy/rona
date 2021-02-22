@@ -130,10 +130,9 @@ void game_lib_load(GameState* game_state) {
   Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
   Colour red = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
 
-  graphic_lib_load_single_tile(&(game_state->graphic_pit), gl, tileset, TS_PressurePadActivated,
-                               red, transparent);
-  graphic_lib_load_single_tile(&(game_state->graphic_block), gl, tileset, TS_Block, red,
+  graphic_lib_load_single_tile(&(game_state->graphic_pit), gl, tileset, TS_PressurePadActivated, red,
                                transparent);
+  graphic_lib_load_single_tile(&(game_state->graphic_block), gl, tileset, TS_Block, red, transparent);
   graphic_lib_load_single_tile(&(game_state->graphic_hero), gl, tileset, TS_Hero, red, transparent);
   graphic_screen_lib_load(&(game_state->graphic_screen), gl, render_struct);
 
@@ -198,8 +197,8 @@ void game_step(GameState* game_state) {
 
   text_render_reset(render_struct);
 
-  Vec2        mouse_on_stage = stage_from_window(game_state, (f32)game_state->input->mouse_pos.x,
-                                          (f32)game_state->input->mouse_pos.y);
+  Vec2 mouse_on_stage =
+      stage_from_window(game_state, (f32)game_state->input->mouse_pos.x, (f32)game_state->input->mouse_pos.y);
   TextParams* text_params = &(game_state->text_params_debug);
   text_params->pos = vec2(0.0f, 0.0f);
   text_printf(text_params, "%s (%.2f, %.2f)", game_state->mode == GameMode_Edit ? "Edit" : "Play",
@@ -227,8 +226,7 @@ void game_step(GameState* game_state) {
       int y = (int)game_state->input->mouse_pos.y;
       nk_input_motion(ctx, x, y);
       nk_input_button(ctx, NK_BUTTON_LEFT, x, y, mouse_down(game_state->input, MouseButton_Left));
-      nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y,
-                      mouse_down(game_state->input, MouseButton_Middle));
+      nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, mouse_down(game_state->input, MouseButton_Middle));
       nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, mouse_down(game_state->input, MouseButton_Right));
       // todo: will also need to input all keyboard state here as well
       // see https://immediate-mode-ui.github.io/Nuklear/doc/nuklear.html#nuklear/api/input

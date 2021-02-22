@@ -19,8 +19,8 @@
 #define GRAPHIC_H
 
 // void graphic_hero_render(Graphic *graphic, RonaGL *gl, Mat4 *proj_matrix);
-void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset,
-                                  TilesetSprite tile_sprite, Colour fg_col, Colour bg_col);
+void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
+                                  Colour fg_col, Colour bg_col);
 void graphic_lib_unload(Graphic* graphic, RonaGL* gl);
 
 #endif /* GRAPHIC_H */

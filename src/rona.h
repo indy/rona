@@ -39,14 +39,14 @@
 #define MEMORY_RESERVE_COMMANDS_IN_BUFFER 100
 
 #ifdef _DEBUG
-#define RONA_ASSERT(exp)                                                                           \
-  if (!(exp)) {                                                                                    \
-    fprintf(stderr, "ASSERT FAILURE: %s (%s:%d)\n", __func__, __FILE__, __LINE__);                 \
-    fflush(stderr);                                                                                \
-    *(int*)0 = 0;                                                                                  \
+#define RONA_ASSERT(exp)                                                                                     \
+  if (!(exp)) {                                                                                              \
+    fprintf(stderr, "ASSERT FAILURE: %s (%s:%d)\n", __func__, __FILE__, __LINE__);                           \
+    fflush(stderr);                                                                                          \
+    *(int*)0 = 0;                                                                                            \
   }
 #else
-#define RONA_ASSERT(exp)                                                                           \
+#define RONA_ASSERT(exp)                                                                                     \
   {}
 #endif
 
@@ -690,11 +690,10 @@ typedef struct {
 } Command;
 
 typedef struct {
-  Command* sb_command; // stretchy buffer
-  bool     in_command_transaction;
+  Command* sb_commands;
+  bool     in_transaction;
   usize    command_index_next_free;
   usize    command_index_furthest_future;
-
 } UndoRedo;
 
 // --------------------------------------------------------------------------------

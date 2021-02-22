@@ -65,8 +65,7 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
       Level* level = game_state->level;
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command =
-            command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+        Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
         command->type = CommandType_Editor_WallsBuild;
         command->data.editor_tile_change.level = level;
@@ -121,8 +120,7 @@ void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
 #define HACK_WINDOW_HEIGHT_EXTRA 55
 
   if (nk_begin(ctx, "Stage Preview",
-               nk_rect(50, 250,
-                       editor_state->stage_scalar * (STAGE_WIDTH + HACK_WINDOW_WIDTH_EXTRA),
+               nk_rect(50, 250, editor_state->stage_scalar * (STAGE_WIDTH + HACK_WINDOW_WIDTH_EXTRA),
                        editor_state->stage_scalar * (STAGE_HEIGHT + HACK_WINDOW_HEIGHT_EXTRA)),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
     nk_layout_row_begin(ctx, NK_STATIC, editor_state->stage_scalar * STAGE_HEIGHT, 1);
@@ -177,8 +175,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
   declare_stage_toolbar(editor_state, game_state);
 
   if (mouse_pressed(game_state->input, MouseButton_Left)) {
-    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT),
-                            editor_state->cursor_in_stage_coords)) {
+    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT), editor_state->cursor_in_stage_coords)) {
 
       Level*   level = game_state->level;
       ChunkPos chunk_pos =
@@ -186,8 +183,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command =
-            command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+        Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
         command->type = CommandType_Editor_TileChange;
         command->data.editor_tile_change.level = level;
@@ -226,8 +222,8 @@ void upload_atlas(RonaGL* gl, EditorState* dev, const void* image, int width, in
   gl->bindTexture(GL_TEXTURE_2D, dev->font_tex);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, image);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 image);
 }
 
 void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* permanent,
@@ -242,7 +238,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   // align memory with nk_draw_command
   const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
   u64           align_mask = (cmd_align << 1) - 1;
-  void* aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
+  void*         aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
 
   editor_state->nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
   editor_state->nuklear_memory = aligned_nuklear_memory;
@@ -255,21 +251,18 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_permanent.base = nuklear_atlas_memory;
   editor_state->bump_permanent.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_permanent),
-                              &(editor_state->bump_permanent));
+  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
 
   // allocating from transient memory as we're only expecting transient allocations to occur during
   // this function
   usize nuklear_atlas_transient_memory_size = megabytes(6);
-  void* nuklear_atlas_transient_memory =
-      (void*)BUMP_ALLOC(transient, nuklear_atlas_transient_memory_size);
+  void* nuklear_atlas_transient_memory = (void*)BUMP_ALLOC(transient, nuklear_atlas_transient_memory_size);
 
   editor_state->bump_transient.size = nuklear_atlas_transient_memory_size;
   editor_state->bump_transient.base = nuklear_atlas_transient_memory;
   editor_state->bump_transient.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_transient),
-                              &(editor_state->bump_transient));
+  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient));
 
   struct nk_allocator nk_allocator_permanent;
   nk_allocator_permanent.alloc = &nuklear_persistent_alloc;
@@ -280,8 +273,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   editor_state->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   editor_state->framebuffer_id = create_framebuffer(gl);
-  attach_textures_to_framebuffer(gl, editor_state->framebuffer_id,
-                                 editor_state->stage_in_nuklear_texture_id,
+  attach_textures_to_framebuffer(gl, editor_state->framebuffer_id, editor_state->stage_in_nuklear_texture_id,
                                  editor_state->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
     RONA_ERROR("%d, Nuklear stage Framebuffer is not ok\n", 1);
@@ -322,8 +314,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   // allocations
   editor_state->transient_allocation_calls_expected = false;
 
-  nk_init_fixed(&editor_state->ctx, editor_state->nuklear_memory,
-                (nk_size)editor_state->nuklear_memory_size, &(editor_state->default_font->handle));
+  nk_init_fixed(&editor_state->ctx, editor_state->nuklear_memory, (nk_size)editor_state->nuklear_memory_size,
+                &(editor_state->default_font->handle));
 
   editor_state->stage_scalar = 2;
 }

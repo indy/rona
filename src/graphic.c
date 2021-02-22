@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset,
-                                  TilesetSprite tile_sprite, Colour fg_col, Colour bg_col) {
+void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
+                                  Colour fg_col, Colour bg_col) {
 
   Vec4   fg, bg;
   Colour c;
@@ -69,17 +69,13 @@ void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset
   u32 num_floats = TILED_VERTEX_NUM_FLOATS;
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
-                          (void*)(0 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(0 * sizeof(float)));
   // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
-                          (void*)(2 * sizeof(float)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(2 * sizeof(float)));
   // fg colour
-  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
-                          (void*)(4 * sizeof(float)));
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(4 * sizeof(float)));
   // bg colour
-  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats,
-                          (void*)(8 * sizeof(float)));
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(8 * sizeof(float)));
 
   gl->genBuffers(1, &graphic->ebo);
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);

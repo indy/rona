@@ -22,8 +22,7 @@ void level_startup(Level* level, GameState* game_state);
 void level_shutdown(Level* level);
 
 bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state);
-void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
-                 char layout[][dbl_width]);
+void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height, char layout[][dbl_width]);
 
 void world_from_board(Vec3* dst, i32 x, i32 y, f32 z);
 

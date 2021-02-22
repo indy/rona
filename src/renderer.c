@@ -50,15 +50,13 @@ void renderer_render(GameState* game_state) {
   gl->uniform1i(render_struct->shader_tile.uniform_texture, 1);
 
   Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
-  gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false,
-                       (GLfloat*)&(proj_matrix.v));
+  gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false, (GLfloat*)&(proj_matrix.v));
 
   // render level's chunks
   //
   {
     Graphic* graphic = &(level->chunk_graphic);
-    gl->uniform3f(render_struct->shader_tile.uniform_pos,
-                  (f32)(-level->viewport.pos.x * TILE_WIDTH),
+    gl->uniform3f(render_struct->shader_tile.uniform_pos, (f32)(-level->viewport.pos.x * TILE_WIDTH),
                   (f32)(-level->viewport.pos.y * TILE_HEIGHT), 2.0f);
     gl->bindVertexArray(graphic->vao);
     gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
@@ -92,8 +90,7 @@ void renderer_render(GameState* game_state) {
 
   gl->uniform3f(render_struct->shader_tile.uniform_pos, 0.0f, 0.0f, 0.0f);
   gl->bindVertexArray(render_struct->text_vao);
-  gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_NUM_INDICES,
-                   GL_UNSIGNED_INT, 0);
+  gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_NUM_INDICES, GL_UNSIGNED_INT, 0);
 
   // --------------------------------------------------------------------------------
 
@@ -119,15 +116,13 @@ void renderer_render(GameState* game_state) {
       f32  v = (aspect_ratio / window_aspect_ratio) * stage_height;
       f32  v_pad = (v - stage_height) / 2.0f;
       Mat4 m = mat4_ortho(0.0f, stage_width, v - v_pad, -v_pad, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
-                           (GLfloat*)&(m.v));
+      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false, (GLfloat*)&(m.v));
     } else {
       // window is more elongated horizontally than desired
       f32  h = (window_aspect_ratio / aspect_ratio) * stage_width;
       f32  h_pad = (h - stage_width) / 2.0f;
       Mat4 m = mat4_ortho(-h_pad, h - h_pad, stage_height, 0.0f, 10.0f, -10.0f);
-      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
-                           (GLfloat*)&(m.v));
+      gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false, (GLfloat*)&(m.v));
     }
 
     gl->uniform1i(render_struct->shader_screen.uniform_texture, 0);
@@ -153,8 +148,7 @@ void renderer_render(GameState* game_state) {
     gl->useProgram(render_struct->shader_screen.program);
 
     Mat4 m = mat4_ortho(0.0f, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
-    gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false,
-                         (GLfloat*)&(m.v));
+    gl->uniformMatrix4fv(render_struct->shader_screen.uniform_proj_matrix, 1, false, (GLfloat*)&(m.v));
 
     gl->uniform1i(render_struct->shader_screen.uniform_texture, 0);
     gl->activeTexture(GL_TEXTURE0);
@@ -205,8 +199,7 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
   ShaderScreen* shader_screen = &(render_struct->shader_screen);
   shader_screen->program = create_shader_program(gl, screenVertexSource, screenFragmentSource);
   shader_screen->uniform_texture = gl->getUniformLocation(shader_screen->program, "screen_texture");
-  shader_screen->uniform_proj_matrix =
-      gl->getUniformLocation(shader_screen->program, "proj_matrix");
+  shader_screen->uniform_proj_matrix = gl->getUniformLocation(shader_screen->program, "proj_matrix");
 
   // --------------------------------------------------------------------------------
 
@@ -221,10 +214,8 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
   ShaderEditor* shader_editor = &(render_struct->shader_editor);
   shader_editor->program = create_shader_program(gl, editorVertexSource, editorFragmentSource);
 
-  shader_editor->uniform_texture =
-      gl->getUniformLocation(shader_editor->program, "nuklear_texture");
-  shader_editor->uniform_proj_matrix =
-      gl->getUniformLocation(shader_editor->program, "proj_matrix");
+  shader_editor->uniform_texture = gl->getUniformLocation(shader_editor->program, "nuklear_texture");
+  shader_editor->uniform_proj_matrix = gl->getUniformLocation(shader_editor->program, "proj_matrix");
 #endif
   // --------------------------------------------------------------------------------
 
@@ -286,8 +277,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bu
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                   data);
+    gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     // gl->generateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 
@@ -525,8 +515,8 @@ GLuint create_texture(RonaGL* gl, u32 width, u32 height) {
   gl->genTextures(1, &texture_id);
   // bind so that all future texture ops happen to this texture
   gl->bindTexture(GL_TEXTURE_2D, texture_id);
-  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, NULL);
+  gl->texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                 NULL);
 
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   gl->texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

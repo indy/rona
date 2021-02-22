@@ -867,68 +867,55 @@ typedef unsigned int GLhandle;
 #define GL_LINK_STATUS 0x8B82
 #define GL_STATIC_DRAW 0x88E4
 
+// clang-format off
 typedef void(APIENTRYP PFNGLUNIFORM1IPROC)(GLint location, GLint v0);
 typedef void(APIENTRYP PFNGLUNIFORM2FPROC)(GLint location, GLfloat v0, GLfloat v1);
 typedef void(APIENTRYP PFNGLUNIFORM3FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
-typedef void(APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2,
-                                           GLfloat v3);
+typedef void(APIENTRYP PFNGLUNIFORM4FPROC)(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef GLint(APIENTRYP PFNGLGETUNIFORMLOCATIONPROC)(GLhandle programObj, const GLchar* name);
 typedef GLint(APIENTRYP PFNGLGETATTRIBLOCATIONPROC)(GLhandle programObj, const GLchar* name);
-typedef void(APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count,
-                                                  GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
 typedef void(APIENTRYP PFNGLENABLEPROC)(GLenum cap);
 typedef void(APIENTRYP PFNGLDISABLEPROC)(GLenum cap);
 typedef void(APIENTRYP PFNGLCLEARPROC)(GLbitfield mask);
 typedef void(APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void(APIENTRYP PFNGLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
-typedef void(APIENTRYP PFNGLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenum type,
-                                              const GLvoid* indices);
-typedef void(APIENTRYP PFNGLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue,
-                                            GLclampf alpha);
+typedef void(APIENTRYP PFNGLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
+typedef void(APIENTRYP PFNGLCLEARCOLORPROC)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 typedef void(APIENTRYP PFNGLGETINTEGERVPROC)(GLenum pname, GLint* params);
 typedef GLubyte*(APIENTRYP PFNGLGETSTRINGPROC)(GLenum name);
-
 typedef GLubyte*(APIENTRYP PFNGLBLENDEQUATIONPROC)(GLenum mode);
 typedef GLubyte*(APIENTRYP PFNGLBLENDFUNCPROC)(GLenum sfactor, GLenum dfactor);
-
 typedef void(APIENTRYP PFNGLACTIVETEXTUREPROC)(GLenum texture);
 typedef void(APIENTRYP PFNGLDELETETEXTURESPROC)(GLsizei n, const GLuint* textures);
 typedef void(APIENTRYP PFNGLGENTEXTURESPROC)(GLsizei n, GLuint* textures);
 // typedef void (APIENTRYP PFNGLCREATETEXTUREPROC)(); ????
 typedef void(APIENTRYP PFNGLBINDTEXTUREPROC)(GLenum target, GLuint texture);
 typedef void(APIENTRYP PFNGLGENERATEMIPMAPPROC)(GLenum target);
-
-typedef void(APIENTRYP PFNGLTEXIMAGE2DPROC)(GLenum target, GLint level, GLint internalFormat,
-                                            GLsizei width, GLsizei height, GLint border,
-                                            GLenum format, GLenum type, const GLvoid* data);
+typedef void(APIENTRYP PFNGLTEXIMAGE2DPROC)(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid* data);
 typedef void(APIENTRYP PFNGLTEXPARAMETERIPROC)(GLenum target, GLenum pname, GLint param);
 typedef void(APIENTRYP PFNGLTEXPARAMETERFPROC)(GLenum target, GLenum pname, GLfloat param);
 typedef void(APIENTRYP PFNGLGENFRAMEBUFFERSPROC)(GLsizei n, GLuint* framebuffers);
 // typedef void (APIENTRYP PFNGLCREATEFRAMEBUFFERPROC)(GLsizei n, GLuint *ids); // gl4
 typedef void(APIENTRYP PFNGLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
-typedef void(APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DPROC)(GLenum target, GLenum attachment,
-                                                      GLenum textarget, GLuint texture,
-                                                      GLint level);
+typedef void(APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DPROC)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
 typedef GLenum(APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUSPROC)(GLenum target);
-
 typedef GLuint(APIENTRYP PFNGLCREATESHADERPROC)(GLenum type);
-typedef void(APIENTRYP PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count,
-                                              const GLchar* const* string, const GLint* length);
+typedef void(APIENTRYP PFNGLSHADERSOURCEPROC)(GLuint shader, GLsizei count, const GLchar* const* string, const GLint* length);
 typedef void(APIENTRYP PFNGLCOMPILESHADERPROC)(GLuint shader);
 typedef void(APIENTRYP PFNGLGETSHADERIVPROC)(GLuint shader, GLenum pname, GLint* params);
 typedef void(APIENTRYP PFNGLATTACHSHADERPROC)(GLuint program, GLuint shader);
 typedef void(APIENTRYP PFNGLDETACHSHADERPROC)(GLuint program, GLuint shader);
 typedef GLuint(APIENTRYP PFNGLCREATEPROGRAMPROC)(void);
 typedef void(APIENTRYP PFNGLDELETEPROGRAMPROC)(GLuint program);
-typedef void(APIENTRYP PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length,
-                                                  GLchar* infoLog);
+typedef void(APIENTRYP PFNGLGETSHADERINFOLOGPROC)(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
 typedef void(APIENTRYP PFNGLLINKPROGRAMPROC)(GLuint program);
 typedef void(APIENTRYP PFNGLVALIDATEPROGRAMPROC)(GLuint program);
 typedef void(APIENTRYP PFNGLGETPROGRAMIVPROC)(GLuint program, GLenum pname, GLint* params);
-typedef void(APIENTRYP PFNGLGETPROGRAMINFOLOGPROC)(GLuint program, GLsizei bufSize, GLsizei* length,
-                                                   GLchar* infoLog);
+typedef void(APIENTRYP PFNGLGETPROGRAMINFOLOGPROC)(GLuint program, GLsizei bufSize, GLsizei* length, GLchar* infoLog);
 typedef void(APIENTRYP PFNGLDELETESHADERPROC)(GLuint shader);
 typedef void(APIENTRYP PFNGLUSEPROGRAMPROC)(GLuint program);
+// clang-format on
 
 // #define GL_ARRAY_BUFFER                   0x8892
 // #define GL_ELEMENT_ARRAY_BUFFER           0x8893
@@ -992,8 +979,7 @@ typedef void(APIENTRYP PFNGLBINDVERTEXARRAYPROC)(GLuint array);
 typedef void(APIENTRYP PFNGLGENBUFFERSPROC)(GLsizei n, GLuint* buffers);
 typedef void(APIENTRYP PFNGLDELETEBUFFERSPROC)(GLsizei n, const GLuint* buffers);
 typedef void(APIENTRYP PFNGLBINDBUFFERPROC)(GLenum target, GLuint buffer);
-typedef void(APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data,
-                                            GLenum usage);
+typedef void(APIENTRYP PFNGLBUFFERDATAPROC)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
 typedef void(APIENTRYP PFNGLBUFFERSUBDATAPROC)(GLenum target, GLintptr offset, GLsizeiptr size,
                                                const void* data);
 typedef void*(APIENTRYP PFNGLMAPBUFFERPROC)(GLenum target, GLenum access);

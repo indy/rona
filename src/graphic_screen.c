@@ -62,8 +62,7 @@ void graphic_screen_lib_load(Graphic* graphic, RonaGL* gl, RenderStruct* render_
   gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, NULL);
 
   // texture coords
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4,
-                          (GLvoid*)((sizeof(float) * 2)));
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (GLvoid*)((sizeof(float) * 2)));
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
