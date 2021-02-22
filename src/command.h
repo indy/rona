@@ -18,21 +18,28 @@
 #ifndef COMMAND_H
 #define COMMAND_H
 
-bool command_buffer_startup(BumpAllocator* allocator, UndoRedo* undo_redo);
+bool command_buffer_startup(BumpAllocator* bump_allocator, UndoRedo* undo_redo);
 void command_buffer_shutdown(UndoRedo* undo_redo);
 
 bool command_transaction_begin(UndoRedo* undo_redo);
 bool command_transaction_end(UndoRedo* undo_redo);
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo);
+// note: the GameState is only for passing through to command_execute during a CommandExecute_Kill. If no CommandExecute_Kill requires access to GameState this argument can be removed and I'll just pass in NULL to command_execute
+Command* command_add(BumpAllocator* bump_allocator, UndoRedo* undo_redo, GameState* game_state);
 
 bool command_undo(UndoRedo* undo_redo, GameState* game_state);
 bool command_redo(UndoRedo* undo_redo, GameState* game_state);
 
 // Play is here to enable autoplay demo mode in the future
+// Kill: after some undos a new command is added so the old commands will need an opportunity to deallocate memory
 //
-typedef enum { CommandExecute_Play, CommandExecute_Undo, CommandExecute_Redo } CommandExecute;
+typedef enum {
+  CommandExecute_Play,
+  CommandExecute_Undo,
+  CommandExecute_Redo,
+  CommandExecute_Kill
+} CommandExecute;
 
 void command_execute(Command* command, CommandExecute execute_type, GameState* game_state);
 

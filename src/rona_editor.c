@@ -65,7 +65,7 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
       Level* level = game_state->level;
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo);
+        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo, game_state);
 
         command->type = CommandType_Editor_WallsBuild;
         command->data.editor_tile_change.level = level;
@@ -185,7 +185,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo);
+        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo, game_state);
 
         command->type = CommandType_Editor_TileChange;
         command->data.editor_tile_change.level = level;

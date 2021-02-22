@@ -45,6 +45,8 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
       e->entity_state = command->data.entity_move.new_params.entity_state;
       break;
+    case CommandExecute_Kill:
+      break;
     }
     break;
 
@@ -55,24 +57,32 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      * Editor TileChange
      */
   case CommandType_Editor_TileChange: {
+    bool requires_regen = false;
     Tile* tile = chunk_tile_ensure_get(command->data.editor_tile_change.level,
                                        command->data.editor_tile_change.chunk_pos);
     switch (execute_type) {
     case CommandExecute_Play:
       return; // early return, no need to do anything here
     case CommandExecute_Undo:
+      requires_regen = true;
       *tile = command->data.editor_tile_change.tile_old;
       break;
     case CommandExecute_Redo:
+      requires_regen = true;
       *tile = command->data.editor_tile_change.tile_new;
+      break;
+    case CommandExecute_Kill:
+      RONA_LOG("CommandType_Editor_TileChange :: CommandExecute_Kill\n");
       break;
     }
 
-    // update the level's chunk geometry now that it's been changed
-    Level*   level = game_state->level;
-    RonaGL*  gl = game_state->gl;
-    Tileset* tileset = &(game_state->render_struct.tileset);
-    chunk_regenerate_geometry(level, gl, tileset);
+    if (requires_regen) {
+      // update the level's chunk geometry now that it's been changed
+      Level*   level = game_state->level;
+      RonaGL*  gl = game_state->gl;
+      Tileset* tileset = &(game_state->render_struct.tileset);
+      chunk_regenerate_geometry(level, gl, tileset);
+    }
   } break;
 #endif // RONA_EDITOR
 
@@ -82,14 +92,14 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
   }
 }
 
-CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
-  CommandBuffer* cb = (CommandBuffer*)BUMP_ALLOC(bump, sizeof(CommandBuffer));
+CommandBuffer* command_buffer_allocate(BumpAllocator* bump_allocator) {
+  CommandBuffer* cb = (CommandBuffer*)BUMP_ALLOC(bump_allocator, sizeof(CommandBuffer));
   if (!cb) {
     RONA_ERROR("command_buffer_allocate\n");
     return NULL;
   }
 
-  cb->command = (Command*)BUMP_ALLOC(bump, sizeof(Command) * MEMORY_RESERVE_COMMANDS_IN_BUFFER);
+  cb->command = (Command*)BUMP_ALLOC(bump_allocator, sizeof(Command) * MEMORY_RESERVE_COMMANDS_IN_BUFFER);
   if (!cb->command) {
     RONA_ERROR("command_buffer_allocate\n");
     return NULL;
@@ -102,8 +112,8 @@ CommandBuffer* command_buffer_allocate(BumpAllocator* bump) {
   return cb;
 }
 
-bool command_buffer_startup(BumpAllocator* allocator, UndoRedo* undo_redo) {
-  CommandBuffer* cb = command_buffer_allocate(allocator);
+bool command_buffer_startup(BumpAllocator* bump_allocator, UndoRedo* undo_redo) {
+  CommandBuffer* cb = command_buffer_allocate(bump_allocator);
   if (!cb) {
     RONA_ERROR("command_buffer_startup failed\n");
     return false;
@@ -114,7 +124,7 @@ bool command_buffer_startup(BumpAllocator* allocator, UndoRedo* undo_redo) {
   undo_redo->command_index_next_free = 0;
 
   undo_redo->command_index_furthest_future = 0;
-  undo_redo->command_buffer_furthest_future = NULL;
+  undo_redo->command_buffer_furthest_future = cb;
 
   return true;
 }
@@ -159,16 +169,31 @@ bool command_transaction_end(UndoRedo* undo_redo) {
 }
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(BumpAllocator* allocator, UndoRedo* undo_redo) {
-  RONA_ASSERT(allocator);
+Command* command_add(BumpAllocator* bump_allocator, UndoRedo* undo_redo, GameState* game_state) {
+  RONA_ASSERT(bump_allocator);
   RONA_ASSERT(undo_redo->in_command_transaction);
   RONA_ASSERT(undo_redo->command_buffer);
 
   CommandBuffer* cb = undo_redo->command_buffer;
 
+  // about to add a new command, so kill all the commands on the now invalid future timeline
+  //
+  if (undo_redo->command_buffer_furthest_future != cb) {
+    // todo: there are commandbuffers from the future, call kill on all of their commands
+  } else {
+    // stay on the current command buffer
+    if (undo_redo->command_index_furthest_future > undo_redo->command_index_next_free) {
+      for (i32 i = undo_redo->command_index_furthest_future; i >= undo_redo->command_index_next_free; i--) {
+        command_execute(&(cb->command[i]), CommandExecute_Kill, game_state);
+      }
+    } else {
+      // already at the furthest future command, there are no commands that need to be killed
+    }
+  }
+
   if (undo_redo->command_index_next_free >= cb->size) {
     // allocate another CommandBuffer
-    CommandBuffer* new_cb = command_buffer_allocate(allocator);
+    CommandBuffer* new_cb = command_buffer_allocate(bump_allocator);
     if (!new_cb) {
       RONA_ERROR("command_add failed to allocate new CommandBuffer\n");
       return NULL;
@@ -305,11 +330,6 @@ bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
 }
 
 bool command_redo(UndoRedo* undo_redo, GameState* game_state) {
-  if (!undo_redo->command_buffer_furthest_future) {
-    // haven't added any commands yet
-    return false;
-  }
-
   if (undo_redo->command_buffer_furthest_future == undo_redo->command_buffer &&
       undo_redo->command_index_furthest_future == (undo_redo->command_index_next_free - 1)) {
     // this is the furthest future point in this 'timeline'
