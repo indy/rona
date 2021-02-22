@@ -36,7 +36,7 @@
 #define MEMORY_ALLOCATION_NUKLEAR_ATLAS 16
 
 // Fixed sizes that affect memory on CPU or GPU
-#define MEMORY_RESERVE_COMMANDS_IN_BUFFER 10000
+#define MEMORY_RESERVE_COMMANDS_IN_BUFFER 100
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                           \
@@ -689,22 +689,12 @@ typedef struct {
   } data;
 } Command;
 
-typedef struct CommandBuffer {
-  Command* command;
-
-  struct CommandBuffer* prev;
-  struct CommandBuffer* next;
-  usize                 size; // size is in terms of number of Command structs in *command
-  usize                 used; // used is in number of Command structs
-} CommandBuffer;
-
 typedef struct {
-  bool           in_command_transaction;
-  usize          command_index_next_free;       // the next command in the current command_buffer
-  CommandBuffer* command_buffer;                // the active command buffer
-  usize          command_index_furthest_future; // index of the furthest future point
-  CommandBuffer*
-      command_buffer_furthest_future; // buffer that contains command_index_furthest_future
+  Command* sb_command; // stretchy buffer
+  bool     in_command_transaction;
+  usize    command_index_next_free;
+  usize    command_index_furthest_future;
+
 } UndoRedo;
 
 // --------------------------------------------------------------------------------

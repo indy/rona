@@ -57,7 +57,7 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      * Editor TileChange
      */
   case CommandType_Editor_TileChange: {
-    bool requires_regen = false;
+    bool  requires_regen = false;
     Tile* tile = chunk_tile_ensure_get(command->data.editor_tile_change.level,
                                        command->data.editor_tile_change.chunk_pos);
     switch (execute_type) {
@@ -92,44 +92,20 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
   }
 }
 
-CommandBuffer* command_buffer_allocate(BumpAllocator* bump_allocator) {
-  CommandBuffer* cb = (CommandBuffer*)BUMP_ALLOC(bump_allocator, sizeof(CommandBuffer));
-  if (!cb) {
-    RONA_ERROR("command_buffer_allocate\n");
-    return NULL;
-  }
+bool command_system_startup(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator,
+                            usize num_reserved_commands) {
+  undo_redo->sb_command =
+      sb_add(fixed_block_allocator, undo_redo->sb_command, num_reserved_commands);
 
-  cb->command = (Command*)BUMP_ALLOC(bump_allocator, sizeof(Command) * MEMORY_RESERVE_COMMANDS_IN_BUFFER);
-  if (!cb->command) {
-    RONA_ERROR("command_buffer_allocate\n");
-    return NULL;
-  }
-  cb->prev = NULL;
-  cb->next = NULL;
-  cb->size = MEMORY_RESERVE_COMMANDS_IN_BUFFER;
-  cb->used = 0;
-
-  return cb;
-}
-
-bool command_buffer_startup(BumpAllocator* bump_allocator, UndoRedo* undo_redo) {
-  CommandBuffer* cb = command_buffer_allocate(bump_allocator);
-  if (!cb) {
-    RONA_ERROR("command_buffer_startup failed\n");
-    return false;
-  }
-
-  undo_redo->command_buffer = cb;
   undo_redo->in_command_transaction = false;
   undo_redo->command_index_next_free = 0;
 
   undo_redo->command_index_furthest_future = 0;
-  undo_redo->command_buffer_furthest_future = cb;
 
   return true;
 }
 
-void command_buffer_shutdown(UndoRedo* undo_redo) {
+void command_system_shutdown(UndoRedo* undo_redo) {
 }
 
 bool command_transaction_begin(UndoRedo* undo_redo) {
@@ -151,70 +127,48 @@ bool command_transaction_end(UndoRedo* undo_redo) {
 
   undo_redo->in_command_transaction = false;
 
-  if (undo_redo->command_index_next_free == 0 && undo_redo->command_buffer->prev == NULL) {
+  if (undo_redo->command_index_next_free == 0) {
     // there are no commands, so just return
     return true;
-  } else if (undo_redo->command_index_next_free == 0 && undo_redo->command_buffer->prev) {
-    // have just added a command that has caused a new command buffer to be allocated
-    // go back to the previous command buffer and set the last command to be the last one in the
-    // transaction
-    CommandBuffer* cb = undo_redo->command_buffer->prev;
-    cb->command[cb->used - 1].is_last_in_transaction = true;
-    return true;
   } else {
-    CommandBuffer* cb = undo_redo->command_buffer;
-    cb->command[undo_redo->command_index_next_free - 1].is_last_in_transaction = true;
+    undo_redo->sb_command[undo_redo->command_index_next_free - 1].is_last_in_transaction = true;
     return true;
   }
 }
 
 // returns Command for caller to fill out, call within a transaction
-Command* command_add(BumpAllocator* bump_allocator, UndoRedo* undo_redo, GameState* game_state) {
-  RONA_ASSERT(bump_allocator);
+Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator,
+                     GameState* game_state) {
+  RONA_ASSERT(fixed_block_allocator);
   RONA_ASSERT(undo_redo->in_command_transaction);
-  RONA_ASSERT(undo_redo->command_buffer);
-
-  CommandBuffer* cb = undo_redo->command_buffer;
 
   // about to add a new command, so kill all the commands on the now invalid future timeline
   //
-  if (undo_redo->command_buffer_furthest_future != cb) {
-    // todo: there are commandbuffers from the future, call kill on all of their commands
+
+  // stay on the current command buffer
+  if (undo_redo->command_index_furthest_future > undo_redo->command_index_next_free) {
+    // weird, usize friendly loop style:
+    usize i = undo_redo->command_index_furthest_future + 1;
+    do {
+      i--;
+      command_execute(&(undo_redo->sb_command[i]), CommandExecute_Kill, game_state);
+    } while (i > undo_redo->command_index_next_free);
   } else {
-    // stay on the current command buffer
-    if (undo_redo->command_index_furthest_future > undo_redo->command_index_next_free) {
-      for (i32 i = undo_redo->command_index_furthest_future; i >= undo_redo->command_index_next_free; i--) {
-        command_execute(&(cb->command[i]), CommandExecute_Kill, game_state);
-      }
-    } else {
-      // already at the furthest future command, there are no commands that need to be killed
-    }
+    // already at the furthest future command, there are no commands that need to be killed
   }
 
-  if (undo_redo->command_index_next_free >= cb->size) {
-    // allocate another CommandBuffer
-    CommandBuffer* new_cb = command_buffer_allocate(bump_allocator);
-    if (!new_cb) {
-      RONA_ERROR("command_add failed to allocate new CommandBuffer\n");
-      return NULL;
-    }
-
-    new_cb->prev = cb;
-    cb->next = new_cb;
-    undo_redo->command_buffer = new_cb;
-    undo_redo->command_index_next_free = 0;
-    cb = new_cb;
+  Command* command = NULL;
+  if (undo_redo->command_index_next_free >= sb_count(undo_redo->sb_command)) {
+    // RONA_LOG("sb_add (%d, %d)\n", undo_redo->command_index_next_free,
+    // sb_count(undo_redo->sb_command));
+    command = sb_add(fixed_block_allocator, undo_redo->sb_command, 1);
+  } else {
+    command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
   }
-
-  Command* command = &(cb->command[undo_redo->command_index_next_free]);
 
   undo_redo->command_index_furthest_future = undo_redo->command_index_next_free;
-  undo_redo->command_buffer_furthest_future = cb;
 
   undo_redo->command_index_next_free++;
-  if (undo_redo->command_index_next_free > cb->used) {
-    cb->used = undo_redo->command_index_next_free;
-  }
 
   command->is_last_in_transaction = false;
 
@@ -225,40 +179,28 @@ Command* command_add(BumpAllocator* bump_allocator, UndoRedo* undo_redo, GameSta
 Command* command_pop(UndoRedo* undo_redo) {
 
   if (undo_redo->command_index_next_free == 0) {
-    if (undo_redo->command_buffer->prev) {
-      undo_redo->command_buffer = undo_redo->command_buffer->prev;
-      undo_redo->command_index_next_free = undo_redo->command_buffer->used - 1;
-    } else {
-      // already at the earliest point in the command buffer
-      return NULL;
-    }
+    // already at the earliest point in the command buffer
+    return NULL;
   } else {
     undo_redo->command_index_next_free -= 1;
   }
 
-  Command* command = &(undo_redo->command_buffer->command[undo_redo->command_index_next_free]);
+  Command* command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
 
   return command;
 }
 
 Command* command_peek(UndoRedo* undo_redo) {
-  usize          command_index_next_free;
-  CommandBuffer* command_buffer;
+  usize command_index_next_free;
 
   if (undo_redo->command_index_next_free == 0) {
-    if (undo_redo->command_buffer->prev) {
-      command_buffer = undo_redo->command_buffer->prev;
-      command_index_next_free = command_buffer->used - 1;
-    } else {
-      // already at the earliest point in the command buffer
-      return NULL;
-    }
+    // already at the earliest point in the command buffer
+    return NULL;
   } else {
-    command_buffer = undo_redo->command_buffer;
     command_index_next_free = undo_redo->command_index_next_free - 1;
   }
 
-  Command* command = &(command_buffer->command[command_index_next_free]);
+  Command* command = &(undo_redo->sb_command[command_index_next_free]);
 
   return command;
 }
@@ -266,28 +208,17 @@ Command* command_peek(UndoRedo* undo_redo) {
 Command* command_pop_up(UndoRedo* undo_redo) {
   Command* command;
 
-  if (undo_redo->command_index_next_free == undo_redo->command_buffer->size) {
-    if (undo_redo->command_buffer->next) {
-
-      undo_redo->command_buffer = undo_redo->command_buffer->next;
-      undo_redo->command_index_next_free = 1;
-
-      command = &(undo_redo->command_buffer->command[0]);
-    } else {
-      RONA_ERROR("command_pop_up: cannot pop forward\n");
+  if (undo_redo->command_index_next_free == sb_count(undo_redo->sb_command)) {
+    RONA_ERROR("command_pop_up: cannot pop forward\n");
+    return NULL;
+  } else {
+    if (undo_redo->command_index_next_free > undo_redo->command_index_furthest_future) {
+      // can't go any further
+      RONA_ERROR("command_pop_up: at the furthest future command\n");
       return NULL;
     }
-  } else {
 
-    if (undo_redo->command_index_next_free > undo_redo->command_index_furthest_future) {
-      if (undo_redo->command_buffer->next == NULL) {
-        // can't go any further
-        RONA_ERROR("command_pop_up: at the furthest future command\n");
-        return NULL;
-      }
-    }
-
-    command = &(undo_redo->command_buffer->command[undo_redo->command_index_next_free]);
+    command = &(undo_redo->sb_command[undo_redo->command_index_next_free]);
     undo_redo->command_index_next_free += 1;
   }
 
@@ -295,6 +226,10 @@ Command* command_pop_up(UndoRedo* undo_redo) {
 }
 
 bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
+  if (undo_redo->command_index_next_free == 0) {
+    return false;
+  }
+
   // always pop and undo the top command
   Command* command = command_pop(undo_redo);
   if (command == NULL) {
@@ -310,7 +245,9 @@ bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
   //
   command = command_peek(undo_redo);
   if (command == NULL) {
-    RONA_ERROR("command_undo: command_peek returned null\n");
+    // peek at the command preceeding the popped one, will
+    // be null if we started at command_index_next_free = 1
+    //
     return false;
   }
 
@@ -330,8 +267,7 @@ bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
 }
 
 bool command_redo(UndoRedo* undo_redo, GameState* game_state) {
-  if (undo_redo->command_buffer_furthest_future == undo_redo->command_buffer &&
-      undo_redo->command_index_furthest_future == (undo_redo->command_index_next_free - 1)) {
+  if (undo_redo->command_index_furthest_future == (undo_redo->command_index_next_free - 1)) {
     // this is the furthest future point in this 'timeline'
     return false;
   }
@@ -387,6 +323,6 @@ void command_debug(UndoRedo* undo_redo) {
 
   for (int i = 0; i <= undo_redo->command_index_furthest_future; i++) {
     RONA_LOG("command %d:\n", i);
-    command_pretty_print(&(undo_redo->command_buffer->command[i]), true, "    ");
+    command_pretty_print(&(undo_redo->sb_command[i]), true, "    ");
   }
 }

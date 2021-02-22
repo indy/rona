@@ -65,7 +65,8 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
       Level* level = game_state->level;
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo, game_state);
+        Command* command =
+            command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
         command->type = CommandType_Editor_WallsBuild;
         command->data.editor_tile_change.level = level;
@@ -185,7 +186,8 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
       command_transaction_begin(&editor_state->undo_redo);
       {
-        Command* command = command_add(&level->bump_allocator, &editor_state->undo_redo, game_state);
+        Command* command =
+            command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
         command->type = CommandType_Editor_TileChange;
         command->data.editor_tile_change.level = level;
@@ -327,7 +329,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 }
 
 void editor_shutdown(RonaGL* gl, EditorState* dev) {
-  command_buffer_shutdown(&(dev->undo_redo));
+  command_system_shutdown(&(dev->undo_redo));
 
   nk_free(&dev->ctx);
 
@@ -376,8 +378,9 @@ void editor_changed_level(EditorState* editor_state, Level* level) {
   RONA_ASSERT(level);
 
   // use the level's bump allocator to store undo/redo information
-  if (!command_buffer_startup(&(level->bump_allocator), &(editor_state->undo_redo))) {
-    RONA_ERROR("editor_startup: command_buffer_startup failed\n");
+  if (!command_system_startup(&(editor_state->undo_redo), &(level->fixed_block_allocator),
+                              MEMORY_RESERVE_COMMANDS_IN_BUFFER)) {
+    RONA_ERROR("editor_startup: command_system_startup failed\n");
   }
 }
 

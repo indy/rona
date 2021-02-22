@@ -109,7 +109,6 @@ static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_
     munit_assert(last.y == 4);
   }
 
-
   return MUNIT_OK;
 }
 
