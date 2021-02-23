@@ -58,7 +58,7 @@ const f64 ref_v = 0.46831999493879100370;
 // -0.9692660  1.8760108  0.0415560
 //  0.0556434 -0.2040259  1.0572252
 
-f64 gamma_expansion(f64 component) {
+f64 inverse_srgb_companding(f64 component) {
   if (component > 0.0405) {
     return pow((component + 0.055) / 1.055, 2.4);
   } else {
@@ -66,7 +66,7 @@ f64 gamma_expansion(f64 component) {
   }
 }
 
-f64 gamma_correction(f64 a) {
+f64 srgb_companding(f64 a) {
   if (a > 0.0031308) {
     return (1.055 * pow(a, 1.0 / 2.4)) - 0.055;
   } else {
@@ -74,8 +74,8 @@ f64 gamma_correction(f64 a) {
   }
 }
 
-void colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
-                 f32 e2, f32 alpha) {
+void colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1, f32 e2,
+                 f32 alpha) {
   Colour in_col = {in_format, {e0, e1, e2, alpha}};
   colour_clone_as(out, &in_col, out_format);
 }
@@ -154,12 +154,9 @@ Colour64* rgb_from_xyz(Colour64* col) {
   f64 yy = col->element[1];
   f64 zz = col->element[2];
 
-  f64 r = (xx * 3.24096994190452134377) + (yy * -1.53738317757009345794) +
-          (zz * -0.49861076029300328366);
-  f64 g = (xx * -0.96924363628087982613) + (yy * 1.87596750150772066772) +
-          (zz * 0.04155505740717561247);
-  f64 b = (xx * 0.05563007969699360846) + (yy * -0.20397695888897656435) +
-          (zz * 1.05697151424287856072);
+  f64 r = (xx * 3.24096994190452134377) + (yy * -1.53738317757009345794) + (zz * -0.49861076029300328366);
+  f64 g = (xx * -0.96924363628087982613) + (yy * 1.87596750150772066772) + (zz * 0.04155505740717561247);
+  f64 b = (xx * 0.05563007969699360846) + (yy * -0.20397695888897656435) + (zz * 1.05697151424287856072);
 
   col->format = ColourFormat_RGB;
   col->element[0] = r;
@@ -235,6 +232,106 @@ f64 hue(Colour64* colour, i32 max_chan, f64 chroma) {
 
 f64 abso(f64 in) {
   return in < 0.0 ? -in : in;
+}
+
+Colour64* rgb_from_oklab(Colour64* col) {
+  f64 okl = col->element[0];
+  f64 oka = col->element[1];
+  f64 okb = col->element[2];
+
+  f64 l_ = okl + 0.3963377774 * oka + 0.2158037573 * okb;
+  f64 m_ = okl - 0.1055613458 * oka - 0.0638541728 * okb;
+  f64 s_ = okl - 0.0894841775 * oka - 1.2914855480 * okb;
+
+  f64 l = l_ * l_ * l_;
+  f64 m = m_ * m_ * m_;
+  f64 s = s_ * s_ * s_;
+
+  f64 r = 4.0767245293 * l - 3.3072168827 * m + 0.2307590544 * s;
+  f64 g = -1.2681437731 * l + 2.6093323231 * m - 0.3411344290 * s;
+  f64 b = -0.0041119885 * l - 0.7034763098 * m + 1.7068625689 * s;
+
+  col->format = ColourFormat_RGB;
+  col->element[0] = r;
+  col->element[1] = g;
+  col->element[2] = b;
+
+  return col;
+}
+
+Colour64* oklab_from_rgb(Colour64* col) {
+  f64 lr = col->element[0];
+  f64 lg = col->element[1];
+  f64 lb = col->element[2];
+
+  f64 l = 0.4121656120 * lr + 0.5362752080 * lg + 0.0514575653 * lb;
+  f64 m = 0.2118591070 * lr + 0.6807189584 * lg + 0.1074065790 * lb;
+  f64 s = 0.0883097947 * lr + 0.2818474174 * lg + 0.6302613616 * lb;
+
+  f64 l_ = cbrt(l);
+  f64 m_ = cbrt(m);
+  f64 s_ = cbrt(s);
+
+  f64 okl = 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_;
+  f64 oka = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_;
+  f64 okb = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_;
+
+  col->format = ColourFormat_OKLAB;
+  col->element[0] = okl;
+  col->element[1] = oka;
+  col->element[2] = okb;
+
+  return col;
+}
+
+Colour64* oklab_from_xyz(Colour64* col) {
+  f64 x = col->element[0];
+  f64 y = col->element[1];
+  f64 z = col->element[2];
+
+  f64 l = (x * 0.818933) + (y * 0.361866) - (z * 0.1288597);
+  f64 m = (x * 0.032984) + (y * 0.929311) + (z * 0.0361456);
+  f64 s = (x * 0.048200) + (y * 0.264366) + (z * 0.6338517);
+
+  f64 ll = cbrt(l);
+  f64 mm = cbrt(m);
+  f64 ss = cbrt(s);
+
+  f64 okl = (ll * 0.2104542553) + (mm * 0.7936177850) - (ss * 0.0040720468);
+  f64 oka = (ll * 1.9779984951) - (mm * 2.4285922050) + (ss * 0.4505937099);
+  f64 okb = (ll * 0.0259040371) + (mm * 0.7827717662) - (ss * 0.8086757660);
+
+  col->format = ColourFormat_OKLAB;
+  col->element[0] = okl;
+  col->element[1] = oka;
+  col->element[2] = okb;
+
+  return col;
+}
+
+Colour64* xyz_from_oklab(Colour64* col) {
+  f64 l = col->element[0];
+  f64 a = col->element[1];
+  f64 b = col->element[2];
+
+  f64 ll = (l * 0.99999999845051981432) + (a * 0.39633779217376785678) + (b * 0.21580375806075880339);
+  f64 aa = (l * 1.0000000088817607767) - (a * 0.1055613423236563494) - (b * 0.063854174771705903402);
+  f64 bb = (l * 1.0000000546724109177) - (a * 0.089484182094965759684) - (b * 1.2914855378640917399);
+
+  f64 lll = ll * ll * ll;
+  f64 aaa = aa * aa * aa;
+  f64 bbb = bb * bb * bb;
+
+  f64 x = (lll * 1.2270135808797242712) - (aaa * 0.55779929373936236039) + (bbb * 0.28125599738846247759);
+  f64 y = (lll * -0.040579504210222529446) + (aaa * 1.1122575496728821897) - (bbb * 0.071676512386310776724);
+  f64 z = (lll * -0.076380979002443348587) - (aaa * 0.42148211232782669384) + (bbb * 1.5861632836188583913);
+
+  col->format = ColourFormat_XYZ;
+  col->element[0] = x;
+  col->element[1] = y;
+  col->element[2] = z;
+
+  return col;
 }
 
 // http://www.rapidtables.com/convert/color/rgb-to-hsl.htm
@@ -540,10 +637,10 @@ f64 l2y(f64 l) {
 }
 
 Colour64* luv_from_xyz(Colour64* col) {
-  f64 var_u = (4.0 * col->element[0]) /
-              (col->element[0] + (15.0 * col->element[1]) + (3.0 * col->element[2]));
-  f64 var_v = (9.0 * col->element[1]) /
-              (col->element[0] + (15.0 * col->element[1]) + (3.0 * col->element[2]));
+  f64 var_u =
+      (4.0 * col->element[0]) / (col->element[0] + (15.0 * col->element[1]) + (3.0 * col->element[2]));
+  f64 var_v =
+      (9.0 * col->element[1]) / (col->element[0] + (15.0 * col->element[1]) + (3.0 * col->element[2]));
   f64 l = y2l(col->element[1]);
   f64 u = 13.0 * l * (var_u - ref_u);
   f64 v = 13.0 * l * (var_v - ref_v);
@@ -676,18 +773,18 @@ Colour64* hsluv_from_xyz(Colour64* xyz) {
 
 Colour64* linear_from_srgb(Colour64* srgb) {
   srgb->format = ColourFormat_RGB;
-  srgb->element[0] = gamma_expansion(srgb->element[0]);
-  srgb->element[1] = gamma_expansion(srgb->element[1]);
-  srgb->element[2] = gamma_expansion(srgb->element[2]);
+  srgb->element[0] = inverse_srgb_companding(srgb->element[0]);
+  srgb->element[1] = inverse_srgb_companding(srgb->element[1]);
+  srgb->element[2] = inverse_srgb_companding(srgb->element[2]);
 
   return srgb;
 }
 
 Colour64* srgb_from_linear(Colour64* rgb) {
   rgb->format = ColourFormat_sRGB;
-  rgb->element[0] = gamma_correction(rgb->element[0]);
-  rgb->element[1] = gamma_correction(rgb->element[1]);
-  rgb->element[2] = gamma_correction(rgb->element[2]);
+  rgb->element[0] = srgb_companding(rgb->element[0]);
+  rgb->element[1] = srgb_companding(rgb->element[1]);
+  rgb->element[2] = srgb_companding(rgb->element[2]);
 
   return rgb;
 }
@@ -722,6 +819,9 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
     case ColourFormat_sRGB:
       srgb_from_linear(rgb_from_hsl(&c64));
       break;
+    case ColourFormat_OKLAB:
+      oklab_from_xyz(xyz_from_rgb(rgb_from_hsl(&c64)));
+      break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);
       break;
@@ -743,6 +843,9 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       break;
     case ColourFormat_sRGB:
       srgb_from_linear(rgb_from_xyz(xyz_from_hsluv(&c64)));
+      break;
+    case ColourFormat_OKLAB:
+      oklab_from_xyz(xyz_from_hsluv(&c64));
       break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);
@@ -766,6 +869,9 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
     case ColourFormat_sRGB:
       srgb_from_linear(rgb_from_hsv(&c64));
       break;
+    case ColourFormat_OKLAB:
+      oklab_from_xyz(xyz_from_rgb(rgb_from_hsv(&c64)));
+      break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);
       break;
@@ -787,6 +893,9 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       break;
     case ColourFormat_sRGB:
       srgb_from_linear(rgb_from_xyz(xyz_from_lab(&c64)));
+      break;
+    case ColourFormat_OKLAB:
+      oklab_from_xyz(xyz_from_lab(&c64));
       break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);
@@ -810,6 +919,11 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
     case ColourFormat_sRGB:
       srgb_from_linear(&c64);
       break;
+    case ColourFormat_OKLAB:
+      // make sure these two lines are equivalent
+      // oklab_from_xyz(xyz_from_rgb(&c64)),
+      oklab_from_rgb(&c64);
+      break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);
       break;
@@ -831,6 +945,37 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       break;
     case ColourFormat_RGB:
       linear_from_srgb(&c64);
+      break;
+    case ColourFormat_OKLAB:
+      // make sure these two lines are equivalent
+      // oklab_from_xyz(xyz_from_rgb(linear_from_srgb(&c64))),
+      oklab_from_rgb(linear_from_srgb(&c64));
+      break;
+    default:
+      RONA_ERROR("unknown colour format %d", new_format);
+      break;
+    }
+    break;
+  case ColourFormat_OKLAB:
+    switch (new_format) {
+    case ColourFormat_HSL:
+      hsl_from_rgb(rgb_from_xyz(xyz_from_oklab(&c64)));
+      break;
+    case ColourFormat_HSLuv:
+      hsluv_from_xyz(xyz_from_oklab(&c64));
+      break;
+    case ColourFormat_HSV:
+      hsv_from_rgb(rgb_from_xyz(xyz_from_oklab(&c64)));
+      break;
+    case ColourFormat_LAB:
+      oklab_from_xyz(xyz_from_oklab(&c64));
+      break;
+    case ColourFormat_RGB:
+      // rgb_from_xyz(xyz_from_oklab(&c64));
+      rgb_from_oklab(&c64); // https://bottosson.github.io/posts/oklab/
+      break;
+    case ColourFormat_sRGB:
+      srgb_from_linear(rgb_from_oklab(&c64));
       break;
     default:
       RONA_ERROR("unknown colour format %d", new_format);

@@ -22,18 +22,37 @@
 // | format | element 0 | element 1   | element 2   |
 // |--------+-----------+-------------+-------------|
 // | sRGB   | R 0..1    | G 0..1      | B 0..1      |
-// | HSL    | H 0..360  | S 0..1      | L 0..1      |
 // | HSLuv  | H 0..360  | S 0..100    | L 0..100    |
+// | OKLAB  | L         | A           | B           |
+// | HSL    | H 0..360  | S 0..1      | L 0..1      |
 // | LAB    | L 0..100  | A -128..128 | B -128..128 |
 // |--------+-----------+-------------+-------------|
+
+// important colour spaces
+//
+// sRGB : what the world uses, avoid any colour manipulation in RGB space
+// HSLuv: for humans to manipulate colours
+// OKLAB: for my code to manipulate colours
+
+// secondary colour spaces
+//
+// HSL
+// HSV
+// LAB
+
+// internal colour spaces
+//
+// XYZ
+// RGB (linear RGB, could be used externally with appropriate shaders)
 
 typedef enum {
   ColourFormat_sRGB, // sRGB
   ColourFormat_RGB,  // linear RGB
-  ColourFormat_HSL,
   ColourFormat_HSLuv,
-  ColourFormat_LAB,
+  ColourFormat_OKLAB,
+  ColourFormat_HSL,
   ColourFormat_HSV,
+  ColourFormat_LAB,
   ColourFormat_XYZ
 } ColourFormat;
 
@@ -44,8 +63,8 @@ typedef struct {
 
 Colour colour_make(ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
 void   colour_set(Colour* out, ColourFormat format, f32 e0, f32 e1, f32 e2, f32 alpha);
-void   colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1,
-                   f32 e2, f32 alpha);
+void   colour_from(Colour* out, ColourFormat out_format, ColourFormat in_format, f32 e0, f32 e1, f32 e2,
+                   f32 alpha);
 
 Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format);
 void    vec4_from_colour(Vec4* out, Colour* in);
