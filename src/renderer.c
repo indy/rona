@@ -30,7 +30,7 @@ void renderer_render(GameState* game_state) {
   bind_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_width,
                    render_struct->stage_height);
 
-  gl->clearColor(0.0f, 0.0f, 0.1f, 1.0f);
+  gl->clearColor(0.1f, 0.1f, 0.1f, 1.0f);
   gl->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   gl->disable(GL_DEPTH_TEST);
@@ -73,7 +73,9 @@ void renderer_render(GameState* game_state) {
       break;
     }
     Graphic* graphic = entity->graphic;
-    Vec3     stage_pos = vec3_add(entity->world_pos, stage_from_world);
+
+    Vec3    offset = vec3(0.0f, -4.0f, 0.0f);
+    Vec3     stage_pos = vec3_add(vec3_add(entity->world_pos, offset), stage_from_world);
     gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
 
     // RONA_LOG("entity vao %d\n", graphic->vao);

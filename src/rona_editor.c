@@ -194,7 +194,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
         if (editor_state->active_tile_type == 0) {
           tile_new.type = TileType_Void;
-          tile_new.sprite = TS_DebugBlank;
+          tile_new.sprite = TS_Blank;
         } else {
           tile_new.type = TileType_Floor;
           tile_new.sprite = TS_Debug4Corners;

@@ -36,7 +36,7 @@ void game_startup(GameState* game_state) {
     h++;
   }
   RONA_INFO("w %d, h %d\n", w, h);
-  level->viewport = rect(-3, -3, w, h);
+  level->viewport = rect(-1, -1, w, h);
 
   level_startup(level, game_state);
   level1_startup(level, game_state);

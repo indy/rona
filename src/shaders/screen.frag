@@ -6,6 +6,17 @@ uniform sampler2D screen_texture;
 
 out vec4 frag_colour;
 
+// --------------------------------------------------------------------------------
+// https://www.shadertoy.com/view/ws2Gzc
+vec3 srgbToLinear(vec3 col){
+    return mix(col / 12.92, pow((col+0.055)/1.055,vec3(2.4)), step(0.04045, col));
+}
+
+vec3 linearToSrgb(vec3 col){
+    return mix(col*12.92, 1.055 * pow(col, vec3(0.41667)) - 0.055, step(0.0031308, col));
+}
+// --------------------------------------------------------------------------------
+
 vec3 linear_to_srgb(vec3 linear) {
     float a = 0.055;
     float b = 0.0031308;
@@ -17,26 +28,26 @@ vec3 linear_to_srgb(vec3 linear) {
         linear.b > b ? srgb_hi.b : srgb_lo.b);
 }
 
-// // cross hatching
-// //
+// // // cross hatching
+// // //
 // float hatchOffsetY = 5.0;
 // float lumThreshold01 = 0.9;
 // float lumThreshold02 = 0.7;
 // float lumThreshold03 = 0.5;
 // float lumThreshold04 = 0.3;
 
-// // bloom
-// //
+// // // bloom
+// // //
 // const vec2 size = vec2(640, 360);   // render size
 // const float samples = 5.0;          // pixels per axis; higher = bigger glow, worse performance
 // const float quality = 1.1; 	        // lower = smaller glow, better quality
 
 void main() {
   vec4 texture_colour = texture(screen_texture, texture_coord);
-  frag_colour = vec4(linear_to_srgb(texture_colour.rgb), 1.0);
+  // frag_colour = vec4(linear_to_srgb(texture_colour.rgb), 1.0);
+  frag_colour = vec4(texture_colour.rgb, 1.0);
 
-
-  // --------------------------------------------------------------------------------
+  // // --------------------------------------------------------------------------------
   // // bloom
   // //
   // vec4 sum = vec4(0);

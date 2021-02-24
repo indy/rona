@@ -21,7 +21,7 @@ bool chunk_pos_eq(Vec2i chunk_pos, Chunk* chunk) {
 
 void chunktile_construct(Tile* tile) {
   tile->type = TileType_Void;
-  tile->sprite = TS_DebugBlank;
+  tile->sprite = TS_Blank;
 }
 
 void chunk_construct(Chunk* chunk, BumpAllocator* bump_allocator, Vec2i pos) {
@@ -123,10 +123,13 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
   u32 num_tiles = 0;
 
   Rect* viewport = &(level->viewport);
-  for (i32 cy = viewport->pos.y; cy < viewport->pos.y + (i32)viewport->dim.height; cy += CHUNK_HEIGHT) {
-    for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width; cx += CHUNK_WIDTH) {
+
+  for (i32 cy = viewport->pos.y; cy < viewport->pos.y + (i32)viewport->dim.height + CHUNK_HEIGHT;
+       cy += CHUNK_HEIGHT) {
+    for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width + CHUNK_WIDTH;
+         cx += CHUNK_WIDTH) {
       ChunkPos chunk_pos = chunk_pos_from_world_tile_space(vec2i(cx, cy));
-      Chunk*   chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
+      Chunk* chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
       RONA_ASSERT(chunk);
 
       // the top left corner of the chunk we're about to iterate through (in world tile space)
@@ -136,7 +139,7 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
       for (i32 ty = 0; ty < CHUNK_HEIGHT; ty++) {
         for (i32 tx = 0; tx < CHUNK_WIDTH; tx++) {
           Tile* tile = &(chunk->tiles[(ty * CHUNK_WIDTH) + tx]);
-          if (tile->sprite != TS_DebugBlank) {
+          if (tile->sprite != TS_Blank) {
             TilesetSprite tile_sprite = tile->sprite;
 
             Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
