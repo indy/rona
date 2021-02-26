@@ -15,11 +15,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef GRAPHIC_SCREEN_H
-#define GRAPHIC_SCREEN_H
+#ifndef SPRITE_H
+#define SPRITE_H
 
-// void graphic_screen_render(Graphic *graphic, RonaGL *gl, Mat4 *proj_matrix);
-void graphic_screen_lib_load(Graphic* graphic, RonaGL* gl, RenderStruct* render_struct);
-void graphic_screen_lib_unload(Graphic* graphic, RonaGL* gl);
+// image_dim and sprite_dim should be valid
+void tileset_calc_uv_units(Tileset* tileset);
+Vec2 tileset_get_uv(Tileset* tileset, TilesetSprite sprite);
+Vec2 tileset_get_uv_char(Tileset* tileset, char c);
+void tileset_add_char(RenderStruct* render_struct, char c, Vec2* pos, Vec4* fg, Vec4* bg);
 
-#endif /* GRAPHIC_SCREEN_H */
+Vec2 sprite_get_stage_offset(TilesetSprite sprite);
+
+#endif /* SPRITE_H  */

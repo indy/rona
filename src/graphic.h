@@ -18,9 +18,11 @@
 #ifndef GRAPHIC_H
 #define GRAPHIC_H
 
-// void graphic_hero_render(Graphic *graphic, RonaGL *gl, Mat4 *proj_matrix);
-void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
-                                  Colour fg_col, Colour bg_col);
-void graphic_lib_unload(Graphic* graphic, RonaGL* gl);
+void graphic_allocate_mesh(Graphic* graphic, BumpAllocator* bump_allocator, u32 bytes_to_allocate);
+
+void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transient, u32 max_quads_to_render);
+void graphic_setup_screen(Graphic* graphic, RonaGL* gl, f32 stage_width, f32 stage_height);
+
+void graphic_teardown(Graphic* graphic, RonaGL* gl);
 
 #endif /* GRAPHIC_H */

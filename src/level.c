@@ -18,11 +18,28 @@
 #define MAX_OCCUPANTS_ALLOWED 10
 
 void level_startup(Level* level, GameState* game_state) {
-  chunk_startup(level);
+  BumpAllocator* bump_allocator = &(level->bump_allocator);
+
+  usize entities_graphic_memory = MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER * TILED_QUAD_NUM_FLOATS;
+  graphic_allocate_mesh(&level->entities_graphic, bump_allocator, entities_graphic_memory);
+
+  usize chunks_graphic_memory = max_number_of_renderable_tiles(level) * TILED_QUAD_NUM_FLOATS;
+  graphic_allocate_mesh(&level->chunks_graphic, bump_allocator, chunks_graphic_memory);
 }
 
 void level_shutdown(Level* level) {
-  chunk_shutdown(level);
+}
+
+void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
+  graphic_setup_for_quads(&level->entities_graphic, gl, transient, MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER);
+
+  graphic_setup_for_quads(&level->chunks_graphic, gl, transient, max_number_of_renderable_tiles(level));
+  chunk_regenerate_geometry(level, gl, tileset);
+}
+
+void level_lib_unload(Level* level, RonaGL* gl) {
+  graphic_teardown(&level->chunks_graphic, gl);
+  graphic_teardown(&level->entities_graphic, gl);
 }
 
 // how many entities are there on the level at the given position?
@@ -215,14 +232,14 @@ void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
 }
 
 TilesetSprite floor_sprite(i32 i) {
-  TilesetSprite sprites[] = { TS_Floor01, TS_Floor02, TS_Floor03, TS_Floor04, TS_Floor05 };
+  TilesetSprite sprites[] = {TS_Floor01, TS_Floor02, TS_Floor03, TS_Floor04, TS_Floor05};
   i32           num_sprites = 5;
 
   return sprites[i % num_sprites];
 }
 
 TilesetSprite wall_exterior_sprite(i32 i) {
-  TilesetSprite sprites[] = {TS_Warning, TS_Warning };
+  TilesetSprite sprites[] = {TS_Warning, TS_Warning};
   i32           num_sprites = 2;
 
   return sprites[i % num_sprites];
@@ -230,7 +247,7 @@ TilesetSprite wall_exterior_sprite(i32 i) {
 
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height, char layout[][dbl_width]) {
 
-  level->sb_chunks = NULL;
+  level->chunks_sb = NULL;
 
   level->max_num_entities = 10;
   level->entities = (Entity*)BUMP_ALLOC(&(level->bump_allocator), sizeof(Entity) * level->max_num_entities);
@@ -253,7 +270,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
       Vec2i    world_tile_coords = vec2i(i / 2, j);
       ChunkPos chunkpos = chunk_pos_from_world_tile_space(world_tile_coords);
-      Tile* tile = chunk_tile_ensure_get(level, chunkpos);
+      Tile*    tile = chunk_tile_ensure_get(level, chunkpos);
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
@@ -267,7 +284,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         Entity *hero, *block, *pit;
 
         switch (plan_line[i]) {
-        // clang-format off
+          // clang-format off
 
           // F == floor, W == wall
 
@@ -303,7 +320,6 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
         case 's': tile->type = TileType_Void; tile->sprite = TS_DoorClosed; break;
 
-
         // clang-format on
         case 'H':
           hero = &(level->entities[0]);
@@ -312,7 +328,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           hero->exists = true;
           hero->entity_type = EntityType_Hero;
           hero->entity_state = EntityState_Standing;
-          hero->graphic = &(game_state->graphic_hero);
+          // hero->graphic = &(game_state->graphic_hero);
           hero->world_max_speed = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
           entity_colour_as_hsluv(hero, 290.0f, 90.0f, 30.0f);
@@ -325,7 +341,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           block->exists = true;
           block->entity_type = EntityType_Block;
           block->entity_state = EntityState_Standing;
-          block->graphic = &(game_state->graphic_block);
+          // block->graphic = &(game_state->graphic_block);
           block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
           entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
@@ -338,7 +354,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           pit->exists = true;
           pit->entity_type = EntityType_Pit;
           pit->entity_state = EntityState_Standing;
-          pit->graphic = &(game_state->graphic_pit);
+          // pit->graphic = &(game_state->graphic_pit);
           pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
           entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);

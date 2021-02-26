@@ -54,20 +54,3 @@ void level1_shutdown(Level* level) {
   command_system_shutdown(&level->undo_redo);
   level->bump_allocator.used = 0;
 }
-
-void level1_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
-  chunk_lib_load(level, gl, transient);
-  chunk_regenerate_geometry(level, gl, tileset);
-
-  // Colour hero_colour;
-  // colour_from(&hero_colour, ColourFormat_RGB, ColourFormat_HSLuv, 290.0f, 90.0f, 30.0f, 1.0f);
-
-  // Entity *hero = &(level->entities[0]);
-  // hero->colour.r = hero_colour.element[0];
-  // hero->colour.g = hero_colour.element[1];
-  // hero->colour.b = hero_colour.element[2];
-  // hero->colour.a = hero_colour.element[3];
-}
-void level1_lib_unload(Level* level, RonaGL* gl) {
-  chunk_lib_unload(level, gl);
-}

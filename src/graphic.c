@@ -15,38 +15,85 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset, TilesetSprite tile_sprite,
-                                  Colour fg_col, Colour bg_col) {
+void graphic_allocate_mesh(Graphic* graphic, BumpAllocator* bump_allocator, u32 bytes_to_allocate) {
+  graphic->mesh = (f32*)BUMP_ALLOC(bump_allocator, bytes_to_allocate);
+  graphic->sizeof_vbo = 0;
+  graphic->num_elements = 0;
+}
 
-  Vec4   fg, bg;
-  Colour c;
-  vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
-  vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
-
-  graphic->num_elements = 6;
-  graphic->shader_type = ShaderType_Tile;
-
+void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transient,
+                             u32 max_quads_to_render) {
   gl->genVertexArrays(1, &graphic->vao); // Vertex Array Object
-
-  // RONA_LOG("graphic vao %d\n", graphic->vao);
-
   gl->bindVertexArray(graphic->vao);
 
-  Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
-  f32  u = sprite.u;
-  f32  v = sprite.v;
-  f32  ud = tileset->uv_unit.u;
-  f32  vd = tileset->uv_unit.v;
+  graphic->num_elements = 0;
+  i32 stride = TILED_QUAD_NUM_FLOATS;
+
+  graphic->sizeof_vbo = sizeof(f32) * stride * max_quads_to_render;
+  u32  sizeof_indices = sizeof(u32) * 6 * max_quads_to_render;
+  u32* indices = (u32*)BUMP_ALLOC(transient, sizeof_indices);
+
+  // build indices for geometry
 
   // clang-format off
-  f32 half_dim_x = TILE_WIDTH * 0.5f;
-  f32 half_dim_y = TILE_HEIGHT * 0.5f;
+  for (i32 tile_count = 0; tile_count < max_quads_to_render; tile_count++) {
+    i32 i_index = tile_count * 6;
+    i32 offset = tile_count * 4;
+    indices[i_index + 0] = 0 + offset;
+    indices[i_index + 1] = 1 + offset;
+    indices[i_index + 2] = 2 + offset;
+    indices[i_index + 3] = 0 + offset;
+    indices[i_index + 4] = 2 + offset;
+    indices[i_index + 5] = 3 + offset;
+  }
+  // clang-format on
+
+  // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
+  //
+  gl->genBuffers(1, &graphic->vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
+  gl->bufferData(GL_ARRAY_BUFFER, graphic->sizeof_vbo, 0,
+                 GL_DYNAMIC_DRAW); // the data is set only once and used many times.
+  // gl->bindBuffer(GL_ARRAY_BUFFER, 0);
+
+  gl->genBuffers(1, &graphic->ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);
+  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof_indices, indices, GL_DYNAMIC_DRAW);
+  // gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
+  gl->enableVertexAttribArray(0);
+  gl->enableVertexAttribArray(1);
+  gl->enableVertexAttribArray(2);
+  gl->enableVertexAttribArray(3);
+
+  // positions
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(0 * sizeof(float)));
+  // uv
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(2 * sizeof(float)));
+
+  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(4 * sizeof(float)));
+  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(8 * sizeof(float)));
+
+  // gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);
+
+  gl->bindVertexArray(0);
+}
+
+void graphic_setup_screen(Graphic* graphic, RonaGL* gl, f32 stage_width, f32 stage_height) {
+  graphic->num_elements = 6;
+  graphic->shader_type = ShaderType_Screen;
+
+  gl->genVertexArrays(1, &graphic->vao); // Vertex Array Object
+  gl->bindVertexArray(graphic->vao);
+
+  // clang-format off
+  // x, y, u, v
   f32 vertices[] = {
-    //      positions                uv             foreground colour            background colour
-    -half_dim_x, -half_dim_y,     u,    v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-    -half_dim_x,  half_dim_y,     u,    v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-     half_dim_x,  half_dim_y,     u+ud, v+vd,  fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3],
-     half_dim_x, -half_dim_y,     u+ud, v,     fg.e[0], fg.e[1], fg.e[2], fg.e[3],  bg.e[0], bg.e[1], bg.e[2], bg.e[3]
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, stage_height, 0.0f, 1.0f,
+    stage_width, stage_height, 1.0f, 1.0f,
+    stage_width, 0.0f, 1.0f, 0.0f
   };
   u32 indices[] = {
     0, 1, 2,
@@ -56,34 +103,34 @@ void graphic_lib_load_single_tile(Graphic* graphic, RonaGL* gl, Tileset* tileset
 
   // the type of a Vertex Buffer Object is GL_ARRAY_BUFFER
   //
-  gl->genBuffers(1, &graphic->vbo);
-  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
+  GLuint vbo;
+  gl->genBuffers(1, &vbo);
+  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->bufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW); // the data is set only once and used many times.
+  gl->bindBuffer(GL_ARRAY_BUFFER, 0);
 
+  GLuint ebo;
+  gl->genBuffers(1, &ebo);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+  gl->bindBuffer(GL_ARRAY_BUFFER, vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
-  gl->enableVertexAttribArray(2);
-  gl->enableVertexAttribArray(3);
-
-  u32 num_floats = TILED_VERTEX_NUM_FLOATS;
 
   // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(0 * sizeof(float)));
-  // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(2 * sizeof(float)));
-  // fg colour
-  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(4 * sizeof(float)));
-  // bg colour
-  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * num_floats, (void*)(8 * sizeof(float)));
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, NULL);
 
-  gl->genBuffers(1, &graphic->ebo);
-  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);
-  gl->bufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+  // texture coords
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 4, (GLvoid*)((sizeof(float) * 2)));
+
+  gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
   gl->bindVertexArray(0);
 }
 
-void graphic_lib_unload(Graphic* graphic, RonaGL* gl) {
+void graphic_teardown(Graphic* graphic, RonaGL* gl) {
   gl->deleteVertexArrays(1, &graphic->vao);
 }

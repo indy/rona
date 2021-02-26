@@ -15,6 +15,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
+
 void game_startup(GameState* game_state) {
   u64    level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
   Level* level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
@@ -127,16 +129,10 @@ void game_lib_load(GameState* game_state) {
 #endif
   stage_from_window_calc(game_state);
 
-  Colour transparent = colour_make(ColourFormat_RGB, 0.0f, 0.0f, 0.0f, 0.0f);
-  Colour red = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
+  graphic_setup_screen(&(game_state->screen_graphic), gl, (f32)render_struct->stage_width,
+                       (f32)render_struct->stage_height);
 
-  graphic_lib_load_single_tile(&(game_state->graphic_pit), gl, tileset, TS_PressurePadActivated, red,
-                               transparent);
-  graphic_lib_load_single_tile(&(game_state->graphic_block), gl, tileset, TS_Block, red, transparent);
-  graphic_lib_load_single_tile(&(game_state->graphic_hero), gl, tileset, TS_Hero, red, transparent);
-  graphic_screen_lib_load(&(game_state->graphic_screen), gl, render_struct);
-
-  level1_lib_load(game_state->level, gl, bump_transient, tileset);
+  level_lib_load(game_state->level, gl, bump_transient, tileset);
 
   Colour text_colour_fg;
   colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
@@ -155,11 +151,8 @@ void game_lib_load(GameState* game_state) {
 void game_lib_unload(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
 
-  level1_lib_unload(game_state->level, game_state->gl);
-  graphic_screen_lib_unload(&(game_state->graphic_screen), game_state->gl);
-  graphic_lib_unload(&(game_state->graphic_hero), game_state->gl);
-  graphic_lib_unload(&(game_state->graphic_block), game_state->gl);
-  graphic_lib_unload(&(game_state->graphic_pit), game_state->gl);
+  level_lib_unload(game_state->level, game_state->gl);
+  graphic_teardown(&(game_state->screen_graphic), game_state->gl);
 
 #ifdef RONA_EDITOR
   editor_lib_unload(game_state->gl, &editor_state);
@@ -326,7 +319,108 @@ void game_step(GameState* game_state) {
     }
   }
 
+  entities_regenerate_geometry(level, gl, &(render_struct->tileset));
+
   text_send_to_gpu(render_struct, gl);
 
   renderer_render(game_state);
+}
+
+void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
+  Graphic* graphic = &(level->entities_graphic);
+  graphic->num_elements = 0;
+  graphic->shader_type = ShaderType_Tile;
+
+  f32* buffer = graphic->mesh;
+  u32  buffer_size = 0;
+
+  // temp
+  Colour bg_col = colour_make(ColourFormat_RGB, 50.0f, 20.0f, 80.0f, 1.0f);
+  Colour fg_col = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
+  Vec4   fg, bg;
+  Colour c;
+  vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
+  vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
+
+  u32 num_tiles = 0;
+
+  Vec2 centre_sprite = vec2(-(f32)TILE_WIDTH / 2.0, -(f32)TILE_HEIGHT / 2.0);
+
+  for (i32 i = 0; i < level->max_num_entities; i++) {
+    Entity* e = &(level->entities[i]);
+
+    if (e->exists == false) {
+      break;
+    }
+
+    TilesetSprite tile_sprite;
+    switch (e->entity_type) {
+    case EntityType_Hero:
+      tile_sprite = TS_Hero;
+      break;
+    case EntityType_Block:
+      tile_sprite = TS_Block;
+      break;
+    case EntityType_Pit:
+      tile_sprite = TS_BlockableHole;
+      break;
+    default:
+      RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
+      return;
+      break;
+    }
+
+    Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
+    Vec2 offset = sprite_get_stage_offset(tile_sprite);
+    f32  u = sprite.u;
+    f32  v = sprite.v;
+    f32  ud = tileset->uv_unit.u;
+    f32  vd = tileset->uv_unit.v;
+
+    f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
+    f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;
+
+    // clang-format off
+    *buffer++ = tile_origin_x;
+    *buffer++ = tile_origin_y;
+    *buffer++ = u;
+    *buffer++ = v;
+    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
+    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
+
+    *buffer++ = tile_origin_x;
+    *buffer++ = tile_origin_y + TILE_HEIGHT;;
+    *buffer++ = u;
+    *buffer++ = v + vd;
+    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
+    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
+
+    *buffer++ = tile_origin_x + TILE_WIDTH;
+    *buffer++ = tile_origin_y + TILE_HEIGHT;
+    *buffer++ = u + ud;
+    *buffer++ = v + vd;
+    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
+    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
+
+    *buffer++ = tile_origin_x + TILE_WIDTH;
+    *buffer++ = tile_origin_y;
+    *buffer++ = u + ud;
+    *buffer++ = v;
+    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
+    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
+    // clang-format on
+
+    num_tiles++;
+    buffer_size += TILED_QUAD_NUM_FLOATS;
+    graphic->num_elements += TILED_QUAD_NUM_INDICES;
+  }
+
+  graphic->mesh_size_bytes = buffer_size * sizeof(f32);
+
+  // upload the geometry to the GPU
+  //
+  RONA_ASSERT(graphic->sizeof_vbo >= graphic->mesh_size_bytes);
+  gl->bindVertexArray(graphic->vao);
+  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
+  gl->bufferSubData(GL_ARRAY_BUFFER, 0, graphic->mesh_size_bytes, graphic->mesh);
 }

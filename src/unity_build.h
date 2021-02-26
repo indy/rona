@@ -63,14 +63,13 @@ static GameState* g_game_state = 0;
 #include "entity.h"
 #include "game.h"
 #include "graphic.h"
-#include "graphic_screen.h"
 #include "input.h"
 #include "level.h"
 #include "level1.h"
 #include "renderer.h"
 #include "rona_math.h"
+#include "sprite.h"
 #include "stretchy.h"
-#include "tileset.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
@@ -92,11 +91,10 @@ static GameState* g_game_state = 0;
 #include "command.c"
 #include "game.c"
 #include "graphic.c"
-#include "graphic_screen.c"
 #include "input.c"
 #include "level.c"
 #include "level1.c"
 #include "memory.c"
 #include "renderer.c"
 #include "rona_math.c"
-#include "tileset.c"
+#include "sprite.c"

@@ -37,6 +37,7 @@
 
 // Fixed sizes that affect memory on CPU or GPU
 #define MEMORY_RESERVE_COMMANDS_IN_BUFFER 100
+#define MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER 500
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                                     \
@@ -73,39 +74,6 @@ typedef unsigned char byte;
 typedef unsigned int  usize;
 
 #include "rona_gl.h"
-
-typedef enum {
-  TS_Blank = 0,
-
-  TS_Floor01,
-  TS_Floor02,
-  TS_Floor03,
-  TS_Floor04,
-  TS_Floor05,
-  TS_WallBottom,
-  TS_WallTop,
-  TS_WallLeft,
-  TS_WallRight,
-
-  TS_CornerA_TL,
-  TS_CornerA_TR,
-  TS_CornerA_BL,
-  TS_CornerA_BR,
-
-  TS_CornerB_TL,
-  TS_CornerB_TR,
-  TS_CornerB_BL,
-  TS_CornerB_BR,
-
-  TS_Hero,
-  TS_Block,
-  TS_DoorClosed,
-  TS_PressurePadActivated,
-  TS_Warning,
-  TS_Debug4Corners,
-
-  TS_NumTilesetSprites
-} TilesetSprite;
 
 typedef struct {
   union {
@@ -237,6 +205,55 @@ typedef struct Mat4 {
 } Mat4;
 
 /*
+** Tileset Sprites
+**
+*/
+
+// TILESETSPRITE_DECL parameters: ENUM, TILE_X, TILE_Y, OFFSET_X, OFFSET_Y
+//
+#define FOREACH_TILESETSPRITE(TILESETSPRITE_DECL)                                                            \
+  TILESETSPRITE_DECL(TS_Blank, 2, 0, 0.0f, 0.0f)                                                             \
+  TILESETSPRITE_DECL(TS_Floor01, 1, 25, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_Floor02, 1, 26, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_Floor03, 1, 27, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_Floor04, 1, 28, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_Floor05, 1, 29, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_WallBottom, 2, 25, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_WallTop, 2, 26, 0.0f, 0.0f)                                                          \
+  TILESETSPRITE_DECL(TS_WallLeft, 2, 27, 0.0f, 0.0f)                                                         \
+  TILESETSPRITE_DECL(TS_WallRight, 2, 28, 0.0f, 0.0f)                                                        \
+  TILESETSPRITE_DECL(TS_CornerA_TL, 2, 29, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerA_TR, 2, 30, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerA_BL, 2, 31, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerA_BR, 2, 32, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerB_TL, 2, 33, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerB_TR, 2, 34, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerB_BL, 2, 35, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_CornerB_BR, 2, 36, 0.0f, 0.0f)                                                       \
+  TILESETSPRITE_DECL(TS_Hero, 9, 1, 0.0f, -4.0f)                                                             \
+  TILESETSPRITE_DECL(TS_DoorClosed, 8, 1, 0.0f, 0.0f)                                                        \
+  TILESETSPRITE_DECL(TS_PressurePadActivated, 5, 0, 0.0f, 0.0f)                                              \
+  TILESETSPRITE_DECL(TS_Warning, 5, 0, 0.0f, 0.0f)                                                           \
+  TILESETSPRITE_DECL(TS_Debug4Corners, 5, 0, 0.0f, 0.0f)                                                     \
+  TILESETSPRITE_DECL(TS_Block, 1, 30, 0.0f, 0.0f)                                                            \
+  TILESETSPRITE_DECL(TS_BlockableHole, 1, 31, 0.0f, 0.0f)                                                    \
+  TILESETSPRITE_DECL(TS_BlockableHoleFilled, 1, 32, 0.0f, 0.0f)                                              \
+  TILESETSPRITE_DECL(TS_NumTilesetSprites, 0, 0, 0.0f, 0.0f)
+
+#define GENERATE_ENUM(ENUM, TILE_X, TILE_Y, SO_X, SO_Y) ENUM,
+typedef enum { FOREACH_TILESETSPRITE(GENERATE_ENUM) } TilesetSprite;
+
+typedef struct {
+  Dim2 location;     // location on the tileset texture (in tile space coords)
+  Vec2 stage_offset; // offset (in stage pixels) when rendering
+} TilesetSpriteInfo;
+
+// #define GENERATE_STRING(ENUM, TILE_X, TILE_Y) #ENUM,
+// static const char *TILE_STRING[] = {
+//     FOREACH_TILESETSPRITE(GENERATE_STRING)
+// };
+
+/*
 ** Memory management
 **
 */
@@ -301,6 +318,9 @@ typedef struct {
 
   GLuint ebo;          // GL_ELEMENT_ARRAY_BUFFER for indices
   i32    num_elements; // used by gl->drawElements
+
+  f32* mesh;
+  u32  mesh_size_bytes;
 } Graphic;
 
 typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;
@@ -315,8 +335,8 @@ typedef struct Entity {
   // there will be no more entites where exists == true
   bool exists;
 
-  Graphic* graphic;
-  Vec4     colour;
+  // Graphic* graphic;
+  Vec4 colour;
 
   Vec2i board_pos;
 
@@ -432,12 +452,11 @@ typedef struct Level {
 
   i32     max_num_entities;
   Entity* entities;
+  Graphic entities_graphic;
 
   // chunky tile representation
-  Chunk*  sb_chunks;
-  Graphic chunk_graphic;
-  f32*    chunk_mesh;
-  u32     chunk_mesh_size_bytes;
+  Chunk*  chunks_sb;
+  Graphic chunks_graphic;
 
   Rect viewport;
 
@@ -627,10 +646,10 @@ typedef struct {
   FixedBlockAllocator allocator_permanent;
   FixedBlockAllocator allocator_transient;
 
-  Graphic graphic_screen;
-  Graphic graphic_hero;
-  Graphic graphic_block;
-  Graphic graphic_pit;
+  Graphic screen_graphic;
+  // Graphic graphic_hero;
+  // Graphic graphic_block;
+  // Graphic graphic_pit;
 
   Level* level;
 

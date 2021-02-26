@@ -23,7 +23,7 @@ void renderer_render(GameState* game_state) {
   RonaGL*       gl = game_state->gl;
   Level*        level = game_state->level;
   RenderStruct* render_struct = &game_state->render_struct;
-  Graphic*      screen = &(game_state->graphic_screen);
+  Graphic*      screen = &(game_state->screen_graphic);
 
   // render the scene onto the stage texture
   //
@@ -55,32 +55,20 @@ void renderer_render(GameState* game_state) {
   // render level's chunks
   //
   {
-    Graphic* graphic = &(level->chunk_graphic);
+    Graphic* graphic = &(level->chunks_graphic);
     gl->uniform3f(render_struct->shader_tile.uniform_pos, (f32)(-level->viewport.pos.x * TILE_WIDTH),
                   (f32)(-level->viewport.pos.y * TILE_HEIGHT), 2.0f);
     gl->bindVertexArray(graphic->vao);
     gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
   }
 
-  Vec3 stage_from_world =
-      vec3(-level->viewport.pos.x * TILE_WIDTH, -level->viewport.pos.y * TILE_HEIGHT, 0.0f);
-
   // render entities
   //
-  for (i32 i = 0; i < level->max_num_entities; i++) {
-    Entity* entity = &(level->entities[i]);
-    if (!entity->exists) {
-      break;
-    }
-    Graphic* graphic = entity->graphic;
-
-    Vec3    offset = vec3(0.0f, -4.0f, 0.0f);
-    Vec3     stage_pos = vec3_add(vec3_add(entity->world_pos, offset), stage_from_world);
-    gl->uniform3f(render_struct->shader_tile.uniform_pos, stage_pos.x, stage_pos.y, stage_pos.z);
-
-    // RONA_LOG("entity vao %d\n", graphic->vao);
+  {
+    Graphic* graphic = &(level->entities_graphic);
+    gl->uniform3f(render_struct->shader_tile.uniform_pos, (f32)(-level->viewport.pos.x * TILE_WIDTH),
+                  (f32)(-level->viewport.pos.y * TILE_HEIGHT), 2.0f);
     gl->bindVertexArray(graphic->vao);
-
     gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
   }
 

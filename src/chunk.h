@@ -18,10 +18,7 @@
 #ifndef CHUNK_H
 #define CHUNK_H
 
-void chunk_startup(Level* level);
-void chunk_shutdown(Level* level);
-void chunk_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient);
-void chunk_lib_unload(Level* level, RonaGL* gl);
+i32 max_number_of_renderable_tiles(Level* level);
 
 void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
 

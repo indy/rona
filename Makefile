@@ -91,4 +91,4 @@ run: $(GUEST_OUT) $(HOST_OUT)
 	$(HOST_OUT)
 
 watch:
-	while true; do inotifywait -e close_write --quiet --recursive src; make; done
+	while true; do inotifywait -e close_write --quiet --recursive src assets; make; done
