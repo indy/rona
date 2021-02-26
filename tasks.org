@@ -1,7 +1,16 @@
 
-* todo [0/1]
-  1. [ ] foo
+* todo
 
+  level loading/saving/editing
+
+  different sprite types:
+  - tiles/chunks (floors, walls)
+  - animated entities (characters, flaming torches on the wall)
+  - non-animated entities (holes, blocks)
+
+  layering of sprites (quads), rendering in the correct order
+
+  entity properties
 
 
 * todo details
