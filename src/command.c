@@ -58,18 +58,18 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      */
   case CommandType_Editor_TileChange: {
     bool  requires_regen = false;
-    Tile* tile = chunk_tile_ensure_get(command->data.editor_tile_change.level,
+    Tile* tile           = chunk_tile_ensure_get(command->data.editor_tile_change.level,
                                        command->data.editor_tile_change.chunk_pos);
     switch (execute_type) {
     case CommandExecute_Play:
       return; // early return, no need to do anything here
     case CommandExecute_Undo:
       requires_regen = true;
-      *tile = command->data.editor_tile_change.tile_old;
+      *tile          = command->data.editor_tile_change.tile_old;
       break;
     case CommandExecute_Redo:
       requires_regen = true;
-      *tile = command->data.editor_tile_change.tile_new;
+      *tile          = command->data.editor_tile_change.tile_new;
       break;
     case CommandExecute_Kill:
       RONA_LOG("CommandType_Editor_TileChange :: CommandExecute_Kill\n");
@@ -78,10 +78,10 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 
     if (requires_regen) {
       // update the level's chunk geometry now that it's been changed
-      Level*   level = game_state->level;
-      RonaGL*  gl = game_state->gl;
-      Tileset* tileset = &(game_state->render_struct.tileset);
-      chunk_regenerate_geometry(level, gl, tileset);
+      Level*        level         = game_state->level;
+      RonaGL*       gl            = game_state->gl;
+      RenderStruct* render_struct = &(game_state->render_struct);
+      chunk_regenerate_geometry(level, gl, render_struct);
     }
   } break;
 #endif // RONA_EDITOR
@@ -96,7 +96,7 @@ bool command_system_startup(UndoRedo* undo_redo, FixedBlockAllocator* fixed_bloc
                             usize num_reserved_commands) {
   undo_redo->sb_commands = sb_add(fixed_block_allocator, undo_redo->sb_commands, num_reserved_commands);
 
-  undo_redo->in_transaction = false;
+  undo_redo->in_transaction          = false;
   undo_redo->command_index_next_free = 0;
 
   undo_redo->command_index_furthest_future = 0;

@@ -30,7 +30,7 @@ f32 clamp(f32 min, f32 val, f32 max) {
 Dim2 dim2(usize width, usize height) {
   Dim2 res;
 
-  res.width = width;
+  res.width  = width;
   res.height = height;
 
   return res;
@@ -39,9 +39,9 @@ Dim2 dim2(usize width, usize height) {
 Rect rect(i32 x, i32 y, usize width, usize height) {
   Rect r;
 
-  r.pos.x = x;
-  r.pos.y = y;
-  r.dim.width = width;
+  r.pos.x      = x;
+  r.pos.y      = y;
+  r.dim.width  = width;
   r.dim.height = height;
 
   return r;
@@ -398,16 +398,16 @@ Vec4 vec4_normalize(Vec4 a) {
 
 Mat4 mat4_identity() {
   Mat4 m;
-  m.v[0] = 1.0f;
-  m.v[1] = 0.0f;
-  m.v[2] = 0.0f;
-  m.v[3] = 0.0f;
-  m.v[4] = 0.0f;
-  m.v[5] = 1.0f;
-  m.v[6] = 0.0f;
-  m.v[7] = 0.0f;
-  m.v[8] = 0.0f;
-  m.v[9] = 0.0f;
+  m.v[0]  = 1.0f;
+  m.v[1]  = 0.0f;
+  m.v[2]  = 0.0f;
+  m.v[3]  = 0.0f;
+  m.v[4]  = 0.0f;
+  m.v[5]  = 1.0f;
+  m.v[6]  = 0.0f;
+  m.v[7]  = 0.0f;
+  m.v[8]  = 0.0f;
+  m.v[9]  = 0.0f;
   m.v[10] = 1.0f;
   m.v[11] = 0.0f;
   m.v[12] = 0.0f;
@@ -423,16 +423,16 @@ Mat4 mat4_ortho(f32 left, f32 right, f32 bottom, f32 top, f32 near, f32 far) {
   f32  bt = 1.0f / (bottom - top);
   f32  nf = 1.0f / (near - far);
 
-  m.v[0] = -2.0f * lr;
-  m.v[1] = 0.0f;
-  m.v[2] = 0.0f;
-  m.v[3] = 0.0f;
-  m.v[4] = 0.0f;
-  m.v[5] = -2.0f * bt;
-  m.v[6] = 0.0f;
-  m.v[7] = 0.0f;
-  m.v[8] = 0.0f;
-  m.v[9] = 0.0f;
+  m.v[0]  = -2.0f * lr;
+  m.v[1]  = 0.0f;
+  m.v[2]  = 0.0f;
+  m.v[3]  = 0.0f;
+  m.v[4]  = 0.0f;
+  m.v[5]  = -2.0f * bt;
+  m.v[6]  = 0.0f;
+  m.v[7]  = 0.0f;
+  m.v[8]  = 0.0f;
+  m.v[9]  = 0.0f;
   m.v[10] = 2.0f * nf;
   m.v[11] = 0.0f;
   m.v[12] = (left + right) * lr;
@@ -447,16 +447,16 @@ Mat4 mat4_perspective(f32 fov, f32 aspect_ratio, f32 near, f32 far) {
   Mat4  m;
   float cotangent = 1.0f / TANF(fov * (PI32 / 360.0f));
 
-  m.v[0] = cotangent * aspect_ratio;
-  m.v[1] = 0.0f;
-  m.v[2] = 0.0f;
-  m.v[3] = 0.0f;
-  m.v[4] = 0.0f;
-  m.v[5] = cotangent;
-  m.v[6] = 0.0f;
-  m.v[7] = 0.0f;
-  m.v[8] = 0.0f;
-  m.v[9] = 0.0f;
+  m.v[0]  = cotangent * aspect_ratio;
+  m.v[1]  = 0.0f;
+  m.v[2]  = 0.0f;
+  m.v[3]  = 0.0f;
+  m.v[4]  = 0.0f;
+  m.v[5]  = cotangent;
+  m.v[6]  = 0.0f;
+  m.v[7]  = 0.0f;
+  m.v[8]  = 0.0f;
+  m.v[9]  = 0.0f;
   m.v[10] = (near + far) / (near - far);
   m.v[11] = -1.0f;
   m.v[12] = 0.0f;
@@ -500,30 +500,30 @@ Mat4 mat4_multiply(Mat4* a, Mat4* b) {
   }
 
   {
-    f32 b0 = b->v[4];
-    f32 b1 = b->v[5];
-    f32 b2 = b->v[6];
-    f32 b3 = b->v[7];
+    f32 b0   = b->v[4];
+    f32 b1   = b->v[5];
+    f32 b2   = b->v[6];
+    f32 b3   = b->v[7];
     out.v[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
     out.v[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     out.v[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
     out.v[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
   }
   {
-    f32 b0 = b->v[8];
-    f32 b1 = b->v[9];
-    f32 b2 = b->v[10];
-    f32 b3 = b->v[11];
-    out.v[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    out.v[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    f32 b0    = b->v[8];
+    f32 b1    = b->v[9];
+    f32 b2    = b->v[10];
+    f32 b3    = b->v[11];
+    out.v[8]  = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    out.v[9]  = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     out.v[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
     out.v[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
   }
   {
-    f32 b0 = b->v[12];
-    f32 b1 = b->v[13];
-    f32 b2 = b->v[14];
-    f32 b3 = b->v[15];
+    f32 b0    = b->v[12];
+    f32 b1    = b->v[13];
+    f32 b2    = b->v[14];
+    f32 b3    = b->v[15];
     out.v[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
     out.v[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     out.v[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
@@ -565,30 +565,30 @@ void mat4_multiply_inplace(Mat4* a, Mat4* b) {
   }
 
   {
-    f32 b0 = b->v[4];
-    f32 b1 = b->v[5];
-    f32 b2 = b->v[6];
-    f32 b3 = b->v[7];
+    f32 b0  = b->v[4];
+    f32 b1  = b->v[5];
+    f32 b2  = b->v[6];
+    f32 b3  = b->v[7];
     a->v[4] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
     a->v[5] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     a->v[6] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
     a->v[7] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
   }
   {
-    f32 b0 = b->v[8];
-    f32 b1 = b->v[9];
-    f32 b2 = b->v[10];
-    f32 b3 = b->v[11];
-    a->v[8] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
-    a->v[9] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
+    f32 b0   = b->v[8];
+    f32 b1   = b->v[9];
+    f32 b2   = b->v[10];
+    f32 b3   = b->v[11];
+    a->v[8]  = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
+    a->v[9]  = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     a->v[10] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
     a->v[11] = b0 * a03 + b1 * a13 + b2 * a23 + b3 * a33;
   }
   {
-    f32 b0 = b->v[12];
-    f32 b1 = b->v[13];
-    f32 b2 = b->v[14];
-    f32 b3 = b->v[15];
+    f32 b0   = b->v[12];
+    f32 b1   = b->v[13];
+    f32 b2   = b->v[14];
+    f32 b3   = b->v[15];
     a->v[12] = b0 * a00 + b1 * a10 + b2 * a20 + b3 * a30;
     a->v[13] = b0 * a01 + b1 * a11 + b2 * a21 + b3 * a31;
     a->v[14] = b0 * a02 + b1 * a12 + b2 * a22 + b3 * a32;
@@ -598,16 +598,16 @@ void mat4_multiply_inplace(Mat4* a, Mat4* b) {
 
 Mat4 mat4_copy(Mat4* b) {
   Mat4 a;
-  a.v[0] = b->v[0];
-  a.v[1] = b->v[1];
-  a.v[2] = b->v[2];
-  a.v[3] = b->v[3];
-  a.v[4] = b->v[4];
-  a.v[5] = b->v[5];
-  a.v[6] = b->v[6];
-  a.v[7] = b->v[7];
-  a.v[8] = b->v[8];
-  a.v[9] = b->v[9];
+  a.v[0]  = b->v[0];
+  a.v[1]  = b->v[1];
+  a.v[2]  = b->v[2];
+  a.v[3]  = b->v[3];
+  a.v[4]  = b->v[4];
+  a.v[5]  = b->v[5];
+  a.v[6]  = b->v[6];
+  a.v[7]  = b->v[7];
+  a.v[8]  = b->v[8];
+  a.v[9]  = b->v[9];
   a.v[10] = b->v[10];
   a.v[11] = b->v[11];
   a.v[12] = b->v[12];
@@ -619,16 +619,16 @@ Mat4 mat4_copy(Mat4* b) {
 }
 
 void mat4_copy_inplace(Mat4* a, Mat4* b) {
-  a->v[0] = b->v[0];
-  a->v[1] = b->v[1];
-  a->v[2] = b->v[2];
-  a->v[3] = b->v[3];
-  a->v[4] = b->v[4];
-  a->v[5] = b->v[5];
-  a->v[6] = b->v[6];
-  a->v[7] = b->v[7];
-  a->v[8] = b->v[8];
-  a->v[9] = b->v[9];
+  a->v[0]  = b->v[0];
+  a->v[1]  = b->v[1];
+  a->v[2]  = b->v[2];
+  a->v[3]  = b->v[3];
+  a->v[4]  = b->v[4];
+  a->v[5]  = b->v[5];
+  a->v[6]  = b->v[6];
+  a->v[7]  = b->v[7];
+  a->v[8]  = b->v[8];
+  a->v[9]  = b->v[9];
   a->v[10] = b->v[10];
   a->v[11] = b->v[11];
   a->v[12] = b->v[12];

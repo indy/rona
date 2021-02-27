@@ -2,6 +2,7 @@
 Language:        Cpp
 BasedOnStyle:  LLVM
 ColumnLimit:     110
+AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
 PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: None

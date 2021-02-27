@@ -16,8 +16,8 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void graphic_allocate_mesh(Graphic* graphic, BumpAllocator* bump_allocator, u32 bytes_to_allocate) {
-  graphic->mesh = (f32*)BUMP_ALLOC(bump_allocator, bytes_to_allocate);
-  graphic->sizeof_vbo = 0;
+  graphic->mesh         = (f32*)BUMP_ALLOC(bump_allocator, bytes_to_allocate);
+  graphic->sizeof_vbo   = 0;
   graphic->num_elements = 0;
 }
 
@@ -27,11 +27,11 @@ void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transi
   gl->bindVertexArray(graphic->vao);
 
   graphic->num_elements = 0;
-  i32 stride = TILED_QUAD_NUM_FLOATS;
+  i32 stride            = TILED_QUAD_NUM_FLOATS;
 
   graphic->sizeof_vbo = sizeof(f32) * stride * max_quads_to_render;
   u32  sizeof_indices = sizeof(u32) * 6 * max_quads_to_render;
-  u32* indices = (u32*)BUMP_ALLOC(transient, sizeof_indices);
+  u32* indices        = (u32*)BUMP_ALLOC(transient, sizeof_indices);
 
   // build indices for geometry
 
@@ -82,7 +82,7 @@ void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transi
 
 void graphic_setup_screen(Graphic* graphic, RonaGL* gl, f32 stage_width, f32 stage_height) {
   graphic->num_elements = 6;
-  graphic->shader_type = ShaderType_Screen;
+  graphic->shader_type  = ShaderType_Screen;
 
   gl->genVertexArrays(1, &graphic->vao); // Vertex Array Object
   gl->bindVertexArray(graphic->vao);

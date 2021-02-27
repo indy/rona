@@ -15,12 +15,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
+void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
 
 void game_startup(GameState* game_state) {
+  BumpAllocator* permanent = &(game_state->arena_permanent);
+
   u64    level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
-  Level* level = (Level*)BUMP_ALLOC(&game_state->arena_permanent, level_memory_arena_size);
-  game_state->level = level;
+  Level* level                   = (Level*)BUMP_ALLOC(permanent, level_memory_arena_size);
+  game_state->level              = level;
 
   level->bump_allocator.base = level + sizeof(Level);
   level->bump_allocator.size = level_memory_arena_size - sizeof(Level);
@@ -44,10 +46,9 @@ void game_startup(GameState* game_state) {
   level1_startup(level, game_state);
 
   RonaGL* gl = game_state->gl;
-  renderer_startup(gl, &(game_state->render_struct), &(game_state->arena_permanent));
+  renderer_startup(gl, &(game_state->render_struct), permanent);
 
 #ifdef RONA_EDITOR
-  BumpAllocator* permanent = &(game_state->arena_permanent);
   BumpAllocator* transient = &(game_state->arena_transient);
   editor_startup(gl, &editor_state, permanent, transient);
   editor_changed_level(&editor_state, level);
@@ -75,12 +76,12 @@ void stage_from_window_calc(GameState* game_state) {
   Vec2 stage_from_window_factor; // multiply this
   Vec2 stage_from_window_delta;  // add this
 
-  f32 window_width = (f32)render_struct->window_width;
+  f32 window_width  = (f32)render_struct->window_width;
   f32 window_height = (f32)render_struct->window_height;
-  f32 stage_width = (f32)render_struct->stage_width;
-  f32 stage_height = (f32)render_struct->stage_height;
+  f32 stage_width   = (f32)render_struct->stage_width;
+  f32 stage_height  = (f32)render_struct->stage_height;
 
-  f32 aspect_ratio = stage_width / stage_height;
+  f32 aspect_ratio        = stage_width / stage_height;
   f32 window_aspect_ratio = (f32)render_struct->window_width / (f32)render_struct->window_height;
 
   if (window_aspect_ratio <= aspect_ratio) {
@@ -91,8 +92,8 @@ void stage_from_window_calc(GameState* game_state) {
     stage_from_window_factor.y = stage_from_window_factor.x;
 
     f32 y_in_window = stage_height / stage_from_window_factor.x; // height in window pixels of 360
-    f32 v = (f32)window_height - y_in_window;
-    f32 v_pad = v / 2.0f;
+    f32 v           = (f32)window_height - y_in_window;
+    f32 v_pad       = v / 2.0f;
 
     stage_from_window_delta.x = 0.0f;
     stage_from_window_delta.y = -v_pad;
@@ -102,15 +103,15 @@ void stage_from_window_calc(GameState* game_state) {
     stage_from_window_factor.y = stage_from_window_factor.x;
 
     f32 x_in_window = stage_width / stage_from_window_factor.y; // width in window pixels of 640
-    f32 h = (f32)window_width - x_in_window;
-    f32 h_pad = h / 2.0f;
+    f32 h           = (f32)window_width - x_in_window;
+    f32 h_pad       = h / 2.0f;
 
     stage_from_window_delta.x = -h_pad;
     stage_from_window_delta.y = 0.0f;
   }
 
   game_state->stage_from_window_factor = stage_from_window_factor;
-  game_state->stage_from_window_delta = stage_from_window_delta;
+  game_state->stage_from_window_delta  = stage_from_window_delta;
 }
 
 // changes have been made to the game client and it has now been automatically loaded
@@ -118,10 +119,9 @@ void game_lib_load(GameState* game_state) {
   // RONA_LOG("base %p, size: %llu, used: %llu\n", game_state->arena_permanent.base,
   //          game_state->arena_permanent.size, game_state->arena_permanent.used);
 
-  RonaGL*        gl = game_state->gl;
+  RonaGL*        gl             = game_state->gl;
   BumpAllocator* bump_transient = &(game_state->arena_transient);
-  Tileset*       tileset = &(game_state->render_struct.tileset);
-  RenderStruct*  render_struct = &(game_state->render_struct);
+  RenderStruct*  render_struct  = &(game_state->render_struct);
 
   renderer_lib_load(gl, bump_transient, render_struct);
 #ifdef RONA_EDITOR
@@ -132,17 +132,17 @@ void game_lib_load(GameState* game_state) {
   graphic_setup_screen(&(game_state->screen_graphic), gl, (f32)render_struct->stage_width,
                        (f32)render_struct->stage_height);
 
-  level_lib_load(game_state->level, gl, bump_transient, tileset);
+  level_lib_load(game_state->level, gl, bump_transient, render_struct);
 
   Colour text_colour_fg;
   colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
   Colour text_colour_bg;
   colour_from(&text_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
 
-  TextParams* text_params = &(game_state->text_params_debug);
-  text_params->bump = bump_transient;
+  TextParams* text_params    = &(game_state->text_params_debug);
+  text_params->bump          = bump_transient;
   text_params->render_struct = render_struct;
-  text_params->pos = vec2(0.0f, 140.0f);
+  text_params->pos           = vec2(0.0f, 140.0f);
   vec4_from_colour(&(text_params->fg), &text_colour_fg);
   vec4_from_colour(&(text_params->bg), &text_colour_bg);
 }
@@ -165,7 +165,7 @@ Entity* get_hero(Level* level) {
 
   Entity* e = level->entities;
   while (e->exists) {
-    if (e->entity_type == EntityType_Hero) {
+    if (e->entity_role == EntityRole_Hero) {
       return e;
     }
   }
@@ -176,7 +176,7 @@ Entity* get_hero(Level* level) {
 
 void game_step(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
-  RonaGL*       gl = game_state->gl;
+  RonaGL*       gl            = game_state->gl;
 
   game_state->arena_transient.used = 0;
 
@@ -193,7 +193,7 @@ void game_step(GameState* game_state) {
   Vec2 mouse_on_stage =
       stage_from_window(game_state, (f32)game_state->input->mouse_pos.x, (f32)game_state->input->mouse_pos.y);
   TextParams* text_params = &(game_state->text_params_debug);
-  text_params->pos = vec2(0.0f, 0.0f);
+  text_params->pos        = vec2(0.0f, 0.0f);
   text_printf(text_params, "%s (%.2f, %.2f)", game_state->mode == GameMode_Edit ? "Edit" : "Play",
               mouse_on_stage.x, mouse_on_stage.y);
 
@@ -231,7 +231,7 @@ void game_step(GameState* game_state) {
 #endif
 
   Level*    level = game_state->level;
-  Entity*   hero = get_hero(level);
+  Entity*   hero  = get_hero(level);
   Direction direction;
   bool      moved = false;
 
@@ -258,16 +258,16 @@ void game_step(GameState* game_state) {
   if (hero->entity_state == EntityState_Standing) {
     if (key_pressed(game_state->input, Key_Up)) {
       direction = Direction_North;
-      moved = true;
+      moved     = true;
     } else if (key_pressed(game_state->input, Key_Down)) {
       direction = Direction_South;
-      moved = true;
+      moved     = true;
     } else if (key_pressed(game_state->input, Key_Left)) {
       direction = Direction_West;
-      moved = true;
+      moved     = true;
     } else if (key_pressed(game_state->input, Key_Right)) {
       direction = Direction_East;
-      moved = true;
+      moved     = true;
     }
     if (moved) {
       command_transaction_begin(&level->undo_redo);
@@ -319,19 +319,23 @@ void game_step(GameState* game_state) {
     }
   }
 
-  entities_regenerate_geometry(level, gl, &(render_struct->tileset));
+  entities_regenerate_geometry(level, gl, render_struct);
 
   text_send_to_gpu(render_struct, gl);
 
   renderer_render(game_state);
 }
 
-void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
-  Graphic* graphic = &(level->entities_graphic);
-  graphic->num_elements = 0;
-  graphic->shader_type = ShaderType_Tile;
+void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
 
-  f32* buffer = graphic->mesh;
+  Tileset*    tileset     = &(render_struct->tileset);
+  SpriteInfo* sprite_info = render_struct->sprite_info;
+
+  Graphic* graphic      = &(level->entities_graphic);
+  graphic->num_elements = 0;
+  graphic->shader_type  = ShaderType_Tile;
+
+  f32* buffer      = graphic->mesh;
   u32  buffer_size = 0;
 
   // temp
@@ -353,16 +357,16 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
       break;
     }
 
-    TilesetSprite tile_sprite;
-    switch (e->entity_type) {
-    case EntityType_Hero:
-      tile_sprite = TS_Hero;
+    Sprite tile_sprite;
+    switch (e->entity_role) {
+    case EntityRole_Hero:
+      tile_sprite = S_Hero;
       break;
-    case EntityType_Block:
-      tile_sprite = TS_Block;
+    case EntityRole_Block:
+      tile_sprite = S_Block;
       break;
-    case EntityType_Pit:
-      tile_sprite = TS_BlockableHole;
+    case EntityRole_Pit:
+      tile_sprite = S_BlockableHole;
       break;
     default:
       RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
@@ -370,12 +374,12 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
       break;
     }
 
-    Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
-    Vec2 offset = sprite_get_stage_offset(tile_sprite);
-    f32  u = sprite.u;
-    f32  v = sprite.v;
-    f32  ud = tileset->uv_unit.u;
-    f32  vd = tileset->uv_unit.v;
+    Vec2 sprite = tileset_get_uv(tileset, sprite_info, tile_sprite);
+    Vec2 offset = sprite_info[tile_sprite].stage_offset;
+    f32  u      = sprite.u;
+    f32  v      = sprite.v;
+    f32  ud     = tileset->uv_unit.u;
+    f32  vd     = tileset->uv_unit.v;
 
     f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
     f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;

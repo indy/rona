@@ -209,48 +209,118 @@ typedef struct Mat4 {
 **
 */
 
-// TILESETSPRITE_DECL parameters: ENUM, TILE_X, TILE_Y, OFFSET_X, OFFSET_Y
+// SPRITE_DECL parameters: ENUM, TILE_X, TILE_Y, OFFSET_X, OFFSET_Y
 //
-#define FOREACH_TILESETSPRITE(TILESETSPRITE_DECL)                                                            \
-  TILESETSPRITE_DECL(TS_Blank, 2, 0, 0.0f, 0.0f)                                                             \
-  TILESETSPRITE_DECL(TS_Floor01, 1, 25, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_Floor02, 1, 26, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_Floor03, 1, 27, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_Floor04, 1, 28, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_Floor05, 1, 29, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_WallBottom, 2, 25, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_WallTop, 2, 26, 0.0f, 0.0f)                                                          \
-  TILESETSPRITE_DECL(TS_WallLeft, 2, 27, 0.0f, 0.0f)                                                         \
-  TILESETSPRITE_DECL(TS_WallRight, 2, 28, 0.0f, 0.0f)                                                        \
-  TILESETSPRITE_DECL(TS_CornerA_TL, 2, 29, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerA_TR, 2, 30, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerA_BL, 2, 31, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerA_BR, 2, 32, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerB_TL, 2, 33, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerB_TR, 2, 34, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerB_BL, 2, 35, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_CornerB_BR, 2, 36, 0.0f, 0.0f)                                                       \
-  TILESETSPRITE_DECL(TS_Hero, 9, 1, 0.0f, -4.0f)                                                             \
-  TILESETSPRITE_DECL(TS_DoorClosed, 8, 1, 0.0f, 0.0f)                                                        \
-  TILESETSPRITE_DECL(TS_PressurePadActivated, 5, 0, 0.0f, 0.0f)                                              \
-  TILESETSPRITE_DECL(TS_Warning, 5, 0, 0.0f, 0.0f)                                                           \
-  TILESETSPRITE_DECL(TS_Debug4Corners, 5, 0, 0.0f, 0.0f)                                                     \
-  TILESETSPRITE_DECL(TS_Block, 1, 30, 0.0f, 0.0f)                                                            \
-  TILESETSPRITE_DECL(TS_BlockableHole, 1, 31, 0.0f, 0.0f)                                                    \
-  TILESETSPRITE_DECL(TS_BlockableHoleFilled, 1, 32, 0.0f, 0.0f)                                              \
-  TILESETSPRITE_DECL(TS_NumTilesetSprites, 0, 0, 0.0f, 0.0f)
+#define FOREACH_SPRITE(SPRITE_DECL)                                                                          \
+  SPRITE_DECL(S_Blank, 2, 0, 0.0f, 0.0f)                                                                     \
+  SPRITE_DECL(S_Floor01, 1, 25, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_Floor02, 1, 26, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_Floor03, 1, 27, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_Floor04, 1, 28, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_Floor05, 1, 29, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_WallBottom, 2, 25, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_WallTop, 2, 26, 0.0f, 0.0f)                                                                  \
+  SPRITE_DECL(S_WallLeft, 2, 27, 0.0f, 0.0f)                                                                 \
+  SPRITE_DECL(S_WallRight, 2, 28, 0.0f, 0.0f)                                                                \
+  SPRITE_DECL(S_CornerA_TL, 2, 29, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerA_TR, 2, 30, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerA_BL, 2, 31, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerA_BR, 2, 32, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerB_TL, 2, 33, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerB_TR, 2, 34, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerB_BL, 2, 35, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_CornerB_BR, 2, 36, 0.0f, 0.0f)                                                               \
+  SPRITE_DECL(S_Hero, 9, 1, 0.0f, -4.0f)                                                                     \
+  SPRITE_DECL(S_DoorClosed, 8, 1, 0.0f, 0.0f)                                                                \
+  SPRITE_DECL(S_PressurePadActivated, 5, 0, 0.0f, 0.0f)                                                      \
+  SPRITE_DECL(S_Warning, 5, 0, 0.0f, 0.0f)                                                                   \
+  SPRITE_DECL(S_Debug4Corners, 5, 0, 0.0f, 0.0f)                                                             \
+  SPRITE_DECL(S_Block, 1, 30, 0.0f, 0.0f)                                                                    \
+  SPRITE_DECL(S_BlockableHole, 1, 31, 0.0f, 0.0f)                                                            \
+  SPRITE_DECL(S_BlockableHoleFilled, 1, 32, 0.0f, 0.0f)                                                      \
+  SPRITE_DECL(S_NumSprites, 0, 0, 0.0f, 0.0f)
 
 #define GENERATE_ENUM(ENUM, TILE_X, TILE_Y, SO_X, SO_Y) ENUM,
-typedef enum { FOREACH_TILESETSPRITE(GENERATE_ENUM) } TilesetSprite;
+typedef enum { FOREACH_SPRITE(GENERATE_ENUM) } Sprite;
+
+// #define GENERATE_STRING(ENUM, TILE_X, TILE_Y) #ENUM,
+// static const char *TILE_STRING[] = {
+//     FOREACH_SPRITE(GENERATE_STRING)
+// };
 
 typedef struct {
   Dim2 location;     // location on the tileset texture (in tile space coords)
   Vec2 stage_offset; // offset (in stage pixels) when rendering
-} TilesetSpriteInfo;
+} SpriteInfo;
+
+typedef struct {
+  Dim2  location; // location of frame 0
+  usize num_frames;
+
+  f32  playback_speed;
+  bool loop;
+
+} SpriteAnimation;
+
+typedef struct {
+  Vec2 stage_offset;
+  Dim2 profile_location; // location of the animated character's profile picture on the tileset texture
+
+  SpriteAnimation idle;
+  SpriteAnimation walk;
+  SpriteAnimation attack;
+  SpriteAnimation hit;
+  SpriteAnimation death;
+
+  bool            has_special_animation;
+  SpriteAnimation special;
+
+} AnimatedCharacterSpriteInfo;
+
+// ANIMATED_CHARACTER_SPRITE_DECL parameters: ENUM, ROW, HAS_SPECIAL
+//
+#define FOREACH_ANIMATED_CHARACTER_SPRITE(ANIMATED_CHARACTER_SPRITE_DECL)                                    \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_SpearMan, 3, false)                                                     \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_CrossbowMan, 4, false)                                                  \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BrownEagle, 5, false)                                                   \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BlueSwordsMan, 6, false)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BluemagicMonk, 7, false)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BluemountedKnight, 8, false)                                            \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BlueKnight, 9, false)                                                   \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BlueHalberdMan, 10, false)                                              \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BluecrossbowMan, 11, false)                                             \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_GreyEagle, 12, false)                                                   \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BeigeSwordMan, 13, false)                                               \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BeigemagicMonk, 14, false)                                              \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BeigemountedKnight, 15, false)                                          \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BeigeKnight, 16, false)                                                 \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalIce, 17, true)                                                 \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalStone, 18, true)                                               \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalRock, 19, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalLava, 20, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalMagma, 21, true)                                               \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalWTF1, 22, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalWTF2, 23, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalWTF3, 24, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_ElementalWTF4, 25, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BoyskeletonAxe, 26, false)                                              \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BoyzombieMachete, 27, false)                                            \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BrownSpider, 28, false)                                                 \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_Ghoul, 29, false)                                                       \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_Vampire, 30, true)                                                      \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_VampirePriest, 31, true)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_MountedVampire, 32, false)                                              \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BoyskeletonSword, 33, false)                                            \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_BoyzombieAxe, 34, false)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_PurpleSpider, 35, false)                                                \
+  ANIMATED_CHARACTER_SPRITE_DECL(ACS_NumAnimatedCharacterSprites, 0, false)
+
+#define GENERATE_ACS_ENUM(ENUM, ROW, HAS_SPECIAL) ENUM,
+typedef enum { FOREACH_ANIMATED_CHARACTER_SPRITE(GENERATE_ACS_ENUM) } AnimatedCharacterSprite;
 
 // #define GENERATE_STRING(ENUM, TILE_X, TILE_Y) #ENUM,
 // static const char *TILE_STRING[] = {
-//     FOREACH_TILESETSPRITE(GENERATE_STRING)
+//     FOREACH_SPRITE(GENERATE_STRING)
 // };
 
 /*
@@ -323,20 +393,34 @@ typedef struct {
   u32  mesh_size_bytes;
 } Graphic;
 
-typedef enum { EntityType_Hero, EntityType_Block, EntityType_Pit } EntityType;
+typedef enum { EntityRole_Hero, EntityRole_Block, EntityRole_Pit } EntityRole;
 
 typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
 
-typedef struct Entity {
-  EntityType  entity_type;
-  EntityState entity_state;
+typedef enum {
+  EntityAnimation_Idle,
+  EntityAnimation_Walk,
+  EntityAnimation_Attack,
+  EntityAnimation_Hit,
+  EntityAnimation_Death,
+  EntityAnimation_Special
+} EntityAnimation;
 
+typedef struct Entity {
   // when looping through entities in a level stop at the first one that doesn't exist
   // there will be no more entites where exists == true
   bool exists;
 
-  // Graphic* graphic;
-  Vec4 colour;
+  EntityRole  entity_role;
+  EntityState entity_state;
+
+  // -----------------------------------------------------
+  // Entity Animation State
+  bool is_animated;
+  EntityAnimation entity_animation;
+  f32 animation_speed;
+  // -----------------------------------------------------
+
 
   Vec2i board_pos;
 
@@ -353,8 +437,8 @@ typedef enum {
 } TileType;
 
 typedef struct {
-  TileType      type;
-  TilesetSprite sprite;
+  TileType type;
+  Sprite   sprite;
 } Tile;
 
 // the dimension of each chunk in tiles
@@ -466,7 +550,6 @@ typedef struct Level {
 } Level;
 
 typedef struct {
-  // char *image_filename;
   Dim2 image_dim;
   Dim2 sprite_dim;
 
@@ -505,8 +588,10 @@ typedef struct {
   i32 stage_width;
   i32 stage_height;
 
-  Tileset tileset;
-  // Tileset font_tileset;
+  Tileset                      tileset;
+  Dim2*                        char_locations;
+  SpriteInfo*                  sprite_info;
+  AnimatedCharacterSpriteInfo* animated_character_sprite_info;
 
   ShaderTile   shader_tile;
   ShaderScreen shader_screen;
@@ -546,8 +631,8 @@ typedef struct {
 } TextParams;
 
 typedef enum RonaButtonState {
-  ButtonState_Up = 0,
-  ButtonState_Down = 1,
+  ButtonState_Up     = 0,
+  ButtonState_Down   = 1,
   ButtonState_Repeat = 2, // this doesn't work when polling X11 from final_platform_layer
 } RonaButtonState;
 
@@ -647,9 +732,6 @@ typedef struct {
   FixedBlockAllocator allocator_transient;
 
   Graphic screen_graphic;
-  // Graphic graphic_hero;
-  // Graphic graphic_block;
-  // Graphic graphic_pit;
 
   Level* level;
 

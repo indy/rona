@@ -18,7 +18,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* bump);
+bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* permanent);
 void renderer_shutdown(RonaGL* gl);
 
 void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct);

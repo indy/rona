@@ -36,10 +36,10 @@
 #define stb__sbgrow(alloc, a, n) (*((void**)&(a)) = stb__sbgrowf((alloc), (a), (n), sizeof(*(a))))
 
 static void* stb__sbgrowf(FixedBlockAllocator* alloc, void* arr, int increment, int itemsize) {
-  int  dbl_cur = arr ? 2 * stb__sbm(arr) : 0;
+  int  dbl_cur    = arr ? 2 * stb__sbm(arr) : 0;
   int  min_needed = sb_count(arr) + increment;
-  int  m = dbl_cur > min_needed ? dbl_cur : min_needed;
-  int* p = (int*)rona_realloc(alloc, arr ? stb__sbraw(arr) : 0, itemsize * m + sizeof(int) * 2);
+  int  m          = dbl_cur > min_needed ? dbl_cur : min_needed;
+  int* p          = (int*)rona_realloc(alloc, arr ? stb__sbraw(arr) : 0, itemsize * m + sizeof(int) * 2);
   if (p) {
     if (!arr)
       p[1] = 0;

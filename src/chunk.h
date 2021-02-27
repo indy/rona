@@ -20,7 +20,7 @@
 
 i32 max_number_of_renderable_tiles(Level* level);
 
-void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset);
+void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
 
 void chunk_pos_log(char* msg, ChunkPos cp);
 #define CHUNKPOS_LOG(x) chunk_pos_log(#x, x)

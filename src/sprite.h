@@ -20,10 +20,11 @@
 
 // image_dim and sprite_dim should be valid
 void tileset_calc_uv_units(Tileset* tileset);
-Vec2 tileset_get_uv(Tileset* tileset, TilesetSprite sprite);
-Vec2 tileset_get_uv_char(Tileset* tileset, char c);
+Vec2 tileset_get_uv(Tileset* tileset, SpriteInfo* sprite_info, Sprite sprite);
 void tileset_add_char(RenderStruct* render_struct, char c, Vec2* pos, Vec4* fg, Vec4* bg);
 
-Vec2 sprite_get_stage_offset(TilesetSprite sprite);
+Dim2*                        sprite_build_char_locations(BumpAllocator* permanent);
+SpriteInfo*                  sprite_build_sprite_info(BumpAllocator* permanent);
+AnimatedCharacterSpriteInfo* sprite_build_animated_character_sprite_info(BumpAllocator* permanent);
 
 #endif /* SPRITE_H  */

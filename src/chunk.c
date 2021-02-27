@@ -20,12 +20,12 @@ bool chunk_pos_eq(Vec2i chunk_pos, Chunk* chunk) {
 }
 
 void chunktile_construct(Tile* tile) {
-  tile->type = TileType_Void;
-  tile->sprite = TS_Blank;
+  tile->type   = TileType_Void;
+  tile->sprite = S_Blank;
 }
 
 void chunk_construct(Chunk* chunk, BumpAllocator* bump_allocator, Vec2i pos) {
-  chunk->pos = pos;
+  chunk->pos   = pos;
   chunk->tiles = BUMP_ALLOC(bump_allocator, sizeof(Tile) * CHUNK_WIDTH * CHUNK_HEIGHT);
   RONA_ASSERT(chunk->tiles);
 
@@ -44,7 +44,7 @@ ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport_pos) {
 ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
   ChunkPos res;
 
-  res.chunk_pos = vec2i_div(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
+  res.chunk_pos   = vec2i_div(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
   res.tile_offset = vec2i_mod(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
 
   // deal with a viewport in negative tile co-ordinates
@@ -62,7 +62,7 @@ ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
 
 Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space) {
   ChunkPos chunkpos = chunk_pos_from_world_tile_space(pos_in_world_tile_space);
-  Tile*    tile = chunk_tile_ensure_get(level, chunkpos);
+  Tile*    tile     = chunk_tile_ensure_get(level, chunkpos);
 
   return tile;
 }
@@ -104,12 +104,16 @@ Tile* chunk_tile_ensure_get(Level* level, ChunkPos chunkpos) {
   return tile;
 }
 
-void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
-  Graphic* graphic = &(level->chunks_graphic);
-  graphic->num_elements = 0;
-  graphic->shader_type = ShaderType_Tile;
+void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
 
-  f32* buffer = graphic->mesh;
+  Tileset*    tileset     = &(render_struct->tileset);
+  SpriteInfo* sprite_info = render_struct->sprite_info;
+
+  Graphic* graphic      = &(level->chunks_graphic);
+  graphic->num_elements = 0;
+  graphic->shader_type  = ShaderType_Tile;
+
+  f32* buffer      = graphic->mesh;
   u32  buffer_size = 0;
 
   // temp
@@ -129,7 +133,7 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
     for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width + CHUNK_WIDTH;
          cx += CHUNK_WIDTH) {
       ChunkPos chunk_pos = chunk_pos_from_world_tile_space(vec2i(cx, cy));
-      Chunk*   chunk = chunk_ensure_get(level, chunk_pos.chunk_pos);
+      Chunk*   chunk     = chunk_ensure_get(level, chunk_pos.chunk_pos);
       RONA_ASSERT(chunk);
 
       // the top left corner of the chunk we're about to iterate through (in world tile space)
@@ -139,14 +143,14 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, Tileset* tileset) {
       for (i32 ty = 0; ty < CHUNK_HEIGHT; ty++) {
         for (i32 tx = 0; tx < CHUNK_WIDTH; tx++) {
           Tile* tile = &(chunk->tiles[(ty * CHUNK_WIDTH) + tx]);
-          if (tile->sprite != TS_Blank) {
-            TilesetSprite tile_sprite = tile->sprite;
+          if (tile->sprite != S_Blank) {
+            Sprite sprite = tile->sprite;
 
-            Vec2 sprite = tileset_get_uv(tileset, tile_sprite);
-            f32  u = sprite.u;
-            f32  v = sprite.v;
-            f32  ud = tileset->uv_unit.u;
-            f32  vd = tileset->uv_unit.v;
+            Vec2 sprite_uv = tileset_get_uv(tileset, sprite_info, sprite);
+            f32  u         = sprite_uv.u;
+            f32  v         = sprite_uv.v;
+            f32  ud        = tileset->uv_unit.u;
+            f32  vd        = tileset->uv_unit.v;
 
             f32 tile_origin_x = (chunk_origin_x + tx) * TILE_WIDTH;
             f32 tile_origin_y = (chunk_origin_y + ty) * TILE_HEIGHT;

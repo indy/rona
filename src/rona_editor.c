@@ -39,7 +39,7 @@ void nuklear_transient_free(nk_handle h, void* mem) {
 
 char* rona_sprintf(BumpAllocator* transient, char* fmt, ...) {
 
-  char*   buffer = (char*)bump_head(transient);
+  char*   buffer               = (char*)bump_head(transient);
   u64     bump_space_available = transient->size - transient->used;
   va_list va;
 
@@ -52,10 +52,10 @@ char* rona_sprintf(BumpAllocator* transient, char* fmt, ...) {
 
 void declare_stage_info(EditorState* editor_state, GameState* game_state) {
   BumpAllocator*     transient = &(game_state->arena_transient);
-  struct nk_context* ctx = &(editor_state->ctx);
+  struct nk_context* ctx       = &(editor_state->ctx);
 
   Vec2i screen = game_state->input->mouse_pos;
-  Vec2i stage = editor_state->cursor_in_stage_coords;
+  Vec2i stage  = editor_state->cursor_in_stage_coords;
 
   if (nk_begin(ctx, "Stage Info", nk_rect(50, 50, 220, 220),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
@@ -67,7 +67,7 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
       {
         Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
-        command->type = CommandType_Editor_WallsBuild;
+        command->type                          = CommandType_Editor_WallsBuild;
         command->data.editor_tile_change.level = level;
         // command->data.editor_tile_change.chunk_pos = chunk_pos;
 
@@ -76,10 +76,10 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
 
         // if (editor_state->active_tile_type == 0) {
         //   tile_new.type = TileType_Void;
-        //   tile_new.sprite = TS_DebugBlank;
+        //   tile_new.sprite = S_DebugBlank;
         // } else {
         //   tile_new.type = TileType_Floor;
-        //   tile_new.sprite = TS_Debug4Corners;
+        //   tile_new.sprite = S_Debug4Corners;
         // }
 
         // command->data.editor_tile_change.tile_old = *tile_old;
@@ -113,7 +113,7 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
 }
 
 void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
-  struct nk_context* ctx = &(editor_state->ctx);
+  struct nk_context* ctx           = &(editor_state->ctx);
   GLuint             stage_texture = editor_state->stage_in_nuklear_texture_id;
 
 #define HACK_WINDOW_WIDTH_EXTRA 25
@@ -127,13 +127,13 @@ void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
     {
       nk_layout_row_push(ctx, editor_state->stage_scalar * STAGE_WIDTH);
 
-      struct nk_image stage_image = nk_image_id(stage_texture);
+      struct nk_image stage_image  = nk_image_id(stage_texture);
       struct nk_rect  stage_region = nk_window_get_content_region(ctx);
 
       // calculate where the cursor is in relation to the stage preview
-      Vec2i stage_window = vec2i((i32)stage_region.x, (i32)stage_region.y);
+      Vec2i stage_window                         = vec2i((i32)stage_region.x, (i32)stage_region.y);
       Vec2i stage_window_offset_to_stage_texture = vec2i(0, 4);
-      Vec2i screen = game_state->input->mouse_pos;
+      Vec2i screen                               = game_state->input->mouse_pos;
       editor_state->cursor_in_stage_coords =
           vec2i_sub(screen, vec2i_add(stage_window, stage_window_offset_to_stage_texture));
       editor_state->cursor_in_stage_coords.x /= editor_state->stage_scalar;
@@ -185,19 +185,19 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
       {
         Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
-        command->type = CommandType_Editor_TileChange;
-        command->data.editor_tile_change.level = level;
+        command->type                              = CommandType_Editor_TileChange;
+        command->data.editor_tile_change.level     = level;
         command->data.editor_tile_change.chunk_pos = chunk_pos;
 
         Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
         Tile  tile_new;
 
         if (editor_state->active_tile_type == 0) {
-          tile_new.type = TileType_Void;
-          tile_new.sprite = TS_Blank;
+          tile_new.type   = TileType_Void;
+          tile_new.sprite = S_Blank;
         } else {
-          tile_new.type = TileType_Floor;
-          tile_new.sprite = TS_Debug4Corners;
+          tile_new.type   = TileType_Floor;
+          tile_new.sprite = S_Debug4Corners;
         }
 
         command->data.editor_tile_change.tile_old = *tile_old;
@@ -233,11 +233,11 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 
   // allocate some memory for nuklear
   editor_state->nuklear_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR);
-  void* nuklear_memory = (void*)BUMP_ALLOC(permanent, editor_state->nuklear_memory_size);
+  void* nuklear_memory              = (void*)BUMP_ALLOC(permanent, editor_state->nuklear_memory_size);
 
   // align memory with nk_draw_command
-  const nk_size cmd_align = NK_ALIGNOF(struct nk_draw_command);
-  u64           align_mask = (cmd_align << 1) - 1;
+  const nk_size cmd_align              = NK_ALIGNOF(struct nk_draw_command);
+  u64           align_mask             = (cmd_align << 1) - 1;
   void*         aligned_nuklear_memory = nuklear_memory - ((u64)nuklear_memory & align_mask) + cmd_align;
 
   editor_state->nuklear_memory_size -= aligned_nuklear_memory - nuklear_memory;
@@ -245,7 +245,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 
   // allocate memory for nuklear atlas
   usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR_ATLAS);
-  void* nuklear_atlas_memory = (void*)BUMP_ALLOC(permanent, nuklear_atlas_memory_size);
+  void* nuklear_atlas_memory      = (void*)BUMP_ALLOC(permanent, nuklear_atlas_memory_size);
 
   editor_state->bump_permanent.size = nuklear_atlas_memory_size;
   editor_state->bump_permanent.base = nuklear_atlas_memory;
@@ -266,13 +266,13 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 
   struct nk_allocator nk_allocator_permanent;
   nk_allocator_permanent.alloc = &nuklear_persistent_alloc;
-  nk_allocator_permanent.free = &nuklear_persistent_free;
+  nk_allocator_permanent.free  = &nuklear_persistent_free;
 
   nk_buffer_init(&editor_state->cmds, &nk_allocator_permanent, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
   editor_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
-  editor_state->depth_texture_id = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
-  editor_state->framebuffer_id = create_framebuffer(gl);
+  editor_state->depth_texture_id            = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
+  editor_state->framebuffer_id              = create_framebuffer(gl);
   attach_textures_to_framebuffer(gl, editor_state->framebuffer_id, editor_state->stage_in_nuklear_texture_id,
                                  editor_state->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
@@ -287,13 +287,13 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
 
   struct nk_allocator nk_allocator_transient;
   nk_allocator_transient.alloc = &nuklear_transient_alloc;
-  nk_allocator_transient.free = &nuklear_transient_free;
+  nk_allocator_transient.free  = &nuklear_transient_free;
 
   const void*           image;
   int                   w, h;
   struct nk_font_config cfg = nk_font_config(0);
-  cfg.oversample_h = 3;
-  cfg.oversample_v = 2;
+  cfg.oversample_h          = 3;
+  cfg.oversample_v          = 2;
   /* Loading one font with different heights is only required if you want higher
    * quality text otherwise you can just set the font height directly
    * e.g.: device.ctx->style.font.height = 20. */
@@ -435,16 +435,16 @@ void editor_render(RonaGL* gl, EditorState* editor_state, int width, int height,
           {NK_VERTEX_COLOR, NK_FORMAT_R8G8B8A8, NK_OFFSETOF(struct nk_glfw_vertex, col)},
           {NK_VERTEX_LAYOUT_END}};
       NK_MEMSET(&config, 0, sizeof(config));
-      config.vertex_layout = vertex_layout;
-      config.vertex_size = sizeof(struct nk_glfw_vertex);
-      config.vertex_alignment = NK_ALIGNOF(struct nk_glfw_vertex);
-      config.null = editor_state->null;
+      config.vertex_layout        = vertex_layout;
+      config.vertex_size          = sizeof(struct nk_glfw_vertex);
+      config.vertex_alignment     = NK_ALIGNOF(struct nk_glfw_vertex);
+      config.null                 = editor_state->null;
       config.circle_segment_count = 22;
-      config.curve_segment_count = 22;
-      config.arc_segment_count = 22;
-      config.global_alpha = 1.0f;
-      config.shape_AA = AA;
-      config.line_AA = AA;
+      config.curve_segment_count  = 22;
+      config.arc_segment_count    = 22;
+      config.global_alpha         = 1.0f;
+      config.shape_AA             = AA;
+      config.line_AA              = AA;
 
       /* setup buffers to load vertices and elements */
       {

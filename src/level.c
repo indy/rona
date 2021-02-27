@@ -30,11 +30,11 @@ void level_startup(Level* level, GameState* game_state) {
 void level_shutdown(Level* level) {
 }
 
-void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, Tileset* tileset) {
+void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct) {
   graphic_setup_for_quads(&level->entities_graphic, gl, transient, MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER);
 
   graphic_setup_for_quads(&level->chunks_graphic, gl, transient, max_number_of_renderable_tiles(level));
-  chunk_regenerate_geometry(level, gl, tileset);
+  chunk_regenerate_geometry(level, gl, render_struct);
 }
 
 void level_lib_unload(Level* level, RonaGL* gl) {
@@ -101,13 +101,13 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
   if (num_occupants > 0) {
 
     bool is_occupier_block = false;
-    bool is_occupier_pit = false;
+    bool is_occupier_pit   = false;
 
     for (i32 i = 0; i < num_occupants; i++) {
-      if (occupants[i]->entity_type == EntityType_Block) {
+      if (occupants[i]->entity_role == EntityRole_Block) {
         is_occupier_block = true;
       }
-      if (occupants[i]->entity_type == EntityType_Pit) {
+      if (occupants[i]->entity_role == EntityRole_Pit) {
         is_occupier_pit = true;
       }
     }
@@ -126,7 +126,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
   {
     Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
 
-    command->type = CommandType_EntityMove;
+    command->type   = CommandType_EntityMove;
     command->entity = block;
 
     CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
@@ -163,14 +163,14 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   i32     num_occupants = enitites_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
   if (num_occupants > 0) {
     bool    is_occupier_block = false;
-    bool    is_occupier_pit = false;
+    bool    is_occupier_pit   = false;
     Entity* block;
     for (i32 i = 0; i < num_occupants; i++) {
-      if (occupants[i]->entity_type == EntityType_Block) {
-        block = occupants[i];
+      if (occupants[i]->entity_role == EntityRole_Block) {
+        block             = occupants[i];
         is_occupier_block = true;
       }
-      if (occupants[i]->entity_type == EntityType_Pit) {
+      if (occupants[i]->entity_role == EntityRole_Pit) {
         is_occupier_pit = true;
       }
     }
@@ -194,7 +194,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   {
     Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
 
-    command->type = CommandType_EntityMove;
+    command->type   = CommandType_EntityMove;
     command->entity = hero;
 
     CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
@@ -225,22 +225,16 @@ void entity_place(Level* level, Entity* entity, i32 board_pos_x, i32 board_pos_y
   world_from_board(&entity->world_target, board_pos_x, board_pos_y, z);
 }
 
-void entity_colour_as_hsluv(Entity* entity, f32 h, f32 s, f32 l) {
-  Colour c;
-  colour_from(&c, ColourFormat_RGB, ColourFormat_HSLuv, h, s, l, 1.0f);
-  vec4_from_colour(&entity->colour, &c);
-}
-
-TilesetSprite floor_sprite(i32 i) {
-  TilesetSprite sprites[] = {TS_Floor01, TS_Floor02, TS_Floor03, TS_Floor04, TS_Floor05};
-  i32           num_sprites = 5;
+Sprite floor_sprite(i32 i) {
+  Sprite sprites[]   = {S_Floor01, S_Floor02, S_Floor03, S_Floor04, S_Floor05};
+  i32    num_sprites = 5;
 
   return sprites[i % num_sprites];
 }
 
-TilesetSprite wall_exterior_sprite(i32 i) {
-  TilesetSprite sprites[] = {TS_Warning, TS_Warning};
-  i32           num_sprites = 2;
+Sprite wall_exterior_sprite(i32 i) {
+  Sprite sprites[]   = {S_Warning, S_Warning};
+  i32    num_sprites = 2;
 
   return sprites[i % num_sprites];
 }
@@ -255,7 +249,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
     level->entities[i].exists = false;
   }
 
-  bool have_hero = false;
+  bool have_hero                  = false;
   i32  next_non_hero_entity_index = 1;
 
   i32 sprite_count = 0;
@@ -269,8 +263,8 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
     for (i32 i = 0; i < dbl_width; i += 2) {
 
       Vec2i    world_tile_coords = vec2i(i / 2, j);
-      ChunkPos chunkpos = chunk_pos_from_world_tile_space(world_tile_coords);
-      Tile*    tile = chunk_tile_ensure_get(level, chunkpos);
+      ChunkPos chunkpos          = chunk_pos_from_world_tile_space(world_tile_coords);
+      Tile*    tile              = chunk_tile_ensure_get(level, chunkpos);
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
@@ -278,7 +272,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
         sprite_count++;
 
-        tile->type = TileType_Floor;
+        tile->type   = TileType_Floor;
         tile->sprite = floor_sprite(sprite_count);
 
         Entity *hero, *block, *pit;
@@ -293,77 +287,79 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           // 4 F 6
           //   8
 
-        case '2': tile->type = TileType_Void; tile->sprite = TS_WallTop; break;
-        case '4': tile->type = TileType_Void; tile->sprite = TS_WallLeft; break;
-        case '6': tile->type = TileType_Void; tile->sprite = TS_WallRight; break;
-        case '8': tile->type = TileType_Void; tile->sprite = TS_WallBottom; break;
+        case '2': tile->type = TileType_Void; tile->sprite = S_WallTop; break;
+        case '4': tile->type = TileType_Void; tile->sprite = S_WallLeft; break;
+        case '6': tile->type = TileType_Void; tile->sprite = S_WallRight; break;
+        case '8': tile->type = TileType_Void; tile->sprite = S_WallBottom; break;
 
           // outside corners
           // 1 W 3
           // W F W
           // 7 W 9
 
-        case '1': tile->type = TileType_Void; tile->sprite = TS_CornerA_TL; break;
-        case '3': tile->type = TileType_Void; tile->sprite = TS_CornerA_TR; break;
-        case '7': tile->type = TileType_Void; tile->sprite = TS_CornerA_BL; break;
-        case '9': tile->type = TileType_Void; tile->sprite = TS_CornerA_BR; break;
+        case '1': tile->type = TileType_Void; tile->sprite = S_CornerA_TL; break;
+        case '3': tile->type = TileType_Void; tile->sprite = S_CornerA_TR; break;
+        case '7': tile->type = TileType_Void; tile->sprite = S_CornerA_BL; break;
+        case '9': tile->type = TileType_Void; tile->sprite = S_CornerA_BR; break;
 
           // inside corners
           // w F x
           // F F F
           // y F z
 
-        case 'w': tile->type = TileType_Void; tile->sprite = TS_CornerB_TL; break;
-        case 'x': tile->type = TileType_Void; tile->sprite = TS_CornerB_TR; break;
-        case 'y': tile->type = TileType_Void; tile->sprite = TS_CornerB_BL; break;
-        case 'z': tile->type = TileType_Void; tile->sprite = TS_CornerB_BR; break;
+        case 'w': tile->type = TileType_Void; tile->sprite = S_CornerB_TL; break;
+        case 'x': tile->type = TileType_Void; tile->sprite = S_CornerB_TR; break;
+        case 'y': tile->type = TileType_Void; tile->sprite = S_CornerB_BL; break;
+        case 'z': tile->type = TileType_Void; tile->sprite = S_CornerB_BR; break;
 
-        case 's': tile->type = TileType_Void; tile->sprite = TS_DoorClosed; break;
+        case 's': tile->type = TileType_Void; tile->sprite = S_DoorClosed; break;
 
         // clang-format on
         case 'H':
           hero = &(level->entities[0]);
 
-          have_hero = true;
-          hero->exists = true;
-          hero->entity_type = EntityType_Hero;
+          have_hero          = true;
+          hero->exists       = true;
+          hero->entity_role  = EntityRole_Hero;
           hero->entity_state = EntityState_Standing;
+          hero->is_animated = true;
+          hero->entity_animation = EntityAnimation_Idle;
+          hero->animation_speed = 1.0f;
           // hero->graphic = &(game_state->graphic_hero);
           hero->world_max_speed = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
-          entity_colour_as_hsluv(hero, 290.0f, 90.0f, 30.0f);
           break;
         case 'B':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
           block = &(level->entities[next_non_hero_entity_index++]);
 
-          block->exists = true;
-          block->entity_type = EntityType_Block;
+          block->exists       = true;
+          block->entity_role  = EntityRole_Block;
           block->entity_state = EntityState_Standing;
+          block->is_animated = false;
           // block->graphic = &(game_state->graphic_block);
           block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
-          entity_colour_as_hsluv(block, 10.0f, 80.0f, 20.0f);
           break;
         case 'U':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
           pit = &(level->entities[next_non_hero_entity_index++]);
 
-          pit->exists = true;
-          pit->entity_type = EntityType_Pit;
+          pit->exists       = true;
+          pit->entity_role  = EntityRole_Pit;
           pit->entity_state = EntityState_Standing;
+          pit->is_animated = false;
           // pit->graphic = &(game_state->graphic_pit);
           pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
-          entity_colour_as_hsluv(pit, 10.0f, 80.0f, 2.0f);
           break;
         }
 
       } else {
-        tile->type = TileType_Void;
-        tile->sprite = TS_Blank;
+        tile->type   = TileType_Void;
+        tile->sprite = S_Blank;
       }
     }
   }
