@@ -403,67 +403,74 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
 
   Vec2 centre_sprite = vec2(-(f32)TILE_WIDTH / 2.0, -(f32)TILE_HEIGHT / 2.0);
 
-  for (i32 i = 0; i < level->max_num_entities; i++) {
-    Entity* e = &(level->entities[i]);
+  for (i32 z = 0; z < ENTITY_NUM_Z_LEVELS; z++) {
+    for (i32 i = 0; i < level->max_num_entities; i++) {
+      Entity* e = &(level->entities[i]);
 
-    if (e->exists == false) {
-      // when looping through entities in a level stop at the first one that doesn't exist
-      // there will be no more entities where exists == true
-      break;
+      if (e->exists == false) {
+        // when looping through entities in a level stop at the first one that doesn't exist
+        // there will be no more entities where exists == true
+        break;
+      }
+
+      if (e->z_order != z) {
+        // render from lowest z_order to largest
+        continue;
+      }
+
+      Vec2 sprite_uv;
+      Vec2 offset;
+
+      switch (e->entity_role) {
+      case EntityRole_Hero:
+        animated_character_sprite_uv_and_offset(&sprite_uv, &offset, render_struct, e);
+        break;
+      case EntityRole_Block:
+        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_Block);
+        break;
+      case EntityRole_Pit:
+        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
+        break;
+      default:
+        RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
+        return;
+        break;
+      }
+
+      f32 u  = sprite_uv.u;
+      f32 v  = sprite_uv.v;
+      f32 ud = tileset->uv_unit.u;
+      f32 vd = tileset->uv_unit.v;
+
+      f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
+      f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;
+
+      // clang-format off
+      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
+      *buffer++ = tile_origin_y;
+      *buffer++ = u;
+      *buffer++ = v;
+
+      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
+      *buffer++ = tile_origin_y + TILE_HEIGHT;;
+      *buffer++ = u;
+      *buffer++ = v + vd;
+
+      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
+      *buffer++ = tile_origin_y + TILE_HEIGHT;
+      *buffer++ = u + ud;
+      *buffer++ = v + vd;
+
+      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
+      *buffer++ = tile_origin_y;
+      *buffer++ = u + ud;
+      *buffer++ = v;
+      // clang-format on
+
+      num_tiles++;
+      buffer_size += TILED_QUAD_NUM_FLOATS;
+      graphic->num_elements += TILED_QUAD_NUM_INDICES;
     }
-
-    Vec2 sprite_uv;
-    Vec2 offset;
-
-    switch (e->entity_role) {
-    case EntityRole_Hero:
-      animated_character_sprite_uv_and_offset(&sprite_uv, &offset, render_struct, e);
-      break;
-    case EntityRole_Block:
-      sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_Block);
-      break;
-    case EntityRole_Pit:
-      sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
-      break;
-    default:
-      RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
-      return;
-      break;
-    }
-
-    f32 u  = sprite_uv.u;
-    f32 v  = sprite_uv.v;
-    f32 ud = tileset->uv_unit.u;
-    f32 vd = tileset->uv_unit.v;
-
-    f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
-    f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;
-
-    // clang-format off
-    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
-    *buffer++ = tile_origin_y;
-    *buffer++ = u;
-    *buffer++ = v;
-
-    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
-    *buffer++ = tile_origin_y + TILE_HEIGHT;;
-    *buffer++ = u;
-    *buffer++ = v + vd;
-
-    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
-    *buffer++ = tile_origin_y + TILE_HEIGHT;
-    *buffer++ = u + ud;
-    *buffer++ = v + vd;
-
-    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
-    *buffer++ = tile_origin_y;
-    *buffer++ = u + ud;
-    *buffer++ = v;
-    // clang-format on
-
-    num_tiles++;
-    buffer_size += TILED_QUAD_NUM_FLOATS;
-    graphic->num_elements += TILED_QUAD_NUM_INDICES;
   }
 
   graphic->mesh_size_bytes = buffer_size * sizeof(f32);

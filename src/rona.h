@@ -419,6 +419,10 @@ typedef enum {
 
 #define ANIMATION_FRAME_COUNTER_LIMIT 10
 
+// 0 <= Entity::z_order < ENTITY_NUM_Z_LEVELS
+//
+#define ENTITY_NUM_Z_LEVELS 4
+
 typedef struct Entity {
   // when looping through entities in a level stop at the first one that doesn't exist
   // there will be no more entities where exists == true
@@ -426,6 +430,8 @@ typedef struct Entity {
 
   EntityRole  entity_role;
   EntityState entity_state;
+
+  i32 z_order;                  // 0, 1, 2, 3
 
   EntityFacing entity_facing;
   // -----------------------------------------------------

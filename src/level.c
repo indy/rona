@@ -320,6 +320,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           have_hero                       = true;
           hero->exists                    = true;
+          hero->z_order = 3;
           hero->entity_role               = EntityRole_Hero;
           hero->entity_state              = EntityState_Standing;
           hero->is_animated               = true;
@@ -339,6 +340,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           block = &(level->entities[next_non_hero_entity_index++]);
 
           block->exists       = true;
+          block->z_order = 2;
           block->entity_role  = EntityRole_Block;
           block->entity_state = EntityState_Standing;
           block->is_animated  = false;
@@ -352,6 +354,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           pit = &(level->entities[next_non_hero_entity_index++]);
 
           pit->exists       = true;
+          pit->z_order = 1;
           pit->entity_role  = EntityRole_Pit;
           pit->entity_state = EntityState_Standing;
           pit->is_animated  = false;
