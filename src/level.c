@@ -323,6 +323,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           hero->entity_role               = EntityRole_Hero;
           hero->entity_state              = EntityState_Standing;
           hero->is_animated               = true;
+          hero->entity_facing             = EntityFacing_Right;
           hero->animated_character_sprite = ACS_BlueKnight;
           hero->entity_animation          = EntityAnimation_Idle;
           hero->animation_speed           = 1.0f;

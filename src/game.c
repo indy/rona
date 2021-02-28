@@ -263,11 +263,13 @@ void game_step(GameState* game_state) {
       direction = Direction_South;
       moved     = true;
     } else if (key_pressed(game_state->input, Key_Left)) {
-      direction = Direction_West;
-      moved     = true;
+      direction           = Direction_West;
+      hero->entity_facing = EntityFacing_Left;
+      moved               = true;
     } else if (key_pressed(game_state->input, Key_Right)) {
-      direction = Direction_East;
-      moved     = true;
+      direction           = Direction_East;
+      hero->entity_facing = EntityFacing_Right;
+      moved               = true;
     }
     if (moved) {
       command_transaction_begin(&level->undo_redo);
@@ -446,28 +448,28 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
     f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;
 
     // clang-format off
-    *buffer++ = tile_origin_x;
+    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
     *buffer++ = tile_origin_y;
     *buffer++ = u;
     *buffer++ = v;
     *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
     *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
-    *buffer++ = tile_origin_x;
+    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
     *buffer++ = tile_origin_y + TILE_HEIGHT;;
     *buffer++ = u;
     *buffer++ = v + vd;
     *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
     *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
-    *buffer++ = tile_origin_x + TILE_WIDTH;
+    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
     *buffer++ = tile_origin_y + TILE_HEIGHT;
     *buffer++ = u + ud;
     *buffer++ = v + vd;
     *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
     *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
-    *buffer++ = tile_origin_x + TILE_WIDTH;
+    *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
     *buffer++ = tile_origin_y;
     *buffer++ = u + ud;
     *buffer++ = v;
