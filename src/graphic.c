@@ -64,16 +64,13 @@ void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transi
   gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
   gl->enableVertexAttribArray(0);
   gl->enableVertexAttribArray(1);
-  gl->enableVertexAttribArray(2);
-  gl->enableVertexAttribArray(3);
 
-  // positions
-  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(0 * sizeof(float)));
-  // uv
-  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(2 * sizeof(float)));
-
-  gl->vertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(4 * sizeof(float)));
-  gl->vertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 12, (void*)(8 * sizeof(float)));
+  // positions X Y
+  gl->vertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * TILED_VERTEX_NUM_FLOATS,
+                          (void*)(0 * sizeof(float)));
+  // texture U V
+  gl->vertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * TILED_VERTEX_NUM_FLOATS,
+                          (void*)(2 * sizeof(float)));
 
   // gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, graphic->ebo);
 

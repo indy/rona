@@ -116,14 +116,6 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_st
   f32* buffer      = graphic->mesh;
   u32  buffer_size = 0;
 
-  // temp
-  Colour bg_col = colour_make(ColourFormat_RGB, 50.0f, 20.0f, 80.0f, 1.0f);
-  Colour fg_col = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
-  Vec4   fg, bg;
-  Colour c;
-  vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
-  vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
-
   u32 num_tiles = 0;
 
   Rect* viewport = &(level->viewport);
@@ -160,29 +152,21 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_st
             *buffer++ = tile_origin_y;
             *buffer++ = u;
             *buffer++ = v;
-            *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-            *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
             *buffer++ = tile_origin_x;
             *buffer++ = tile_origin_y + TILE_HEIGHT;;
             *buffer++ = u;
             *buffer++ = v + vd;
-            *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-            *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
             *buffer++ = tile_origin_x + TILE_WIDTH;
             *buffer++ = tile_origin_y + TILE_HEIGHT;
             *buffer++ = u + ud;
             *buffer++ = v + vd;
-            *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-            *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
             *buffer++ = tile_origin_x + TILE_WIDTH;
             *buffer++ = tile_origin_y;
             *buffer++ = u + ud;
             *buffer++ = v;
-            *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-            *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
             // clang-format on
 
             num_tiles++;

@@ -41,15 +41,15 @@ void renderer_render(GameState* game_state) {
   gl->activeTexture(GL_TEXTURE1);
   gl->bindTexture(GL_TEXTURE_2D, render_struct->tileset_texture_id);
 
-  f32 stage_width  = (f32)render_struct->stage_width;
-  f32 stage_height = (f32)render_struct->stage_height;
-
+  f32  stage_width  = (f32)render_struct->stage_width;
+  f32  stage_height = (f32)render_struct->stage_height;
+  Mat4 proj_matrix  = mat4_ortho(0.0, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
+#if 1
   // use the RenderStruct's shader_tile for all tile based entities
   //
   gl->useProgram(render_struct->shader_tile.program);
   gl->uniform1i(render_struct->shader_tile.uniform_texture, 1);
 
-  Mat4 proj_matrix = mat4_ortho(0.0, stage_width, 0.0f, stage_height, 10.0f, -10.0f);
   gl->uniformMatrix4fv(render_struct->shader_tile.uniform_proj_matrix, 1, false, (GLfloat*)&(proj_matrix.v));
 
   // render level's chunks
@@ -71,14 +71,18 @@ void renderer_render(GameState* game_state) {
     gl->bindVertexArray(graphic->vao);
     gl->drawElements(GL_TRIANGLES, graphic->num_elements, GL_UNSIGNED_INT, 0);
   }
-
+#endif
   // render text
   //
+  gl->useProgram(render_struct->shader_text.program);
+  gl->uniform1i(render_struct->shader_text.uniform_texture, 1);
+  gl->uniformMatrix4fv(render_struct->shader_text.uniform_proj_matrix, 1, false, (GLfloat*)&(proj_matrix.v));
+
   // gl->activeTexture(GL_TEXTURE2);
   // gl->bindTexture(GL_TEXTURE_2D, render_struct->font_texture_id);
   // gl->uniform1i(render_struct->shader_tile.uniform_texture, 2);
 
-  gl->uniform3f(render_struct->shader_tile.uniform_pos, 0.0f, 0.0f, 0.0f);
+  gl->uniform3f(render_struct->shader_text.uniform_pos, 0.0f, 0.0f, 0.0f);
   gl->bindVertexArray(render_struct->text_vao);
   gl->drawElements(GL_TRIANGLES, render_struct->num_characters * TILED_QUAD_NUM_INDICES, GL_UNSIGNED_INT, 0);
 
@@ -166,6 +170,20 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
   Colour bg;
   colour_from(&bg, ColourFormat_RGB, ColourFormat_HSLuv, 250.0f, 90.0f, 60.0f, 0.0f);
 
+#include "../target/text.vert.c"
+  SHADER_AS_STRING(transient, textVertexSource, text_vert);
+
+#include "../target/text.frag.c"
+  SHADER_AS_STRING(transient, textFragmentSource, text_frag);
+
+  ShaderText* shader_text          = &(render_struct->shader_text);
+  shader_text->program             = create_shader_program(gl, textVertexSource, textFragmentSource);
+  shader_text->uniform_texture     = gl->getUniformLocation(shader_text->program, "tilesheet");
+  shader_text->uniform_colour_fg   = gl->getUniformLocation(shader_text->program, "colour_fg");
+  shader_text->uniform_colour_bg   = gl->getUniformLocation(shader_text->program, "colour_bg");
+  shader_text->uniform_proj_matrix = gl->getUniformLocation(shader_text->program, "proj_matrix");
+  shader_text->uniform_pos         = gl->getUniformLocation(shader_text->program, "pos");
+
 #include "../target/tile.vert.c"
   SHADER_AS_STRING(transient, tileVertexSource, tile_vert);
 
@@ -214,6 +232,9 @@ void renderer_lib_load(RonaGL* gl, BumpAllocator* transient, RenderStruct* rende
 
 void renderer_lib_unload(RonaGL* gl, RenderStruct* render_struct) {
   // the earlier calls to deleteShader mean that deleteProgram  will also delete the shaders
+
+  ShaderText* shader_text = &(render_struct->shader_text);
+  gl->deleteProgram(shader_text->program);
 
   ShaderTile* shader_tile = &(render_struct->shader_tile);
   gl->deleteProgram(shader_tile->program);
@@ -340,9 +361,8 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
   // play with text rendering
   //
   // allocate some memory for text rendering
-  render_struct->max_characters_per_frame = 5000;
-  render_struct->text_vertices_mem_allocated =
-      render_struct->max_characters_per_frame * TILED_QUAD_GEOMETRY_BYTES;
+  render_struct->max_characters_per_frame    = 5000;
+  render_struct->text_vertices_mem_allocated = render_struct->max_characters_per_frame * CHAR_GEOMETRY_BYTES;
   render_struct->text_vertices = (f32*)BUMP_ALLOC(permanent, render_struct->text_vertices_mem_allocated);
   render_struct->text_indices_mem_allocated =
       render_struct->max_characters_per_frame * TILED_QUAD_INDICES_BYTES;
@@ -421,7 +441,7 @@ void text_send_to_gpu(RenderStruct* render_struct, RonaGL* gl) {
   gl->bindVertexArray(render_struct->text_vao);
 
   gl->bindBuffer(GL_ARRAY_BUFFER, render_struct->text_vbo);
-  gl->bufferData(GL_ARRAY_BUFFER, render_struct->num_characters * TILED_QUAD_GEOMETRY_BYTES,
+  gl->bufferData(GL_ARRAY_BUFFER, render_struct->num_characters * CHAR_GEOMETRY_BYTES,
                  render_struct->text_vertices, GL_DYNAMIC_DRAW);
 
   gl->bindBuffer(GL_ELEMENT_ARRAY_BUFFER, render_struct->text_ebo);

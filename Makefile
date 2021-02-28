@@ -16,7 +16,7 @@ EXT_SRC=ext/*.h
 GAME_SRC=src/*.c
 GAME_HEADERS=src/*.h
 
-SHADERS_OUT=./target/tile.vert.c ./target/tile.frag.c ./target/screen.vert.c ./target/screen.frag.c ./target/editor.vert.c ./target/editor.frag.c
+SHADERS_OUT=./target/text.vert.c ./target/text.frag.c ./target/tile.vert.c ./target/tile.frag.c ./target/screen.vert.c ./target/screen.frag.c ./target/editor.vert.c ./target/editor.frag.c
 
 # the shared library with the game code
 #
@@ -50,6 +50,10 @@ host: $(HOST_OUT)
 test: $(TEST_OUT)
 tags: $(TAGS_OUT)
 
+./target/text.vert.c: src/shaders/text.vert
+	xxd -i $< > $@
+./target/text.frag.c: src/shaders/text.frag
+	xxd -i $< > $@
 ./target/tile.vert.c: src/shaders/tile.vert
 	xxd -i $< > $@
 ./target/tile.frag.c: src/shaders/tile.frag

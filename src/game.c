@@ -135,7 +135,7 @@ void game_lib_load(GameState* game_state) {
   level_lib_load(game_state->level, gl, bump_transient, render_struct);
 
   Colour text_colour_fg;
-  colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 50.0f, 80.0f, 60.0f, 1.0f);
+  colour_from(&text_colour_fg, ColourFormat_RGB, ColourFormat_HSLuv, 10.0f, 40.0f, 60.0f, 1.0f);
   Colour text_colour_bg;
   colour_from(&text_colour_bg, ColourFormat_RGB, ColourFormat_HSLuv, 210.0f, 80.0f, 50.0f, 0.0f);
 
@@ -399,14 +399,6 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
   f32* buffer      = graphic->mesh;
   u32  buffer_size = 0;
 
-  // temp
-  Colour bg_col = colour_make(ColourFormat_RGB, 50.0f, 20.0f, 80.0f, 1.0f);
-  Colour fg_col = colour_make(ColourFormat_HSLuv, 400.0f, 90.0f, 30.0f, 1.0f);
-  Vec4   fg, bg;
-  Colour c;
-  vec4_from_colour(&fg, colour_clone_as(&c, &fg_col, ColourFormat_RGB));
-  vec4_from_colour(&bg, colour_clone_as(&c, &bg_col, ColourFormat_RGB));
-
   u32 num_tiles = 0;
 
   Vec2 centre_sprite = vec2(-(f32)TILE_WIDTH / 2.0, -(f32)TILE_HEIGHT / 2.0);
@@ -452,29 +444,21 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
     *buffer++ = tile_origin_y;
     *buffer++ = u;
     *buffer++ = v;
-    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
     *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
     *buffer++ = tile_origin_y + TILE_HEIGHT;;
     *buffer++ = u;
     *buffer++ = v + vd;
-    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
     *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
     *buffer++ = tile_origin_y + TILE_HEIGHT;
     *buffer++ = u + ud;
     *buffer++ = v + vd;
-    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
 
     *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
     *buffer++ = tile_origin_y;
     *buffer++ = u + ud;
     *buffer++ = v;
-    *buffer++ = fg.e[0]; *buffer++ = fg.e[1]; *buffer++ = fg.e[2]; *buffer++ = fg.e[3];
-    *buffer++ = bg.e[0]; *buffer++ = bg.e[1]; *buffer++ = bg.e[2]; *buffer++ = bg.e[3];
     // clang-format on
 
     num_tiles++;

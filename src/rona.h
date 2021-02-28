@@ -355,7 +355,16 @@ typedef struct {
   MemoryBlock* available_large;
 } FixedBlockAllocator;
 
-typedef enum { ShaderType_Tile, ShaderType_Screen } ShaderType;
+typedef enum { ShaderType_Text, ShaderType_Tile, ShaderType_Screen } ShaderType;
+
+typedef struct {
+  GLuint program;
+  int    uniform_texture;
+  int    uniform_colour_fg;
+  int    uniform_colour_bg;
+  int    uniform_proj_matrix;
+  int    uniform_pos;
+} ShaderText;
 
 typedef struct {
   GLuint program;
@@ -575,16 +584,27 @@ typedef struct {
 #define HALF_TILE_WIDTH 8.0
 #define HALF_TILE_HEIGHT 8.0
 
-#define TILED_VERTEX_NUM_FLOATS 12
+// X Y U V
+#define TILED_VERTEX_NUM_FLOATS 4
+// X Y U V R G B A R G B A
+#define CHAR_VERTEX_NUM_FLOATS 12
 
 // number of floats for each quad of geometry
 #define TILED_QUAD_NUM_FLOATS (TILED_VERTEX_NUM_FLOATS * 4)
-// number of u32 for each quad
+// number of floats for each character
+#define CHAR_NUM_FLOATS (CHAR_VERTEX_NUM_FLOATS * 4)
+
+// number of u32 for each quad (common for both quads and characters)
 #define TILED_QUAD_NUM_INDICES 6
 
-// (x, y, u, v, fg-rgba, bg-rgba) == 12 bytes
-// 12 * 4 bytes per float * 4 vertices per tiled quad == 192
+// (x, y, u, v) == 4 floats
+// 4 * 4 bytes per float * 4 vertices per tiled quad == 64
 #define TILED_QUAD_GEOMETRY_BYTES (TILED_QUAD_NUM_FLOATS * sizeof(f32))
+
+// (x, y, u, v, fg-rgba, bg-rgba) == 12 floats
+// 12 * 4 bytes per float * 4 vertices per tiled quad == 192
+#define CHAR_GEOMETRY_BYTES (CHAR_NUM_FLOATS * sizeof(f32))
+
 // 3 verts per triangle * 2 triangles * 4 bytes per i32 == 24
 #define TILED_QUAD_INDICES_BYTES (TILED_QUAD_NUM_INDICES * sizeof(u32))
 
@@ -600,6 +620,7 @@ typedef struct {
   SpriteInfo*                  sprite_info;
   AnimatedCharacterSpriteInfo* animated_character_sprite_info;
 
+  ShaderText   shader_text;
   ShaderTile   shader_tile;
   ShaderScreen shader_screen;
 #ifdef RONA_EDITOR
