@@ -318,13 +318,16 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         case 'H':
           hero = &(level->entities[0]);
 
-          have_hero          = true;
-          hero->exists       = true;
-          hero->entity_role  = EntityRole_Hero;
-          hero->entity_state = EntityState_Standing;
-          hero->is_animated = true;
-          hero->entity_animation = EntityAnimation_Idle;
-          hero->animation_speed = 1.0f;
+          have_hero                       = true;
+          hero->exists                    = true;
+          hero->entity_role               = EntityRole_Hero;
+          hero->entity_state              = EntityState_Standing;
+          hero->is_animated               = true;
+          hero->animated_character_sprite = ACS_BlueKnight;
+          hero->entity_animation          = EntityAnimation_Idle;
+          hero->animation_speed           = 1.0f;
+          hero->animation_frame           = 0;
+          hero->animation_frame_counter   = 0;
           // hero->graphic = &(game_state->graphic_hero);
           hero->world_max_speed = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
@@ -337,7 +340,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           block->exists       = true;
           block->entity_role  = EntityRole_Block;
           block->entity_state = EntityState_Standing;
-          block->is_animated = false;
+          block->is_animated  = false;
           // block->graphic = &(game_state->graphic_block);
           block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
@@ -350,7 +353,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           pit->exists       = true;
           pit->entity_role  = EntityRole_Pit;
           pit->entity_state = EntityState_Standing;
-          pit->is_animated = false;
+          pit->is_animated  = false;
           // pit->graphic = &(game_state->graphic_pit);
           pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);

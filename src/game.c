@@ -326,10 +326,69 @@ void game_step(GameState* game_state) {
   renderer_render(game_state);
 }
 
-void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
-
+void sprite_uv_and_offset(Vec2* uv, Vec2* offset, RenderStruct* render_struct, Sprite sprite) {
   Tileset*    tileset     = &(render_struct->tileset);
   SpriteInfo* sprite_info = render_struct->sprite_info;
+
+  Vec2 sprite_uv     = tileset_get_uv(tileset, sprite_info, sprite);
+  Vec2 sprite_offset = sprite_info[sprite].stage_offset;
+
+  uv->x = sprite_uv.x;
+  uv->y = sprite_uv.y;
+
+  offset->x = sprite_offset.x;
+  offset->y = sprite_offset.y;
+}
+
+void animated_character_sprite_uv_and_offset(Vec2* uv, Vec2* offset, RenderStruct* render_struct,
+                                             Entity* entity) {
+  Tileset*                     tileset = &(render_struct->tileset);
+  AnimatedCharacterSprite      acs     = entity->animated_character_sprite;
+  AnimatedCharacterSpriteInfo* acsi    = &(render_struct->animated_character_sprite_info[acs]);
+
+  offset->x = acsi->stage_offset.x;
+  offset->y = acsi->stage_offset.y;
+
+  SpriteAnimation* sprite_animation;
+  switch (entity->entity_animation) {
+  case EntityAnimation_Idle:
+    sprite_animation = &(acsi->idle);
+    break;
+  case EntityAnimation_Walk:
+    sprite_animation = &(acsi->walk);
+    break;
+  case EntityAnimation_Attack:
+    sprite_animation = &(acsi->attack);
+    break;
+  case EntityAnimation_Hit:
+    sprite_animation = &(acsi->hit);
+    break;
+  case EntityAnimation_Death:
+    sprite_animation = &(acsi->death);
+    break;
+  case EntityAnimation_Special:
+    sprite_animation = &(acsi->special);
+    break;
+  };
+
+  entity->animation_frame_counter++;
+  if (entity->animation_frame_counter == ANIMATION_FRAME_COUNTER_LIMIT) {
+    entity->animation_frame_counter = 0;
+    entity->animation_frame++;
+    entity->animation_frame = entity->animation_frame % 4;
+  }
+
+  Dim2 sprite_location_fr0 = sprite_animation->location; // frame 0
+  Vec2 sprite_uv;
+  sprite_uv.x = (sprite_location_fr0.col + entity->animation_frame) * tileset->uv_unit.u;
+  sprite_uv.y = sprite_location_fr0.row * tileset->uv_unit.v;
+
+  uv->x = sprite_uv.x;
+  uv->y = sprite_uv.y;
+}
+
+void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
+  Tileset* tileset = &(render_struct->tileset);
 
   Graphic* graphic      = &(level->entities_graphic);
   graphic->num_elements = 0;
@@ -354,19 +413,23 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
     Entity* e = &(level->entities[i]);
 
     if (e->exists == false) {
+      // when looping through entities in a level stop at the first one that doesn't exist
+      // there will be no more entities where exists == true
       break;
     }
 
-    Sprite tile_sprite;
+    Vec2 sprite_uv;
+    Vec2 offset;
+
     switch (e->entity_role) {
     case EntityRole_Hero:
-      tile_sprite = S_Hero;
+      animated_character_sprite_uv_and_offset(&sprite_uv, &offset, render_struct, e);
       break;
     case EntityRole_Block:
-      tile_sprite = S_Block;
+      sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_Block);
       break;
     case EntityRole_Pit:
-      tile_sprite = S_BlockableHole;
+      sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
       break;
     default:
       RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
@@ -374,12 +437,10 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
       break;
     }
 
-    Vec2 sprite = tileset_get_uv(tileset, sprite_info, tile_sprite);
-    Vec2 offset = sprite_info[tile_sprite].stage_offset;
-    f32  u      = sprite.u;
-    f32  v      = sprite.v;
-    f32  ud     = tileset->uv_unit.u;
-    f32  vd     = tileset->uv_unit.v;
+    f32 u  = sprite_uv.u;
+    f32 v  = sprite_uv.v;
+    f32 ud = tileset->uv_unit.u;
+    f32 vd = tileset->uv_unit.v;
 
     f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
     f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;

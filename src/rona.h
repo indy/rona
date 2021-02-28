@@ -397,6 +397,8 @@ typedef enum { EntityRole_Hero, EntityRole_Block, EntityRole_Pit } EntityRole;
 
 typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
 
+typedef enum { EntityFacing_Left, EntityFacing_Right } EntityFacing;
+
 typedef enum {
   EntityAnimation_Idle,
   EntityAnimation_Walk,
@@ -406,21 +408,26 @@ typedef enum {
   EntityAnimation_Special
 } EntityAnimation;
 
+#define ANIMATION_FRAME_COUNTER_LIMIT 10
+
 typedef struct Entity {
   // when looping through entities in a level stop at the first one that doesn't exist
-  // there will be no more entites where exists == true
+  // there will be no more entities where exists == true
   bool exists;
 
   EntityRole  entity_role;
   EntityState entity_state;
 
+  EntityFacing entity_facing;
   // -----------------------------------------------------
   // Entity Animation State
-  bool is_animated;
-  EntityAnimation entity_animation;
-  f32 animation_speed;
+  AnimatedCharacterSprite animated_character_sprite;
+  bool                    is_animated;
+  EntityAnimation         entity_animation;
+  f32                     animation_speed;
+  i32                     animation_frame;
+  i32                     animation_frame_counter; // kind of a hack, replace with time based increment
   // -----------------------------------------------------
-
 
   Vec2i board_pos;
 
