@@ -23,14 +23,14 @@ SHADERS_OUT=./target/text.vert.c ./target/text.frag.c ./target/tile.vert.c ./tar
 GUEST_NAME=guest
 GUEST_MAIN=src/guest/guest.c
 GUEST_CFLAGS=-std=c99 -fPIC -g -O0 -D _DEBUG -D FPL_DEBUG
-# GUEST_CFLAGS=-std=c99 -fPIC -g0 -O3 -D FPL_RELEASE
+GUEST_CFLAGS_RELEASE=-std=c99 -fPIC -g0 -O3 -D FPL_RELEASE
 GUEST_LDFLAGS=-shared
 GUEST_OUT=./target/lib$(GUEST_NAME).so
 
 # the host that hot-reloads the shared library
 #
 HOST_CFLAGS=-Wno-pointer-arith -Wno-narrowing -g -O0 -D _DEBUG -D FPL_DEBUG
-# HOST_CFLAGS=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
+HOST_CFLAGS_RELEASE=-Wno-narrowing -g0 -O3 -D FPL_RELEASE
 HOST_MAIN=src/host/host.cpp
 HOST_HEADERS=src/rona.h src/rona_gl.h
 HOST_LIBS=-lGL -lm -lpthread -ldl -lrt -lX11 -lstdc++
@@ -49,6 +49,11 @@ guest: $(GUEST_OUT)
 host: $(HOST_OUT)
 test: $(TEST_OUT)
 tags: $(TAGS_OUT)
+
+release: clean $(SHADERS_OUT)
+	$(CC) $(GUEST_CFLAGS_RELEASE) $(INCLUDE_FLAGS) $(GUEST_MAIN) -o $(GUEST_OUT) -Wall $(GUEST_LDFLAGS)
+	$(CC) $(HOST_CFLAGS_RELEASE) -g -c $(INCLUDE_FLAGS) -DCR_DEPLOY_PATH=\"target\" -DCR_NAME=\"$(GUEST_NAME)\" $(HOST_MAIN) -o ./target/host.o
+	$(CC) -o $(HOST_OUT) ./target/host.o -Wall $(INCLUDE_FLAGS) $(HOST_LIBS)
 
 ./target/text.vert.c: src/shaders/text.vert
 	xxd -i $< > $@
@@ -87,7 +92,7 @@ fmt: $(GAME_SRC) $(GAME_HEADERS)
 .PHONY: clean watch
 
 clean:
-	rm target/*
+	rm -f target/*
 
 all: guest host
 

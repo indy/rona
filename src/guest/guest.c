@@ -35,7 +35,7 @@ CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation) {
     // a failure code is acessible in the `failure` variable from the `cr_plugin` context.
     // on windows this is the structured exception error code, for more info:
     //      https://msdn.microsoft.com/en-us/library/windows/desktop/ms679356(v=vs.85).aspx
-    RONA_INFO("A rollback happened due to failure: %x!\n", ctx->failure);
+    rona_info("A rollback happened due to failure: %x!", ctx->failure);
   }
   version = ctx->version;
 
@@ -44,7 +44,7 @@ CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation) {
     game_step(g_game_state);
     return 0;
   case CR_LOAD:
-    RONA_INFO("LOAD (version: %d)\n", ctx->version);
+    rona_info("LOAD (version: %d)", ctx->version);
     if (!g_game_state->game_initialised) {
       game_startup(g_game_state);
       g_game_state->game_initialised = true;
@@ -52,11 +52,11 @@ CR_EXPORT int cr_main(struct cr_plugin* ctx, enum cr_op operation) {
     game_lib_load(g_game_state);
     return 0;
   case CR_UNLOAD:
-    RONA_INFO("UNLOAD (version: %d)\n", ctx->version);
+    rona_info("UNLOAD (version: %d)", ctx->version);
     game_lib_unload(g_game_state);
     return 0;
   case CR_CLOSE:
-    RONA_LOG("CLOSE\n");
+    rona_log("CLOSE");
     game_shutdown(g_game_state);
     return 0;
   default:

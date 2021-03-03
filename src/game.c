@@ -39,7 +39,7 @@ void game_startup(GameState* game_state) {
   if (h * TILE_HEIGHT < STAGE_HEIGHT) {
     h++;
   }
-  RONA_INFO("w %d, h %d\n", w, h);
+  rona_info("w %d, h %d", w, h);
   level->viewport = rect(-1, -1, w, h);
 
   level_startup(level, game_state);
@@ -116,7 +116,7 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
-  // RONA_LOG("base %p, size: %llu, used: %llu\n", game_state->arena_permanent.base,
+  // rona_log("base %p, size: %llu, used: %llu", game_state->arena_permanent.base,
   //          game_state->arena_permanent.size, game_state->arena_permanent.used);
 
   RonaGL*        gl             = game_state->gl;
@@ -170,7 +170,7 @@ Entity* get_hero(Level* level) {
     }
   }
 
-  RONA_ERROR("No hero found on level\n");
+  rona_error("No hero found on level");
   return NULL;
 }
 
@@ -432,7 +432,7 @@ void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render
         sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
         break;
       default:
-        RONA_ERROR("unknown entity_type in entities_regenerate_geometry\n");
+        rona_error("unknown entity_type in entities_regenerate_geometry");
         return;
         break;
       }

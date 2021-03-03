@@ -343,8 +343,8 @@ void tileset_add_char(RenderStruct *render_struct, char c, Vec2 *pos, Vec4 *fg, 
   f32 xpos = pos->x;
   f32 ypos = pos->y;
 
-  // RONA_LOG("x dim: %.4f -> %.4f\n", -half_dim_x + xpos, half_dim_x + xpos);
-  // RONA_LOG("%.4f %.4f, %.4f %.4f\n", xpos, ypos, xpos + TILE_CHAR_WIDTH, ypos + TILE_CHAR_HEIGHT);
+  // rona_log("x dim: %.4f -> %.4f", -half_dim_x + xpos, half_dim_x + xpos);
+  // rona_log("%.4f %.4f, %.4f %.4f", xpos, ypos, xpos + TILE_CHAR_WIDTH, ypos + TILE_CHAR_HEIGHT);
 
   *e++ = xpos;
   *e++ = ypos;

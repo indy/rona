@@ -26,7 +26,6 @@
 
 // Memory allocation sizes
 //
-
 // sum of these 2 is the total reserved for the entire game
 #define MEMORY_ALLOCATION_ARENA_PERMANENT 256
 #define MEMORY_ALLOCATION_ARENA_TRANSIENT 256
@@ -51,12 +50,8 @@
   {}
 #endif
 
-#define RONA_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
-#define RONA_INFO(...) fprintf(stdout, ##__VA_ARGS__)
-#define RONA_LOG(...) fprintf(stdout, ##__VA_ARGS__)
-
-#define true 1
 #define false 0
+#define true 1
 
 #ifndef __cplusplus
 typedef _Bool bool;
@@ -238,6 +233,7 @@ typedef struct Mat4 {
   SPRITE_DECL(S_Block, 1, 30, 0.0f, 0.0f)                                                                    \
   SPRITE_DECL(S_BlockableHole, 1, 31, 0.0f, 0.0f)                                                            \
   SPRITE_DECL(S_BlockableHoleFilled, 1, 32, 0.0f, 0.0f)                                                      \
+  SPRITE_DECL(S_LevelExit, 1, 33, 0.0f, 0.0f)                                                                \
   SPRITE_DECL(S_NumSprites, 0, 0, 0.0f, 0.0f)
 
 #define GENERATE_ENUM(ENUM, TILE_X, TILE_Y, SO_X, SO_Y) ENUM,

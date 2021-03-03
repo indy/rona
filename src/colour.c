@@ -823,7 +823,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_xyz(xyz_from_rgb(rgb_from_hsl(&c64)));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -848,7 +848,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_xyz(xyz_from_hsluv(&c64));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -873,7 +873,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_xyz(xyz_from_rgb(rgb_from_hsv(&c64)));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -898,7 +898,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_xyz(xyz_from_lab(&c64));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -925,7 +925,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_rgb(&c64);
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -952,7 +952,7 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       oklab_from_rgb(linear_from_srgb(&c64));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
@@ -978,12 +978,12 @@ Colour* colour_clone_as(Colour* out, Colour* in, ColourFormat new_format) {
       srgb_from_linear(rgb_from_oklab(&c64));
       break;
     default:
-      RONA_ERROR("unknown colour format %d", new_format);
+      rona_error("unknown colour format %d", new_format);
       break;
     }
     break;
   default:
-    RONA_ERROR("unknown colour format %d", in->format);
+    rona_error("unknown colour format %d", in->format);
     break;
   }
 

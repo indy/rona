@@ -130,7 +130,7 @@ i32 vec2i_length_squared(Vec2i a) {
 }
 
 void vec2i_log(char* msg, Vec2i a) {
-  RONA_LOG("%s: (%d,%d)\n", msg, a.x, a.y);
+  rona_log("%s: (%d,%d)", msg, a.x, a.y);
 }
 
 Vec2 vec2(f32 x, f32 y) {

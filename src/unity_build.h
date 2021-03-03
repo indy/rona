@@ -19,6 +19,15 @@
 #include <float.h>
 #include <math.h>
 
+// Logging Declarations
+//
+void rona_error_implementation(char* file_location, int line_num, char* function, char* fmt, ...);
+void rona_info_implementation(char* file_location, int line_num, char* function, char* fmt, ...);
+void rona_log_implementation(char* file_location, int line_num, char* function, char* fmt, ...);
+#define rona_error(...) rona_error_implementation(__FILE__, __LINE__, (char*)__func__, ##__VA_ARGS__)
+#define rona_info(...) rona_info_implementation(__FILE__, __LINE__, (char*)__func__, ##__VA_ARGS__)
+#define rona_log(...) rona_log_implementation(__FILE__, __LINE__, (char*)__func__, ##__VA_ARGS__)
+
 #include "rona.h"
 
 #include "cr.h"
@@ -94,6 +103,7 @@ static GameState* g_game_state = 0;
 #include "input.c"
 #include "level.c"
 #include "level1.c"
+#include "logging.c"
 #include "memory.c"
 #include "renderer.c"
 #include "rona_math.c"

@@ -16,6 +16,9 @@ typedef unsigned long long u64; // copied from rona.h
 
 #include "../rona.h"
 
+#define RONA_HOST_ERROR(...) fprintf(stderr, ##__VA_ARGS__)
+#define RONA_HOST_INFO(...) fprintf(stdout, ##__VA_ARGS__)
+
 const char *tmp = "/tmp/";
 
 static GameState game_state;
@@ -213,13 +216,13 @@ int main(int argc, char **args) {
 
   const char *plugin = CR_DEPLOY_PATH "/" CR_PLUGIN(CR_NAME);
   if (access(plugin, F_OK) != -1) {
-    RONA_INFO("plugin found at: %s\n", plugin);
+    RONA_HOST_INFO("plugin found at: %s\n", plugin);
     cr_plugin_open(ctx, plugin);
   } else if (access(CR_PLUGIN(CR_NAME), F_OK) != -1) {
-    RONA_INFO("plugin found at: %s\n", CR_PLUGIN(CR_NAME));
+    RONA_HOST_INFO("plugin found at: %s\n", CR_PLUGIN(CR_NAME));
     cr_plugin_open(ctx, CR_PLUGIN(CR_NAME));
   } else {
-    RONA_ERROR("unable to find shared library: %s\n", CR_NAME);
+    RONA_HOST_ERROR("unable to find shared library: %s\n", CR_NAME);
     exit(EXIT_FAILURE);
   }
 
@@ -252,7 +255,7 @@ int main(int argc, char **args) {
     game_state.window_has_focus = true;
     game_state.render_struct.window_width = window_size.width;
     game_state.render_struct.window_height = window_size.height;
-    RONA_INFO("Window Initial size: (%d, %d)\n", window_size.width, window_size.height);
+    RONA_HOST_INFO("Window Initial size: (%d, %d)\n", window_size.width, window_size.height);
 
     // bump allocate memory for RonaInput
     game_state.input = (RonaInput *)bump_alloc(&(game_state.arena_permanent), sizeof(RonaInput));
@@ -273,35 +276,35 @@ int main(int argc, char **args) {
       while (fplPollEvent(&ev)) {
         if (ev.type == fplEventType_Window) {
           switch(ev.window.type) {
-          case fplWindowEventType_None:            RONA_INFO("Window Event: None\n"); break;
+          case fplWindowEventType_None:            RONA_HOST_INFO("Window Event: None\n"); break;
           case fplWindowEventType_Resized:
             fplWindowSize window_size;
             fplGetWindowSize(&window_size);
             game_state.window_resized = true;
             game_state.render_struct.window_width = window_size.width;
             game_state.render_struct.window_height = window_size.height;
-            RONA_INFO("Window Event: Resized (%d, %d)\n", window_size.width, window_size.height);
+            RONA_HOST_INFO("Window Event: Resized (%d, %d)\n", window_size.width, window_size.height);
             break;
           case fplWindowEventType_GotFocus:
-            RONA_INFO("Window Event: GotFocus\n");
+            RONA_HOST_INFO("Window Event: GotFocus\n");
             game_state.window_has_focus = true;
             break;
           case fplWindowEventType_LostFocus:
-            RONA_INFO("Window Event: LostFocus\n");
+            RONA_HOST_INFO("Window Event: LostFocus\n");
             game_state.window_has_focus = false;
             break;
-          case fplWindowEventType_Minimized:       RONA_INFO("Window Event: Minimized\n"); break;
-          case fplWindowEventType_Maximized:       RONA_INFO("Window Event: Maximized\n"); break;
+          case fplWindowEventType_Minimized:       RONA_HOST_INFO("Window Event: Minimized\n"); break;
+          case fplWindowEventType_Maximized:       RONA_HOST_INFO("Window Event: Maximized\n"); break;
           case fplWindowEventType_Restored:
-            RONA_INFO("Window Event: Restored\n");
+            RONA_HOST_INFO("Window Event: Restored\n");
             game_state.window_has_focus = true;
             break;
-          case fplWindowEventType_DroppedFiles:    RONA_INFO("Window Event: DroppedFiles\n"); break;
-          case fplWindowEventType_Exposed:         RONA_INFO("Window Event: Exposed\n"); break;
-          case fplWindowEventType_PositionChanged: RONA_INFO("Window Event: PositionChanged\n"); break;
-          case fplWindowEventType_Closed:          RONA_INFO("Window Event: Closed\n"); break;
-          case fplWindowEventType_Shown:           RONA_INFO("Window Event: Shown\n"); break;
-          case fplWindowEventType_Hidden:          RONA_INFO("Window Event: Hidden\n");  break;
+          case fplWindowEventType_DroppedFiles:    RONA_HOST_INFO("Window Event: DroppedFiles\n"); break;
+          case fplWindowEventType_Exposed:         RONA_HOST_INFO("Window Event: Exposed\n"); break;
+          case fplWindowEventType_PositionChanged: RONA_HOST_INFO("Window Event: PositionChanged\n"); break;
+          case fplWindowEventType_Closed:          RONA_HOST_INFO("Window Event: Closed\n"); break;
+          case fplWindowEventType_Shown:           RONA_HOST_INFO("Window Event: Shown\n"); break;
+          case fplWindowEventType_Hidden:          RONA_HOST_INFO("Window Event: Hidden\n");  break;
           }
           fflush(stdout);
         }

@@ -312,7 +312,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         case 'y': tile->type = TileType_Void; tile->sprite = S_CornerB_BL; break;
         case 'z': tile->type = TileType_Void; tile->sprite = S_CornerB_BR; break;
 
-        case 's': tile->type = TileType_Void; tile->sprite = S_DoorClosed; break;
+        case 's': tile->type = TileType_Void; tile->sprite = S_LevelExit; break;
 
         // clang-format on
         case 'H':
@@ -343,6 +343,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           block->z_order = 2;
           block->entity_role  = EntityRole_Block;
           block->entity_state = EntityState_Standing;
+          block->entity_facing = EntityFacing_Right;
           block->is_animated  = false;
           // block->graphic = &(game_state->graphic_block);
           block->world_max_speed = max_speed;
@@ -358,6 +359,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           pit->entity_role  = EntityRole_Pit;
           pit->entity_state = EntityState_Standing;
           pit->is_animated  = false;
+          pit->entity_facing = EntityFacing_Right;
           // pit->graphic = &(game_state->graphic_pit);
           pit->world_max_speed = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
@@ -372,6 +374,6 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   }
 
   if (!have_hero) {
-    RONA_ERROR("There's no hero on the level\n");
+    rona_error("There's no hero on the level");
   }
 }

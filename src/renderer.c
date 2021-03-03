@@ -257,20 +257,20 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
   const char* version  = (const char*)gl->getString(GL_VERSION);
   const char* vendor   = (const char*)gl->getString(GL_VENDOR);
   const char* renderer = (const char*)gl->getString(GL_RENDERER);
-  RONA_INFO("OpenGL version: %s\n", version);
-  RONA_INFO("OpenGL vendor: %s\n", vendor);
-  RONA_INFO("OpenGL renderer: %s\n", renderer);
+  rona_info("OpenGL version: %s", version);
+  rona_info("OpenGL vendor: %s", vendor);
+  rona_info("OpenGL renderer: %s", renderer);
 
   const char* glslVersion = (const char*)gl->getString(GL_SHADING_LANGUAGE_VERSION);
-  RONA_INFO("OpenGL GLSL Version %s:\n", glslVersion);
+  rona_info("OpenGL GLSL Version %s:", glslVersion);
 
   // int profileMask;
   // int contextFlags;
   // gl->getIntegerv(GL_CONTEXT_PROFILE_MASK, &profileMask);
   // gl->getIntegerv(GL_CONTEXT_FLAGS, &contextFlags);
-  // RONA_INFO("OpenGL supported profiles:\n");
-  // RONA_INFO("\tCore: %s\n", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
-  // RONA_INFO("\tForward: %s\n", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
+  // rona_info("OpenGL supported profiles:");
+  // rona_info("\tCore: %s", ((profileMask & GL_CONTEXT_CORE_PROFILE_BIT) ? "yes" : "no"));
+  // rona_info("\tForward: %s", ((contextFlags & GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT) ? "yes" :
   // "no"));
 
   // load tileset texture
@@ -300,7 +300,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
     tileset_calc_uv_units(tileset);
 
   } else {
-    RONA_ERROR("renderer.c failed to load %s\n", tileset_filename);
+    rona_error("renderer.c failed to load %s", tileset_filename);
     return false;
   }
 
@@ -334,10 +334,10 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
     tileset->sprite_dim.height = 15;
     tileset_calc_uv_units(tileset);
 
-    RONA_LOG("uv %.6f, %.6f\n", tileset->uv_unit.u, tileset->uv_unit.v);
+    rona_log("uv %.6f, %.6f", tileset->uv_unit.u, tileset->uv_unit.v);
 
   } else {
-    RONA_ERROR("renderer.c failed to load %s\n", tileset_filename);
+    rona_error("renderer.c failed to load %s", tileset_filename);
     return false;
   }
 #endif
@@ -352,7 +352,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
   attach_textures_to_framebuffer(gl, render_struct->framebuffer_id, render_struct->stage_texture_id,
                                  render_struct->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
-    RONA_ERROR("%d, Framebuffer is not ok\n", 1);
+    rona_error("%d, Framebuffer is not ok", 1);
     return false;
   }
   gl->bindFramebuffer(GL_FRAMEBUFFER, render_struct->framebuffer_id);
@@ -392,7 +392,7 @@ bool renderer_startup(RonaGL* gl, RenderStruct* render_struct, BumpAllocator* pe
 
   gl->bindVertexArray(0);
 
-  RONA_LOG("Running modern opengl\n");
+  rona_log("Running modern opengl");
 
   return true;
 }
@@ -473,8 +473,8 @@ GLuint create_shader_type(RonaGL* gl, GLenum type, const char* source) {
     gl->getShaderiv(shaderId, GL_INFO_LOG_LENGTH, &infoLen);
     // RONA_ASSERT(infoLen <= fplArrayCount(info));
     gl->getShaderInfoLog(shaderId, infoLen, &infoLen, info);
-    RONA_ERROR("Failed compiling %s shader!\n", (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
-    RONA_ERROR("%s\n", info);
+    rona_error("Failed compiling %s shader!", (type == GL_VERTEX_SHADER ? "vertex" : "fragment"));
+    rona_error("%s", info);
   }
 
   return (shaderId);
@@ -504,7 +504,7 @@ GLuint create_shader_program(RonaGL* gl, const char* vertexSource, const char* f
     gl->getProgramiv(programId, GL_INFO_LOG_LENGTH, &infoLen);
     // RONA_ASSERT(infoLen <= fplArrayCount(info));
     gl->getProgramInfoLog(programId, infoLen, &infoLen, info);
-    RONA_ERROR("%s\n", info);
+    rona_error("%s", info);
   }
 
   // http://docs.gl/gl3/glDeleteShader
@@ -569,7 +569,7 @@ void attach_textures_to_framebuffer(RonaGL* gl, GLuint framebuffer_id, GLuint te
 
 bool is_framebuffer_ok(RonaGL* gl) {
   if (gl->checkFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    RONA_ERROR("Framebuffer is not complete\n");
+    rona_error("Framebuffer is not complete");
     return false;
   }
   return true;

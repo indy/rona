@@ -2,37 +2,37 @@
 void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes) {
   void* addr = rona_realloc(&(editor_state.allocator_permanent), mem, bytes);
 #if 0
-  RONA_LOG("called persistent_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
+  rona_log("called persistent_alloc %p to %lu bytes -> %p", mem, bytes, addr);
 #endif
   return addr;
 }
 
 void nuklear_persistent_free(nk_handle h, void* mem) {
 #if 1
-  RONA_LOG("called persistent_free %p\n", mem);
+  rona_log("called persistent_free %p", mem);
 #endif
   rona_free(&(editor_state.allocator_permanent), mem);
 }
 
 void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes) {
   if (!editor_state.transient_allocation_calls_expected) {
-    RONA_ERROR("transient_free called after expected scope\n");
+    rona_error("transient_free called after expected scope");
     return NULL;
   }
   void* addr = rona_realloc(&(editor_state.allocator_transient), mem, bytes);
 #if 0
-  RONA_LOG("called transient_alloc %p to %lu bytes -> %p\n", mem, bytes, addr);
+  rona_log("called transient_alloc %p to %lu bytes -> %p", mem, bytes, addr);
 #endif
   return addr;
 }
 
 void nuklear_transient_free(nk_handle h, void* mem) {
   if (!editor_state.transient_allocation_calls_expected) {
-    RONA_ERROR("transient_free called after expected scope\n");
+    rona_error("transient_free called after expected scope");
     return;
   }
 #if 0
-  RONA_LOG("called transient_free %p\n", mem);
+  rona_log("called transient_free %p", mem);
 #endif
   rona_free(&(editor_state.allocator_transient), mem);
 }
@@ -276,7 +276,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   attach_textures_to_framebuffer(gl, editor_state->framebuffer_id, editor_state->stage_in_nuklear_texture_id,
                                  editor_state->depth_texture_id);
   if (!is_framebuffer_ok(gl)) {
-    RONA_ERROR("%d, Nuklear stage Framebuffer is not ok\n", 1);
+    rona_error("%d, Nuklear stage Framebuffer is not ok", 1);
   }
   gl->bindFramebuffer(GL_FRAMEBUFFER, editor_state->framebuffer_id);
   gl->viewport(0, 0, STAGE_WIDTH, STAGE_HEIGHT);
@@ -372,7 +372,7 @@ void editor_changed_level(EditorState* editor_state, Level* level) {
   // use the level's bump allocator to store undo/redo information
   if (!command_system_startup(&(editor_state->undo_redo), &(level->fixed_block_allocator),
                               MEMORY_RESERVE_COMMANDS_IN_BUFFER)) {
-    RONA_ERROR("editor_startup: command_system_startup failed\n");
+    rona_error("editor_startup: command_system_startup failed");
   }
 }
 

@@ -156,7 +156,7 @@ void* rona_permanent_malloc(usize bytes) {
 #endif
 
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called malloc %d bytes -> %p\n", bytes, addr);
+  rona_log("called malloc %d bytes -> %p", bytes, addr);
 #endif
 
   return addr;
@@ -171,7 +171,7 @@ void* rona_permanent_realloc(void* mem, usize bytes) {
 #endif
 
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called realloc %p to %d bytes -> %p\n", mem, bytes, addr);
+  rona_log("called realloc %p to %d bytes -> %p", mem, bytes, addr);
 #endif
 
   return addr;
@@ -179,7 +179,7 @@ void* rona_permanent_realloc(void* mem, usize bytes) {
 
 void rona_permanent_free(void* mem) {
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called free %p\n", mem);
+  rona_log("called free %p", mem);
 #endif
 #ifdef SYS_MALLOC
   free(mem);
@@ -197,7 +197,7 @@ void* rona_transient_malloc(usize bytes) {
 #endif
 
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called malloc %d bytes -> %p\n", bytes, addr);
+  rona_log("called malloc %d bytes -> %p", bytes, addr);
 #endif
 
   return addr;
@@ -212,7 +212,7 @@ void* rona_transient_realloc(void* mem, usize bytes) {
 #endif
 
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called realloc %p to %d bytes -> %p\n", mem, bytes, addr);
+  rona_log("called realloc %p to %d bytes -> %p", mem, bytes, addr);
 #endif
 
   return addr;
@@ -220,7 +220,7 @@ void* rona_transient_realloc(void* mem, usize bytes) {
 
 void rona_transient_free(void* mem) {
 #ifdef DEBUG_MALLOC
-  RONA_LOG("called free %p\n", mem);
+  rona_log("called free %p", mem);
 #endif
 #ifdef SYS_MALLOC
   free(mem);

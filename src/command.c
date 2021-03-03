@@ -72,7 +72,7 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       *tile          = command->data.editor_tile_change.tile_new;
       break;
     case CommandExecute_Kill:
-      RONA_LOG("CommandType_Editor_TileChange :: CommandExecute_Kill\n");
+      rona_log("CommandType_Editor_TileChange :: CommandExecute_Kill");
       break;
     }
 
@@ -87,7 +87,7 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 #endif // RONA_EDITOR
 
   default:
-    RONA_ERROR("command_execute: unknown command type %d\n", command->type);
+    rona_error("command_execute: unknown command type %d", command->type);
     break;
   }
 }
@@ -109,7 +109,7 @@ void command_system_shutdown(UndoRedo* undo_redo) {
 
 bool command_transaction_begin(UndoRedo* undo_redo) {
   if (undo_redo->in_transaction) {
-    RONA_ERROR("command_transaction_begin: already in transaction\n");
+    rona_error("command_transaction_begin: already in transaction");
     return false;
   }
 
@@ -120,7 +120,7 @@ bool command_transaction_begin(UndoRedo* undo_redo) {
 
 bool command_transaction_end(UndoRedo* undo_redo) {
   if (!(undo_redo->in_transaction)) {
-    RONA_ERROR("command_transaction_end: not in transaction\n");
+    rona_error("command_transaction_end: not in transaction");
     return false;
   }
 
@@ -157,7 +157,7 @@ Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_alloc
 
   Command* command = NULL;
   if (undo_redo->command_index_next_free >= sb_count(undo_redo->sb_commands)) {
-    // RONA_LOG("sb_add (%d, %d)\n", undo_redo->command_index_next_free,
+    // rona_log("sb_add (%d, %d)", undo_redo->command_index_next_free,
     // sb_count(undo_redo->sb_commands));
     command = sb_add(fixed_block_allocator, undo_redo->sb_commands, 1);
   } else {
@@ -207,12 +207,12 @@ Command* command_pop_up(UndoRedo* undo_redo) {
   Command* command;
 
   if (undo_redo->command_index_next_free == sb_count(undo_redo->sb_commands)) {
-    RONA_ERROR("command_pop_up: cannot pop forward\n");
+    rona_error("command_pop_up: cannot pop forward");
     return NULL;
   } else {
     if (undo_redo->command_index_next_free > undo_redo->command_index_furthest_future) {
       // can't go any further
-      RONA_ERROR("command_pop_up: at the furthest future command\n");
+      rona_error("command_pop_up: at the furthest future command");
       return NULL;
     }
 
@@ -256,7 +256,7 @@ bool command_undo(UndoRedo* undo_redo, GameState* game_state) {
     // peek at the previous command in the undo stack
     command = command_peek(undo_redo);
     if (command == NULL) {
-      RONA_ERROR("command_undo: command_peek returned null\n");
+      rona_error("command_undo: command_peek returned null");
       return false;
     }
   }
@@ -287,7 +287,7 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
   switch (command->type) {
   case CommandType_EntityMove:
     // if (undo) {
-    RONA_LOG("%s old_params EntityMove (undo) e %p board (%d, %d), world (%.2f, %.2f, %.2f), state "
+    rona_log("%s old_params EntityMove (undo) e %p board (%d, %d), world (%.2f, %.2f, %.2f), state "
              "%d is_last_tnx %d\n",
              msg, e, command->data.entity_move.old_params.board_pos.x,
              command->data.entity_move.old_params.board_pos.y,
@@ -296,7 +296,7 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
              command->data.entity_move.old_params.world_target.z, e->entity_state,
              command->is_last_in_transaction);
     //    } else {
-    RONA_LOG("%s new EntityMove e %p board (%d, %d), world (%.2f, %.2f, %.2f), state %d "
+    rona_log("%s new EntityMove e %p board (%d, %d), world (%.2f, %.2f, %.2f), state %d "
              "is_last_tnx %d\n",
              msg, e, command->data.entity_move.new_params.board_pos.x,
              command->data.entity_move.new_params.board_pos.y,
@@ -307,19 +307,19 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
     //    }
     break;
   default:
-    RONA_ERROR("command_pretty_print: unknown command type %d\n", command->type);
+    rona_error("command_pretty_print: unknown command type %d", command->type);
     break;
   }
 }
 
 void command_debug(UndoRedo* undo_redo) {
-  RONA_LOG("\n");
-  RONA_LOG("undo_redo.in_transaction %d\n", undo_redo->in_transaction);
-  RONA_LOG("undo_redo.command_index_next_free %d\n", undo_redo->command_index_next_free);
-  RONA_LOG("undo_redo.command_index_furthest_future %d\n", undo_redo->command_index_furthest_future);
+  rona_log("");
+  rona_log("undo_redo.in_transaction %d", undo_redo->in_transaction);
+  rona_log("undo_redo.command_index_next_free %d", undo_redo->command_index_next_free);
+  rona_log("undo_redo.command_index_furthest_future %d", undo_redo->command_index_furthest_future);
 
   for (int i = 0; i <= undo_redo->command_index_furthest_future; i++) {
-    RONA_LOG("command %d:\n", i);
+    rona_log("command %d:", i);
     command_pretty_print(&(undo_redo->sb_commands[i]), true, "    ");
   }
 }

@@ -68,7 +68,7 @@ Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_spa
 }
 
 void chunk_pos_log(char* msg, ChunkPos cp) {
-  RONA_LOG("%s: chunk_pos(%d, %d) tile_offset(%d, %d)\n", msg, cp.chunk_pos.x, cp.chunk_pos.y,
+  rona_log("%s: chunk_pos(%d, %d) tile_offset(%d, %d)", msg, cp.chunk_pos.x, cp.chunk_pos.y,
            cp.tile_offset.x, cp.tile_offset.y);
 }
 
@@ -179,12 +179,12 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_st
   }
 
   graphic->mesh_size_bytes = buffer_size * sizeof(f32);
-  RONA_LOG("num_tiles %d, num_elements %d\n", num_tiles, graphic->num_elements);
+  rona_log("num_tiles %d, num_elements %d", num_tiles, graphic->num_elements);
 
   // upload the geometry to the GPU
   //
   RONA_ASSERT(graphic->sizeof_vbo >= graphic->mesh_size_bytes);
-  RONA_LOG("writing %d bytes to GPU\n", graphic->mesh_size_bytes);
+  rona_log("writing %d bytes to GPU", graphic->mesh_size_bytes);
   gl->bindVertexArray(graphic->vao);
   gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
   gl->bufferSubData(GL_ARRAY_BUFFER, 0, graphic->mesh_size_bytes, graphic->mesh);
