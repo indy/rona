@@ -180,7 +180,7 @@ int main(int argc, char **args) {
   game_state.game_initialised = false;
   game_state.quit_game = false;
 
-  game_state.arena_permanent.size = megabytes(MEMORY_ALLOCATION_ARENA_PERMANENT);
+  game_state.arena_permanent.size = megabytes(TOTAL_MEMORY_ALLOCATION_PERMANENT);
   game_state.arena_permanent.base = mmap(NULL,
                                            game_state.arena_permanent.size,
                                            PROT_READ | PROT_WRITE,
@@ -189,7 +189,7 @@ int main(int argc, char **args) {
                                            0);
   game_state.arena_permanent.used = 0;
 
-  game_state.arena_transient.size = megabytes(MEMORY_ALLOCATION_ARENA_TRANSIENT);
+  game_state.arena_transient.size = megabytes(TOTAL_MEMORY_ALLOCATION_TRANSIENT);
   game_state.arena_transient.base = mmap(NULL,
                                            game_state.arena_transient.size,
                                            PROT_READ | PROT_WRITE,

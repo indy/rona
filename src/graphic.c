@@ -16,9 +16,10 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void graphic_allocate_mesh(Graphic* graphic, BumpAllocator* bump_allocator, u32 bytes_to_allocate) {
-  graphic->mesh         = (f32*)BUMP_ALLOC(bump_allocator, bytes_to_allocate);
-  graphic->sizeof_vbo   = 0;
-  graphic->num_elements = 0;
+  graphic->mesh                      = (f32*)BUMP_ALLOC(bump_allocator, bytes_to_allocate);
+  graphic->mesh_allocated_size_bytes = bytes_to_allocate;
+  graphic->sizeof_vbo                = 0;
+  graphic->num_elements              = 0;
 }
 
 void graphic_setup_for_quads(Graphic* graphic, RonaGL* gl, BumpAllocator* transient,

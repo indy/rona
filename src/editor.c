@@ -60,18 +60,18 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
   if (nk_begin(ctx, "Stage Info", nk_rect(50, 50, 220, 220),
                NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
     /* fixed widget pixel width */
-    nk_layout_row_static(ctx, 30, 80, 1);
+    nk_layout_row_static(ctx, 30, 120, 1);
     if (nk_button_label(ctx, "Build Walls")) {
       Level* level = game_state->level;
       command_transaction_begin(&editor_state->undo_redo);
       {
         Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
-        command->type                          = CommandType_Editor_WallsBuild;
-        command->data.editor_tile_change.level = level;
-        // command->data.editor_tile_change.chunk_pos = chunk_pos;
+        command->type = CommandType_Editor_WallsBuild;
+        // command->params.tile_change.level = level;
+        // command->params.tile_change.tile_pos = tile_pos;
 
-        // Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
+        // Tile* tile_old = tile_ensure_get(level, tile_pos);
         // Tile  tile_new;
 
         // if (editor_state->active_tile_type == 0) {
@@ -82,8 +82,8 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
         //   tile_new.sprite = S_Debug4Corners;
         // }
 
-        // command->data.editor_tile_change.tile_old = *tile_old;
-        // command->data.editor_tile_change.tile_new = tile_new;
+        // command->params.tile_change.tile_old = *tile_old;
+        // command->params.tile_change.tile_new = tile_new;
       }
       command_transaction_end(&editor_state->undo_redo);
     }
@@ -169,6 +169,43 @@ void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
   nk_end(ctx);
 }
 
+Sprite tile_default_sprite_for_tiletype(TileType type) {
+  Sprite sprite;
+
+  switch (type) {
+  case TileType_Void:
+    sprite = S_Blank;
+    break;
+  case TileType_Floor:
+    sprite = S_Floor01;
+    break;
+  default:
+    sprite = S_Warning;
+    rona_error("unknown TileType: %d", type);
+  }
+
+  return sprite;
+}
+
+Tile tile_placement_manual(TileType type) {
+  Tile tile;
+
+  tile.type             = type;
+  tile.sprite           = tile_default_sprite_for_tiletype(type);
+  tile.placement_reason = TilePlacementReason_Manual;
+
+  return tile;
+}
+
+// given two Vec2i inputs returns them sorted into top-left and bottom-right vectors
+//
+void vec2i_as_top_left_bottom_right(Vec2i* tl, Vec2i* br, Vec2i in1, Vec2i in2) {
+  tl->x = in1.x < in2.x ? in1.x : in2.x;
+  tl->y = in1.y < in2.y ? in1.y : in2.y;
+  br->x = in1.x > in2.x ? in1.x : in2.x;
+  br->y = in1.y > in2.y ? in1.y : in2.y;
+}
+
 void editor_step(EditorState* editor_state, GameState* game_state) {
   declare_stage_preview(editor_state, game_state);
   declare_stage_info(editor_state, game_state);
@@ -176,37 +213,116 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
   if (mouse_pressed(game_state->input, MouseButton_Left)) {
     if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT), editor_state->cursor_in_stage_coords)) {
+      editor_state->mouse_down_in_stage_coords = editor_state->cursor_in_stage_coords;
+      editor_state->mouse_down_valid           = true;
+    } else {
+      editor_state->mouse_down_valid = false; // not part of a drag operation
+    }
+  }
+  if (mouse_released(game_state->input, MouseButton_Left)) {
+    if (rect_contains_point(rect(0, 0, STAGE_WIDTH, STAGE_HEIGHT), editor_state->cursor_in_stage_coords)) {
+      editor_state->mouse_up_in_stage_coords = editor_state->cursor_in_stage_coords;
+      editor_state->mouse_up_valid           = true;
+    } else {
+      editor_state->mouse_up_valid = false; // not part of a drag operation
+    }
 
-      Level*   level = game_state->level;
-      ChunkPos chunk_pos =
-          chunk_pos_from_stage_coords(editor_state->cursor_in_stage_coords, level->viewport.pos);
+    if (editor_state->mouse_down_valid && editor_state->mouse_up_valid) {
+      Level* level = game_state->level;
 
-      command_transaction_begin(&editor_state->undo_redo);
-      {
-        Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+      // a mouse drag and release operation has been performed
+      //
+      VEC2I_LOG(editor_state->mouse_down_in_stage_coords);
+      VEC2I_LOG(editor_state->mouse_up_in_stage_coords);
 
-        command->type                              = CommandType_Editor_TileChange;
-        command->data.editor_tile_change.level     = level;
-        command->data.editor_tile_change.chunk_pos = chunk_pos;
+      if (vec2i_eq(editor_state->mouse_down_in_stage_coords, editor_state->mouse_up_in_stage_coords)) {
+        // a single tile is being added
+        //
+        TilePos tile_pos =
+            tile_pos_from_stage_coords(editor_state->cursor_in_stage_coords, level->viewport.pos);
+        Tile* tile_current = tile_ensure_get(level, tile_pos);
+        Tile  tile_new     = tile_placement_manual(editor_state->active_tile_type);
 
-        Tile* tile_old = chunk_tile_ensure_get(level, chunk_pos);
-        Tile  tile_new;
+        if (!tile_eq(*tile_current, tile_new)) {
+          // build and execute the command to add a tile (using the TileChange command as it's lighter)
+          //
+          command_transaction_begin(&editor_state->undo_redo);
+          {
+            Command* command =
+                command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
-        if (editor_state->active_tile_type == 0) {
-          tile_new.type   = TileType_Void;
-          tile_new.sprite = S_Blank;
-        } else {
-          tile_new.type   = TileType_Floor;
-          tile_new.sprite = S_Debug4Corners;
+            command->type                        = CommandType_Editor_TileChange;
+            command->params.tile_change.tile_pos = tile_pos;
+            command->params.tile_change.tile_old = *tile_current;
+            command->params.tile_change.tile_new = tile_new;
+
+            // perform the actual command
+            command_execute(command, CommandExecute_Redo, game_state);
+          }
+          command_transaction_end(&editor_state->undo_redo);
         }
+      } else {
+        // multiple tiles are being added (have dragged an area)
+        //
+        Vec2i stage_tl, stage_br;
+        vec2i_as_top_left_bottom_right(&stage_tl, &stage_br, editor_state->mouse_down_in_stage_coords,
+                                       editor_state->mouse_up_in_stage_coords);
 
-        command->data.editor_tile_change.tile_old = *tile_old;
-        command->data.editor_tile_change.tile_new = tile_new;
+        Tile tile_new           = tile_placement_manual(editor_state->active_tile_type);
+        i32  num_modified_tiles = 0;
+        i32  num_tiles          = 0;
 
-        // perform the actual command
-        command_execute(command, CommandExecute_Redo, game_state);
+        Vec2i world_tl = tile_world_space_from_stage_coords(stage_tl, level->viewport.pos);
+        Vec2i world_br = tile_world_space_from_stage_coords(stage_br, level->viewport.pos);
+
+        for (i32 y = world_tl.y; y <= world_br.y; y++) {
+          for (i32 x = world_tl.x; x <= world_br.x; x++) {
+            TilePos tile_pos     = tile_pos_from_world_tile_space(vec2i(x, y));
+            Tile*   tile_current = tile_ensure_get(level, tile_pos);
+
+            if (!tile_eq(*tile_current, tile_new)) {
+              num_modified_tiles++;
+            }
+            num_tiles++;
+          }
+        }
+        if (num_modified_tiles > 0) {
+          command_transaction_begin(&editor_state->undo_redo);
+          {
+            Command* command =
+                command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+
+            command->type                    = CommandType_Editor_TileArea;
+            CommandParamsTileArea* tile_area = &(command->params.tile_area);
+
+            tile_area->tile_world_pos_top_left     = world_tl;
+            tile_area->tile_world_pos_bottom_right = world_br;
+
+            // Tile* tile_old = tile_ensure_get(level, tile_pos);
+            tile_area->tile_old_sb = NULL;
+            Tile* foo = sb_add(&editor_state->allocator_permanent, tile_area->tile_old_sb, num_tiles);
+            RONA_ASSERT(foo);
+
+            i32 tile_num = 0;
+            for (i32 y = world_tl.y; y <= world_br.y; y++) {
+              for (i32 x = world_tl.x; x <= world_br.x; x++) {
+                TilePos tile_pos     = tile_pos_from_world_tile_space(vec2i(x, y));
+                Tile*   tile_current = tile_ensure_get(level, tile_pos);
+
+                tile_area->tile_old_sb[tile_num] = *tile_current;
+
+                tile_num++;
+              }
+            }
+
+            tile_area->tile_new = tile_new;
+
+            // perform the actual command
+            command_execute(command, CommandExecute_Redo, game_state);
+          }
+          command_transaction_end(&editor_state->undo_redo);
+        }
       }
-      command_transaction_end(&editor_state->undo_redo);
     }
   }
 }
@@ -244,12 +360,15 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->nuklear_memory = aligned_nuklear_memory;
 
   // allocate memory for nuklear atlas
-  usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_NUKLEAR_ATLAS);
+  usize nuklear_atlas_memory_size = megabytes(MEMORY_ALLOCATION_EDITOR);
   void* nuklear_atlas_memory      = (void*)BUMP_ALLOC(permanent, nuklear_atlas_memory_size);
+  // should the atlas memory also be aligned???
 
-  editor_state->bump_permanent.size = nuklear_atlas_memory_size;
-  editor_state->bump_permanent.base = nuklear_atlas_memory;
-  editor_state->bump_permanent.used = 0;
+  // editor_state->bump_permanent.size = nuklear_atlas_memory_size;
+  // editor_state->bump_permanent.base = nuklear_atlas_memory;
+  // editor_state->bump_permanent.used = 0;
+  bump_allocator_reset(&(editor_state->bump_permanent), nuklear_atlas_memory, nuklear_atlas_memory_size);
+  editor_state->bump_permanent.logging = true;
 
   fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
 
@@ -371,7 +490,7 @@ void editor_changed_level(EditorState* editor_state, Level* level) {
 
   // use the level's bump allocator to store undo/redo information
   if (!command_system_startup(&(editor_state->undo_redo), &(level->fixed_block_allocator),
-                              MEMORY_RESERVE_COMMANDS_IN_BUFFER)) {
+                              RESERVE_NUM_COMMANDS_IN_UNDO_BUFFER)) {
     rona_error("editor_startup: command_system_startup failed");
   }
 }

@@ -32,10 +32,14 @@ typedef struct {
   UndoRedo undo_redo;
 
   // _temporary_ tile selection
-  int active_tile_type; // 0 == void, 1 == floor
+  TileType active_tile_type;
 
   // position of cursor on the stage (valid if in range 0..STAGE_WIDTH, 0..STAGE_HEIGHT)
   Vec2i cursor_in_stage_coords;
+  bool  mouse_down_valid;
+  Vec2i mouse_down_in_stage_coords;
+  bool  mouse_up_valid;
+  Vec2i mouse_up_in_stage_coords;
   // how much should the stage be magnified
   i32 stage_scalar;
 

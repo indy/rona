@@ -24,9 +24,12 @@ void game_startup(GameState* game_state) {
   Level* level                   = (Level*)BUMP_ALLOC(permanent, level_memory_arena_size);
   game_state->level              = level;
 
-  level->bump_allocator.base = level + sizeof(Level);
-  level->bump_allocator.size = level_memory_arena_size - sizeof(Level);
-  level->bump_allocator.used = 0;
+  // level->bump_allocator.base = level + sizeof(Level);
+  // level->bump_allocator.size = level_memory_arena_size - sizeof(Level);
+  // level->bump_allocator.used = 0;
+  bump_allocator_reset(&(level->bump_allocator), level + sizeof(Level),
+                       level_memory_arena_size - sizeof(Level));
+
   fixed_block_allocator_reset(&level->fixed_block_allocator, &level->bump_allocator);
 
   // work out how many tiles are required to cover the stage along each dimension
@@ -116,8 +119,10 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
-  // rona_log("base %p, size: %llu, used: %llu", game_state->arena_permanent.base,
-  //          game_state->arena_permanent.size, game_state->arena_permanent.used);
+  rona_log("permanent base %p, size: %llu, used: %llu", game_state->arena_permanent.base,
+           game_state->arena_permanent.size, game_state->arena_permanent.used);
+  rona_log("transient base %p, size: %llu, used: %llu", game_state->arena_transient.base,
+           game_state->arena_transient.size, game_state->arena_transient.used);
 
   RonaGL*        gl             = game_state->gl;
   BumpAllocator* bump_transient = &(game_state->arena_transient);
@@ -178,6 +183,9 @@ void game_step(GameState* game_state) {
   RenderStruct* render_struct = &(game_state->render_struct);
   RonaGL*       gl            = game_state->gl;
 
+  f32 time_delta = (f32)game_state->time_delta / 1000.0f; // in seconds
+  f32 fps        = 1.0f / time_delta;
+
   game_state->arena_transient.used = 0;
 
   if (key_pressed_ignore_active_flag(game_state->input, Key_F)) {
@@ -194,8 +202,8 @@ void game_step(GameState* game_state) {
       stage_from_window(game_state, (f32)game_state->input->mouse_pos.x, (f32)game_state->input->mouse_pos.y);
   TextParams* text_params = &(game_state->text_params_debug);
   text_params->pos        = vec2(0.0f, 0.0f);
-  text_printf(text_params, "%s (%.2f, %.2f)", game_state->mode == GameMode_Edit ? "Edit" : "Play",
-              mouse_on_stage.x, mouse_on_stage.y);
+  text_printf(text_params, "%s (%.2f, %.2f) %.0ffps", game_state->mode == GameMode_Edit ? "Edit" : "Play",
+              mouse_on_stage.x, mouse_on_stage.y, fps);
 
   if (!game_state->input->active) {
     text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
@@ -277,8 +285,6 @@ void game_step(GameState* game_state) {
       command_transaction_end(&level->undo_redo);
     }
   }
-
-  f32 time_delta = (f32)game_state->time_delta / 1000.0f;
 
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity* e = &(level->entities[i]);

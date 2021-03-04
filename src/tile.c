@@ -15,8 +15,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-bool chunk_pos_eq(Vec2i chunk_pos, Chunk* chunk) {
-  return vec2i_eq(chunk_pos, chunk->pos);
+bool tile_eq(Tile t1, Tile t2) {
+  return t1.type == t2.type && t1.sprite == t2.sprite && t1.placement_reason == t2.placement_reason;
+}
+
+bool tile_pos_eq(Vec2i tile_pos, Chunk* chunk) {
+  return vec2i_eq(tile_pos, chunk->pos);
 }
 
 void chunktile_construct(Tile* tile) {
@@ -34,15 +38,20 @@ void chunk_construct(Chunk* chunk, BumpAllocator* bump_allocator, Vec2i pos) {
   }
 }
 
-ChunkPos chunk_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport_pos) {
+Vec2i tile_world_space_from_stage_coords(Vec2i stage_coords, Vec2i viewport_pos) {
   Vec2i pos_in_stage_tile_space = vec2i_div(stage_coords, vec2i(TILE_DIM, TILE_DIM));
   Vec2i pos_in_world_tile_space = vec2i_add(pos_in_stage_tile_space, viewport_pos);
 
-  return chunk_pos_from_world_tile_space(pos_in_world_tile_space);
+  return pos_in_world_tile_space;
+}
+TilePos tile_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport_pos) {
+  Vec2i pos_in_world_tile_space = tile_world_space_from_stage_coords(stage_coords, viewport_pos);
+
+  return tile_pos_from_world_tile_space(pos_in_world_tile_space);
 }
 
-ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
-  ChunkPos res;
+TilePos tile_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
+  TilePos res;
 
   res.chunk_pos   = vec2i_div(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
   res.tile_offset = vec2i_mod(pos_in_world_tile_space, vec2i(CHUNK_WIDTH, CHUNK_HEIGHT));
@@ -60,23 +69,23 @@ ChunkPos chunk_pos_from_world_tile_space(Vec2i pos_in_world_tile_space) {
   return res;
 }
 
-Tile* chunk_tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space) {
-  ChunkPos chunkpos = chunk_pos_from_world_tile_space(pos_in_world_tile_space);
-  Tile*    tile     = chunk_tile_ensure_get(level, chunkpos);
+Tile* tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space) {
+  TilePos tilepos = tile_pos_from_world_tile_space(pos_in_world_tile_space);
+  Tile*   tile    = tile_ensure_get(level, tilepos);
 
   return tile;
 }
 
-void chunk_pos_log(char* msg, ChunkPos cp) {
-  rona_log("%s: chunk_pos(%d, %d) tile_offset(%d, %d)", msg, cp.chunk_pos.x, cp.chunk_pos.y,
-           cp.tile_offset.x, cp.tile_offset.y);
+void tile_pos_log(char* msg, TilePos cp) {
+  rona_log("%s: tile_pos(%d, %d) tile_offset(%d, %d)", msg, cp.chunk_pos.x, cp.chunk_pos.y, cp.tile_offset.x,
+           cp.tile_offset.y);
 }
 
-Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos) {
+Chunk* chunk_ensure_get(Level* level, Vec2i tile_pos) {
   Chunk* chunk = NULL;
   i32    count = sb_count(level->chunks_sb);
   for (int i = 0; i < count; i++) {
-    if (chunk_pos_eq(chunk_pos, &level->chunks_sb[i])) {
+    if (tile_pos_eq(tile_pos, &level->chunks_sb[i])) {
       chunk = &level->chunks_sb[i];
       break;
     }
@@ -84,27 +93,27 @@ Chunk* chunk_ensure_get(Level* level, Vec2i chunk_pos) {
 
   if (!chunk) {
     chunk = sb_add(&level->fixed_block_allocator, level->chunks_sb, 1);
-    chunk_construct(chunk, &level->bump_allocator, chunk_pos);
+    chunk_construct(chunk, &level->bump_allocator, tile_pos);
   }
 
   RONA_ASSERT(chunk);
   return chunk;
 }
 
-Tile* chunk_tile_ensure_get(Level* level, ChunkPos chunkpos) {
+Tile* tile_ensure_get(Level* level, TilePos tilepos) {
   RONA_ASSERT(level);
-  RONA_ASSERT(chunkpos.tile_offset.x < CHUNK_WIDTH);
-  RONA_ASSERT(chunkpos.tile_offset.y < CHUNK_HEIGHT);
+  RONA_ASSERT(tilepos.tile_offset.x < CHUNK_WIDTH);
+  RONA_ASSERT(tilepos.tile_offset.y < CHUNK_HEIGHT);
 
-  Chunk* chunk = chunk_ensure_get(level, chunkpos.chunk_pos);
+  Chunk* chunk = chunk_ensure_get(level, tilepos.chunk_pos);
   RONA_ASSERT(chunk);
 
-  Tile* tile = &chunk->tiles[(chunkpos.tile_offset.y * CHUNK_WIDTH) + chunkpos.tile_offset.x];
+  Tile* tile = &chunk->tiles[(tilepos.tile_offset.y * CHUNK_WIDTH) + tilepos.tile_offset.x];
 
   return tile;
 }
 
-void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
+void tile_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
 
   Tileset*    tileset     = &(render_struct->tileset);
   SpriteInfo* sprite_info = render_struct->sprite_info;
@@ -124,13 +133,13 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_st
        cy += CHUNK_HEIGHT) {
     for (i32 cx = viewport->pos.x; cx < viewport->pos.x + (i32)viewport->dim.width + CHUNK_WIDTH;
          cx += CHUNK_WIDTH) {
-      ChunkPos chunk_pos = chunk_pos_from_world_tile_space(vec2i(cx, cy));
-      Chunk*   chunk     = chunk_ensure_get(level, chunk_pos.chunk_pos);
+      TilePos tile_pos = tile_pos_from_world_tile_space(vec2i(cx, cy));
+      Chunk*  chunk    = chunk_ensure_get(level, tile_pos.chunk_pos);
       RONA_ASSERT(chunk);
 
       // the top left corner of the chunk we're about to iterate through (in world tile space)
-      f32 chunk_origin_x = (f32)chunk_pos.chunk_pos.x * (f32)CHUNK_WIDTH;
-      f32 chunk_origin_y = (f32)chunk_pos.chunk_pos.y * (f32)CHUNK_HEIGHT;
+      f32 chunk_origin_x = (f32)tile_pos.chunk_pos.x * (f32)CHUNK_WIDTH;
+      f32 chunk_origin_y = (f32)tile_pos.chunk_pos.y * (f32)CHUNK_HEIGHT;
 
       for (i32 ty = 0; ty < CHUNK_HEIGHT; ty++) {
         for (i32 tx = 0; tx < CHUNK_WIDTH; tx++) {
@@ -179,12 +188,14 @@ void chunk_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_st
   }
 
   graphic->mesh_size_bytes = buffer_size * sizeof(f32);
-  rona_log("num_tiles %d, num_elements %d", num_tiles, graphic->num_elements);
+  // rona_log("mesh size %d, mesh_size_allocated %d", graphic->mesh_size_bytes,
+  // graphic->mesh_allocated_size_bytes); rona_log("buffer_size %d, num_tiles %d, num_elements %d",
+  // buffer_size, num_tiles, graphic->num_elements);
 
   // upload the geometry to the GPU
   //
   RONA_ASSERT(graphic->sizeof_vbo >= graphic->mesh_size_bytes);
-  rona_log("writing %d bytes to GPU", graphic->mesh_size_bytes);
+  // rona_log("writing %d bytes to GPU", graphic->mesh_size_bytes);
   gl->bindVertexArray(graphic->vao);
   gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
   gl->bufferSubData(GL_ARRAY_BUFFER, 0, graphic->mesh_size_bytes, graphic->mesh);

@@ -45,7 +45,7 @@ void level1_startup(Level* level, GameState* game_state) {
 
   level_build(game_state, level, L1_WIDTH * 2, L1_HEIGHT, layout);
   if (!command_system_startup(&level->undo_redo, &level->fixed_block_allocator,
-                              MEMORY_RESERVE_COMMANDS_IN_BUFFER)) {
+                              RESERVE_NUM_COMMANDS_IN_UNDO_BUFFER)) {
     rona_error("level1_startup: command_system_startup failed");
   }
 }

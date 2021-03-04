@@ -20,21 +20,25 @@
 void level_startup(Level* level, GameState* game_state) {
   BumpAllocator* bump_allocator = &(level->bump_allocator);
 
-  usize entities_graphic_memory = MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER * TILED_QUAD_NUM_FLOATS;
-  graphic_allocate_mesh(&level->entities_graphic, bump_allocator, entities_graphic_memory);
+  usize entities_graphic_memory_bytes =
+      LEVEL_RESERVE_MAX_ENTITIES_TO_RENDER * TILED_QUAD_NUM_FLOATS * sizeof(f32);
+  rona_log("allocating %llu bytes for entities_graphic_memory_bytes", entities_graphic_memory_bytes);
+  graphic_allocate_mesh(&level->entities_graphic, bump_allocator, entities_graphic_memory_bytes);
 
-  usize chunks_graphic_memory = max_number_of_renderable_tiles(level) * TILED_QUAD_NUM_FLOATS;
-  graphic_allocate_mesh(&level->chunks_graphic, bump_allocator, chunks_graphic_memory);
+  usize chunks_graphic_memory_bytes =
+      max_number_of_renderable_tiles(level) * TILED_QUAD_NUM_FLOATS * sizeof(f32);
+  rona_log("allocating %llu bytes for chunks_graphic_memory_bytes", chunks_graphic_memory_bytes);
+  graphic_allocate_mesh(&level->chunks_graphic, bump_allocator, chunks_graphic_memory_bytes);
 }
 
 void level_shutdown(Level* level) {
 }
 
 void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct) {
-  graphic_setup_for_quads(&level->entities_graphic, gl, transient, MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER);
+  graphic_setup_for_quads(&level->entities_graphic, gl, transient, LEVEL_RESERVE_MAX_ENTITIES_TO_RENDER);
 
   graphic_setup_for_quads(&level->chunks_graphic, gl, transient, max_number_of_renderable_tiles(level));
-  chunk_regenerate_geometry(level, gl, render_struct);
+  tile_regenerate_geometry(level, gl, render_struct);
 }
 
 void level_lib_unload(Level* level, RonaGL* gl) {
@@ -90,7 +94,7 @@ void world_from_board(Vec3* dst, i32 x, i32 y, f32 z) {
 bool try_moving_block(Level* level, Entity* block, Direction direction, GameState* game_state) {
   Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
 
-  Tile* tile = chunk_tile_from_world_tile_space(level, new_pos);
+  Tile* tile = tile_from_world_tile_space(level, new_pos);
   if (tile->type == TileType_Void) {
     return false;
   }
@@ -129,8 +133,8 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
     command->type   = CommandType_EntityMove;
     command->entity = block;
 
-    CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
-    CommandParamsEntityMove* new_params = &command->data.entity_move.new_params;
+    CommandParamsEntityMove* old_params = &command->params.entity_move.old_params;
+    CommandParamsEntityMove* new_params = &command->params.entity_move.new_params;
 
     old_params->board_pos = block->board_pos;
     new_params->board_pos = new_pos;
@@ -153,7 +157,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
 bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
-  Tile* tile = chunk_tile_from_world_tile_space(level, new_pos);
+  Tile* tile = tile_from_world_tile_space(level, new_pos);
   if (tile->type == TileType_Void) {
     return false;
   }
@@ -197,8 +201,8 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
     command->type   = CommandType_EntityMove;
     command->entity = hero;
 
-    CommandParamsEntityMove* old_params = &command->data.entity_move.old_params;
-    CommandParamsEntityMove* new_params = &command->data.entity_move.new_params;
+    CommandParamsEntityMove* old_params = &command->params.entity_move.old_params;
+    CommandParamsEntityMove* new_params = &command->params.entity_move.new_params;
 
     old_params->board_pos = hero->board_pos;
     new_params->board_pos = new_pos;
@@ -262,9 +266,11 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
     for (i32 i = 0; i < dbl_width; i += 2) {
 
-      Vec2i    world_tile_coords = vec2i(i / 2, j);
-      ChunkPos chunkpos          = chunk_pos_from_world_tile_space(world_tile_coords);
-      Tile*    tile              = chunk_tile_ensure_get(level, chunkpos);
+      Vec2i   world_tile_coords = vec2i(i / 2, j);
+      TilePos tilepos           = tile_pos_from_world_tile_space(world_tile_coords);
+      Tile*   tile              = tile_ensure_get(level, tilepos);
+
+      tile->placement_reason = TilePlacementReason_Loaded;
 
       if (plan_line[i] != ' ') {
         i32 tile_x = i / 2;
@@ -320,7 +326,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           have_hero                       = true;
           hero->exists                    = true;
-          hero->z_order = 3;
+          hero->z_order                   = 3;
           hero->entity_role               = EntityRole_Hero;
           hero->entity_state              = EntityState_Standing;
           hero->is_animated               = true;
@@ -339,12 +345,12 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           block = &(level->entities[next_non_hero_entity_index++]);
 
-          block->exists       = true;
-          block->z_order = 2;
-          block->entity_role  = EntityRole_Block;
-          block->entity_state = EntityState_Standing;
+          block->exists        = true;
+          block->z_order       = 2;
+          block->entity_role   = EntityRole_Block;
+          block->entity_state  = EntityState_Standing;
           block->entity_facing = EntityFacing_Right;
-          block->is_animated  = false;
+          block->is_animated   = false;
           // block->graphic = &(game_state->graphic_block);
           block->world_max_speed = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
@@ -354,11 +360,11 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           pit = &(level->entities[next_non_hero_entity_index++]);
 
-          pit->exists       = true;
-          pit->z_order = 1;
-          pit->entity_role  = EntityRole_Pit;
-          pit->entity_state = EntityState_Standing;
-          pit->is_animated  = false;
+          pit->exists        = true;
+          pit->z_order       = 1;
+          pit->entity_role   = EntityRole_Pit;
+          pit->entity_state  = EntityState_Standing;
+          pit->is_animated   = false;
           pit->entity_facing = EntityFacing_Right;
           // pit->graphic = &(game_state->graphic_pit);
           pit->world_max_speed = max_speed;

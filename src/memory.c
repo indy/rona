@@ -33,6 +33,10 @@ void* bump_alloc(BumpAllocator* ba, usize bytes) {
   void* res = ba->base + ba->used;
   ba->used += bytes;
 
+  if (ba->logging) {
+    rona_log("bump_alloc %llu bytes", bytes);
+  }
+
   return res;
 }
 
@@ -46,6 +50,13 @@ void* memory_block(BumpAllocator* bump, usize bytes_to_allocate, usize bytes_req
   block->bytes_requested = bytes_requested;
   block->next            = NULL;
   return block;
+}
+
+void bump_allocator_reset(BumpAllocator* ba, void* base, u64 size) {
+  ba->base    = base;
+  ba->size    = size;
+  ba->used    = 0;
+  ba->logging = false;
 }
 
 void fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) {

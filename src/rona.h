@@ -27,16 +27,20 @@
 // Memory allocation sizes
 //
 // sum of these 2 is the total reserved for the entire game
-#define MEMORY_ALLOCATION_ARENA_PERMANENT 256
-#define MEMORY_ALLOCATION_ARENA_TRANSIENT 256
+#define TOTAL_MEMORY_ALLOCATION_PERMANENT 256
+#define TOTAL_MEMORY_ALLOCATION_TRANSIENT 256
 
+// memory allocated from TOTAL_MEMORY_ALLOCATION_PERMANENT (MB)
+//
 #define MEMORY_ALLOCATION_LEVEL 64
 #define MEMORY_ALLOCATION_NUKLEAR 16
-#define MEMORY_ALLOCATION_NUKLEAR_ATLAS 16
+#define MEMORY_ALLOCATION_EDITOR 16
 
-// Fixed sizes that affect memory on CPU or GPU
-#define MEMORY_RESERVE_COMMANDS_IN_BUFFER 100
-#define MEMORY_RESERVE_MAX_ENTITIES_TO_RENDER 500
+// used by every undo/redo system
+#define RESERVE_NUM_COMMANDS_IN_UNDO_BUFFER 100
+
+// taken from MEMORY_ALLOCATION_LEVEL
+#define LEVEL_RESERVE_MAX_ENTITIES_TO_RENDER 500
 
 #ifdef _DEBUG
 #define RONA_ASSERT(exp)                                                                                     \
@@ -325,6 +329,7 @@ typedef enum { FOREACH_ANIMATED_CHARACTER_SPRITE(GENERATE_ACS_ENUM) } AnimatedCh
 */
 
 typedef struct {
+  bool  logging;
   void* base;
   u64   size;
   u64   used;
@@ -395,7 +400,8 @@ typedef struct {
   i32    num_elements; // used by gl->drawElements
 
   f32* mesh;
-  u32  mesh_size_bytes;
+  u32  mesh_allocated_size_bytes; // memory allocated for mesh
+  u32  mesh_size_bytes;           // memory used for mesh
 } Graphic;
 
 typedef enum { EntityRole_Hero, EntityRole_Block, EntityRole_Pit } EntityRole;
@@ -427,7 +433,7 @@ typedef struct Entity {
   EntityRole  entity_role;
   EntityState entity_state;
 
-  i32 z_order;                  // 0, 1, 2, 3
+  i32 z_order; // 0, 1, 2, 3
 
   EntityFacing entity_facing;
   // -----------------------------------------------------
@@ -454,9 +460,16 @@ typedef enum {
   TileType_Floor,
 } TileType;
 
+typedef enum {
+  TilePlacementReason_Loaded,    // loaded in from file
+  TilePlacementReason_Automatic, // automatically placed in editor (e.g. autowalls)
+  TilePlacementReason_Manual,    // manually placed in editor by a user
+} TilePlacementReason;
+
 typedef struct {
-  TileType type;
-  Sprite   sprite;
+  TileType            type;
+  Sprite              sprite;
+  TilePlacementReason placement_reason;
 } Tile;
 
 // the dimension of each chunk in tiles
@@ -471,7 +484,7 @@ typedef struct {
 typedef struct {
   Vec2i chunk_pos;
   Vec2i tile_offset;
-} ChunkPos;
+} TilePos;
 
 // --------------------------------------------------------------------------------
 
@@ -483,6 +496,7 @@ typedef enum {
   CommandType_Delimiter = 0,
   CommandType_EntityMove,
 #ifdef RONA_EDITOR
+  CommandType_Editor_TileArea,
   CommandType_Editor_TileChange,
   CommandType_Editor_WallsBuild,
 #endif
@@ -498,10 +512,18 @@ typedef struct {
 
 struct Level;
 
+// todo: don't add this if all of the old tiles are the same as the new tile
 typedef struct {
-  ChunkPos chunk_pos;
-  Tile     tile_old;
-  Tile     tile_new;
+  Vec2i tile_world_pos_top_left;
+  Vec2i tile_world_pos_bottom_right;
+  Tile* tile_old_sb; // stretchy buffer of existing tiles
+  Tile  tile_new;    // the new type of tile
+} CommandParamsTileArea;
+
+typedef struct {
+  TilePos tile_pos;
+  Tile    tile_old;
+  Tile    tile_new;
 } CommandParamsTileChange;
 
 typedef struct {
@@ -520,17 +542,13 @@ typedef struct {
     } entity_rotate;
 #ifdef RONA_EDITOR
     struct {
-      struct Level* level;
-      ChunkPos      chunk_pos;
-      Tile          tile_old;
-      Tile          tile_new;
-    } editor_tile_change;
-    struct {
       struct Level*            level;
       CommandParamsTileChange* changes;
     } editor_walls_build;
+    CommandParamsTileArea   tile_area;
+    CommandParamsTileChange tile_change;
 #endif
-  } data;
+  } params;
 } Command;
 
 typedef struct {

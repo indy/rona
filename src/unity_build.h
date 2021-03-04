@@ -62,11 +62,11 @@ static GameState* g_game_state = 0;
 #define NK_IMPLEMENTATION
 
 #include "nuklear.h"
-#include "rona_editor.h"
+
+#include "editor.h"
 
 #endif /* RONA_EDITOR */
 
-#include "chunk.h"
 #include "colour.h"
 #include "command.h"
 #include "entity.h"
@@ -79,6 +79,7 @@ static GameState* g_game_state = 0;
 #include "rona_math.h"
 #include "sprite.h"
 #include "stretchy.h"
+#include "tile.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_ONLY_PNG
@@ -92,10 +93,9 @@ static GameState* g_game_state = 0;
 #include "stb_sprintf.h"
 
 #ifdef RONA_EDITOR
-#include "rona_editor.c"
+#include "editor.c"
 #endif
 
-#include "chunk.c"
 #include "colour.c"
 #include "command.c"
 #include "game.c"
@@ -108,3 +108,4 @@ static GameState* g_game_state = 0;
 #include "renderer.c"
 #include "rona_math.c"
 #include "sprite.c"
+#include "tile.c"

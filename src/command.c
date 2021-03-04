@@ -28,22 +28,22 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
   case CommandType_EntityMove:
     switch (execute_type) {
     case CommandExecute_Play:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
+      vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
       // world_pos will smoothly transition to world_target
-      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
-      e->entity_state = command->data.entity_move.new_params.entity_state;
+      vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
+      e->entity_state = command->params.entity_move.new_params.entity_state;
       break;
     case CommandExecute_Undo:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.old_params.board_pos);
-      vec3_copy(&e->world_pos, &command->data.entity_move.old_params.world_pos);
-      vec3_copy(&e->world_target, &command->data.entity_move.old_params.world_target);
-      e->entity_state = command->data.entity_move.old_params.entity_state;
+      vec2i_copy(&e->board_pos, &command->params.entity_move.old_params.board_pos);
+      vec3_copy(&e->world_pos, &command->params.entity_move.old_params.world_pos);
+      vec3_copy(&e->world_target, &command->params.entity_move.old_params.world_target);
+      e->entity_state = command->params.entity_move.old_params.entity_state;
       break;
     case CommandExecute_Redo:
-      vec2i_copy(&e->board_pos, &command->data.entity_move.new_params.board_pos);
-      vec3_copy(&e->world_pos, &command->data.entity_move.new_params.world_pos);
-      vec3_copy(&e->world_target, &command->data.entity_move.new_params.world_target);
-      e->entity_state = command->data.entity_move.new_params.entity_state;
+      vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
+      vec3_copy(&e->world_pos, &command->params.entity_move.new_params.world_pos);
+      vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
+      e->entity_state = command->params.entity_move.new_params.entity_state;
       break;
     case CommandExecute_Kill:
       break;
@@ -57,19 +57,22 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      * Editor TileChange
      */
   case CommandType_Editor_TileChange: {
+    Level*                   level       = game_state->level;
+    CommandParamsTileChange* tile_change = &(command->params.tile_change);
+
     bool  requires_regen = false;
-    Tile* tile           = chunk_tile_ensure_get(command->data.editor_tile_change.level,
-                                       command->data.editor_tile_change.chunk_pos);
+    Tile* tile           = tile_ensure_get(level, tile_change->tile_pos);
+
     switch (execute_type) {
     case CommandExecute_Play:
       return; // early return, no need to do anything here
     case CommandExecute_Undo:
       requires_regen = true;
-      *tile          = command->data.editor_tile_change.tile_old;
+      *tile          = tile_change->tile_old;
       break;
     case CommandExecute_Redo:
       requires_regen = true;
-      *tile          = command->data.editor_tile_change.tile_new;
+      *tile          = tile_change->tile_new;
       break;
     case CommandExecute_Kill:
       rona_log("CommandType_Editor_TileChange :: CommandExecute_Kill");
@@ -78,10 +81,61 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 
     if (requires_regen) {
       // update the level's chunk geometry now that it's been changed
-      Level*        level         = game_state->level;
       RonaGL*       gl            = game_state->gl;
       RenderStruct* render_struct = &(game_state->render_struct);
-      chunk_regenerate_geometry(level, gl, render_struct);
+      tile_regenerate_geometry(level, gl, render_struct);
+    }
+  } break;
+  case CommandType_Editor_TileArea: {
+    Level*                 level     = game_state->level;
+    CommandParamsTileArea* tile_area = &(command->params.tile_area);
+    Vec2i                  world_tl  = tile_area->tile_world_pos_top_left;
+    Vec2i                  world_br  = tile_area->tile_world_pos_bottom_right;
+
+    bool requires_regen = false;
+
+    switch (execute_type) {
+    case CommandExecute_Play:
+      return; // early return, no need to do anything here
+    case CommandExecute_Undo:
+      requires_regen = true;
+      // set all of the tiles to the old values
+      //
+      i32 index = 0;
+      for (i32 y = world_tl.y; y <= world_br.y; y++) {
+        for (i32 x = world_tl.x; x <= world_br.x; x++) {
+          TilePos tile_pos     = tile_pos_from_world_tile_space(vec2i(x, y));
+          Tile*   tile_current = tile_ensure_get(level, tile_pos);
+
+          *tile_current = tile_area->tile_old_sb[index++];
+        }
+      }
+      break;
+    case CommandExecute_Redo:
+      requires_regen = true;
+
+      // set all of the tiles to the new value
+      //
+      for (i32 y = world_tl.y; y <= world_br.y; y++) {
+        for (i32 x = world_tl.x; x <= world_br.x; x++) {
+          TilePos tile_pos     = tile_pos_from_world_tile_space(vec2i(x, y));
+          Tile*   tile_current = tile_ensure_get(level, tile_pos);
+
+          *tile_current = tile_area->tile_new;
+        }
+      }
+      break;
+    case CommandExecute_Kill:
+      rona_log("CommandType_Editor_TileArea :: CommandExecute_Kill");
+      sb_free(&(editor_state.allocator_permanent), tile_area->tile_old_sb);
+      break;
+    }
+
+    if (requires_regen) {
+      // update the level's chunk geometry now that it's been changed
+      RonaGL*       gl            = game_state->gl;
+      RenderStruct* render_struct = &(game_state->render_struct);
+      tile_regenerate_geometry(level, gl, render_struct);
     }
   } break;
 #endif // RONA_EDITOR
@@ -289,20 +343,20 @@ void command_pretty_print(Command* command, bool undo, const char* msg) {
     // if (undo) {
     rona_log("%s old_params EntityMove (undo) e %p board (%d, %d), world (%.2f, %.2f, %.2f), state "
              "%d is_last_tnx %d\n",
-             msg, e, command->data.entity_move.old_params.board_pos.x,
-             command->data.entity_move.old_params.board_pos.y,
-             command->data.entity_move.old_params.world_target.x,
-             command->data.entity_move.old_params.world_target.y,
-             command->data.entity_move.old_params.world_target.z, e->entity_state,
+             msg, e, command->params.entity_move.old_params.board_pos.x,
+             command->params.entity_move.old_params.board_pos.y,
+             command->params.entity_move.old_params.world_target.x,
+             command->params.entity_move.old_params.world_target.y,
+             command->params.entity_move.old_params.world_target.z, e->entity_state,
              command->is_last_in_transaction);
     //    } else {
     rona_log("%s new EntityMove e %p board (%d, %d), world (%.2f, %.2f, %.2f), state %d "
              "is_last_tnx %d\n",
-             msg, e, command->data.entity_move.new_params.board_pos.x,
-             command->data.entity_move.new_params.board_pos.y,
-             command->data.entity_move.new_params.world_target.x,
-             command->data.entity_move.new_params.world_target.y,
-             command->data.entity_move.new_params.world_target.z, e->entity_state,
+             msg, e, command->params.entity_move.new_params.board_pos.x,
+             command->params.entity_move.new_params.board_pos.y,
+             command->params.entity_move.new_params.world_target.x,
+             command->params.entity_move.new_params.world_target.y,
+             command->params.entity_move.new_params.world_target.z, e->entity_state,
              command->is_last_in_transaction);
     //    }
     break;
