@@ -272,11 +272,9 @@ void game_step(GameState* game_state) {
       moved     = true;
     } else if (key_pressed(game_state->input, Key_Left)) {
       direction           = Direction_West;
-      hero->entity_facing = EntityFacing_Left;
       moved               = true;
     } else if (key_pressed(game_state->input, Key_Right)) {
       direction           = Direction_East;
-      hero->entity_facing = EntityFacing_Right;
       moved               = true;
     }
     if (moved) {

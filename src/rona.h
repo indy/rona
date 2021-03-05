@@ -515,6 +515,7 @@ typedef struct {
   Vec3        world_pos;
   Vec3        world_target;
   EntityState entity_state;
+  EntityFacing entity_facing;
 } EntityMoveParams;
 
 typedef struct {

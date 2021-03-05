@@ -31,18 +31,21 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
       // world_pos will smoothly transition to world_target
       vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
+      e->entity_facing = command->params.entity_move.new_params.entity_facing;
       e->entity_state = command->params.entity_move.new_params.entity_state;
       break;
     case CommandExecute_Undo:
       vec2i_copy(&e->board_pos, &command->params.entity_move.old_params.board_pos);
       vec3_copy(&e->world_pos, &command->params.entity_move.old_params.world_pos);
       vec3_copy(&e->world_target, &command->params.entity_move.old_params.world_target);
+      e->entity_facing = command->params.entity_move.old_params.entity_facing;
       e->entity_state = command->params.entity_move.old_params.entity_state;
       break;
     case CommandExecute_Redo:
       vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
       vec3_copy(&e->world_pos, &command->params.entity_move.new_params.world_pos);
       vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
+      e->entity_facing = command->params.entity_move.new_params.entity_facing;
       e->entity_state = command->params.entity_move.new_params.entity_state;
       break;
     case CommandExecute_Kill:

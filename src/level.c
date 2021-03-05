@@ -204,6 +204,15 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
     EntityMoveParams* old_params = &command->params.entity_move.old_params;
     EntityMoveParams* new_params = &command->params.entity_move.new_params;
 
+    old_params->entity_facing = hero->entity_facing;
+    if (direction == Direction_West) {
+      new_params->entity_facing = EntityFacing_Left;
+    } else if (direction == Direction_East) {
+      new_params->entity_facing = EntityFacing_Right;
+    } else {
+      new_params->entity_facing = hero->entity_facing;
+    }
+
     old_params->board_pos = hero->board_pos;
     new_params->board_pos = new_pos;
 
