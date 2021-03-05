@@ -18,7 +18,7 @@
 void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
 
 void game_startup(GameState* game_state) {
-  BumpAllocator* permanent = &(game_state->arena_permanent);
+  BumpAllocator* permanent = &(game_state->bump_permanent);
 
   u64    level_memory_arena_size = megabytes(MEMORY_ALLOCATION_LEVEL);
   Level* level                   = (Level*)BUMP_ALLOC(permanent, level_memory_arena_size);
@@ -52,7 +52,7 @@ void game_startup(GameState* game_state) {
   renderer_startup(gl, &(game_state->render_struct), permanent);
 
 #ifdef RONA_EDITOR
-  BumpAllocator* transient = &(game_state->arena_transient);
+  BumpAllocator* transient = &(game_state->bump_transient);
   editor_startup(gl, &editor_state, permanent, transient);
   editor_changed_level(&editor_state, level);
 #endif /*  RONA_EDITOR  */
@@ -119,13 +119,13 @@ void stage_from_window_calc(GameState* game_state) {
 
 // changes have been made to the game client and it has now been automatically loaded
 void game_lib_load(GameState* game_state) {
-  rona_log("permanent base %p, size: %llu, used: %llu", game_state->arena_permanent.base,
-           game_state->arena_permanent.size, game_state->arena_permanent.used);
-  rona_log("transient base %p, size: %llu, used: %llu", game_state->arena_transient.base,
-           game_state->arena_transient.size, game_state->arena_transient.used);
+  rona_log("permanent base %p, size: %llu, used: %llu", game_state->bump_permanent.base,
+           game_state->bump_permanent.size, game_state->bump_permanent.used);
+  rona_log("transient base %p, size: %llu, used: %llu", game_state->bump_transient.base,
+           game_state->bump_transient.size, game_state->bump_transient.used);
 
   RonaGL*        gl             = game_state->gl;
-  BumpAllocator* bump_transient = &(game_state->arena_transient);
+  BumpAllocator* bump_transient = &(game_state->bump_transient);
   RenderStruct*  render_struct  = &(game_state->render_struct);
 
   renderer_lib_load(gl, bump_transient, render_struct);
@@ -186,7 +186,7 @@ void game_step(GameState* game_state) {
   f32 time_delta = (f32)game_state->time_delta / 1000.0f; // in seconds
   f32 fps        = 1.0f / time_delta;
 
-  game_state->arena_transient.used = 0;
+  game_state->bump_transient.used = 0;
 
   if (key_pressed_ignore_active_flag(game_state->input, Key_F)) {
     game_state->input->active = !game_state->input->active;
@@ -271,11 +271,11 @@ void game_step(GameState* game_state) {
       direction = Direction_South;
       moved     = true;
     } else if (key_pressed(game_state->input, Key_Left)) {
-      direction           = Direction_West;
-      moved               = true;
+      direction = Direction_West;
+      moved     = true;
     } else if (key_pressed(game_state->input, Key_Right)) {
-      direction           = Direction_East;
-      moved               = true;
+      direction = Direction_East;
+      moved     = true;
     }
     if (moved) {
       command_transaction_begin(&level->undo_redo);

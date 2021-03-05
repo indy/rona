@@ -178,7 +178,7 @@ void* rona_permanent_malloc(usize bytes) {
 #ifdef SYS_MALLOC
   addr = malloc(bytes);
 #else
-  addr = rona_malloc(&(g_game_state->allocator_permanent), bytes);
+  addr = rona_malloc(&(g_game_state->fixed_block_permanent), bytes);
 #endif
 
 #ifdef DEBUG_MALLOC
@@ -193,7 +193,7 @@ void* rona_permanent_realloc(void* mem, usize bytes) {
 #ifdef SYS_MALLOC
   addr = realloc(mem, bytes);
 #else
-  addr = rona_realloc(&(g_game_state->allocator_permanent), mem, bytes);
+  addr = rona_realloc(&(g_game_state->fixed_block_permanent), mem, bytes);
 #endif
 
 #ifdef DEBUG_MALLOC
@@ -210,7 +210,7 @@ void rona_permanent_free(void* mem) {
 #ifdef SYS_MALLOC
   free(mem);
 #else
-  rona_free(&(g_game_state->allocator_permanent), mem);
+  rona_free(&(g_game_state->fixed_block_permanent), mem);
 #endif
 }
 
@@ -219,7 +219,7 @@ void* rona_transient_malloc(usize bytes) {
 #ifdef SYS_MALLOC
   addr = malloc(bytes);
 #else
-  addr = rona_malloc(&(g_game_state->allocator_transient), bytes);
+  addr = rona_malloc(&(g_game_state->fixed_block_transient), bytes);
 #endif
 
 #ifdef DEBUG_MALLOC
@@ -234,7 +234,7 @@ void* rona_transient_realloc(void* mem, usize bytes) {
 #ifdef SYS_MALLOC
   addr = realloc(mem, bytes);
 #else
-  addr = rona_realloc(&(g_game_state->allocator_transient), mem, bytes);
+  addr = rona_realloc(&(g_game_state->fixed_block_transient), mem, bytes);
 #endif
 
 #ifdef DEBUG_MALLOC
@@ -251,6 +251,6 @@ void rona_transient_free(void* mem) {
 #ifdef SYS_MALLOC
   free(mem);
 #else
-  rona_free(&(g_game_state->allocator_transient), mem);
+  rona_free(&(g_game_state->fixed_block_transient), mem);
 #endif
 }

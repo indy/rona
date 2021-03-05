@@ -511,10 +511,10 @@ typedef enum {
 } CommandType;
 
 typedef struct {
-  Vec2i       board_pos;
-  Vec3        world_pos;
-  Vec3        world_target;
-  EntityState entity_state;
+  Vec2i        board_pos;
+  Vec3         world_pos;
+  Vec3         world_target;
+  EntityState  entity_state;
   EntityFacing entity_facing;
 } EntityMoveParams;
 
@@ -778,11 +778,11 @@ typedef struct {
   u64 time_last_frame;
   u64 time_delta;
 
-  BumpAllocator arena_permanent;
-  BumpAllocator arena_transient;
+  BumpAllocator bump_permanent;
+  BumpAllocator bump_transient;
 
-  FixedBlockAllocator allocator_permanent;
-  FixedBlockAllocator allocator_transient;
+  FixedBlockAllocator fixed_block_permanent;
+  FixedBlockAllocator fixed_block_transient;
 
   Graphic screen_graphic;
 

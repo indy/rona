@@ -180,35 +180,35 @@ int main(int argc, char **args) {
   game_state.game_initialised = false;
   game_state.quit_game = false;
 
-  game_state.arena_permanent.size = megabytes(TOTAL_MEMORY_ALLOCATION_PERMANENT);
-  game_state.arena_permanent.base = mmap(NULL,
-                                           game_state.arena_permanent.size,
+  game_state.bump_permanent.size = megabytes(TOTAL_MEMORY_ALLOCATION_PERMANENT);
+  game_state.bump_permanent.base = mmap(NULL,
+                                           game_state.bump_permanent.size,
                                            PROT_READ | PROT_WRITE,
                                            MAP_PRIVATE | MAP_ANONYMOUS,
                                            -1,
                                            0);
-  game_state.arena_permanent.used = 0;
+  game_state.bump_permanent.used = 0;
 
-  game_state.arena_transient.size = megabytes(TOTAL_MEMORY_ALLOCATION_TRANSIENT);
-  game_state.arena_transient.base = mmap(NULL,
-                                           game_state.arena_transient.size,
+  game_state.bump_transient.size = megabytes(TOTAL_MEMORY_ALLOCATION_TRANSIENT);
+  game_state.bump_transient.base = mmap(NULL,
+                                           game_state.bump_transient.size,
                                            PROT_READ | PROT_WRITE,
                                            MAP_PRIVATE | MAP_ANONYMOUS,
                                            -1,
                                            0);
-  game_state.arena_transient.used = 0;
+  game_state.bump_transient.used = 0;
 
-  game_state.allocator_permanent.bump = &(game_state.arena_permanent);
-  game_state.allocator_permanent.available_one_kilobyte = NULL;
-  game_state.allocator_permanent.available_150_kilobyte = NULL;
-  game_state.allocator_permanent.available_one_megabyte = NULL;
-  game_state.allocator_permanent.available_large = NULL;
+  game_state.fixed_block_permanent.bump = &(game_state.bump_permanent);
+  game_state.fixed_block_permanent.available_one_kilobyte = NULL;
+  game_state.fixed_block_permanent.available_150_kilobyte = NULL;
+  game_state.fixed_block_permanent.available_one_megabyte = NULL;
+  game_state.fixed_block_permanent.available_large = NULL;
 
-  game_state.allocator_transient.bump = &(game_state.arena_transient);
-  game_state.allocator_transient.available_one_kilobyte = NULL;
-  game_state.allocator_transient.available_150_kilobyte = NULL;
-  game_state.allocator_transient.available_one_megabyte = NULL;
-  game_state.allocator_transient.available_large = NULL;
+  game_state.fixed_block_transient.bump = &(game_state.bump_transient);
+  game_state.fixed_block_transient.available_one_kilobyte = NULL;
+  game_state.fixed_block_transient.available_150_kilobyte = NULL;
+  game_state.fixed_block_transient.available_one_megabyte = NULL;
+  game_state.fixed_block_transient.available_large = NULL;
 
 
   cr_plugin ctx;
@@ -246,7 +246,7 @@ int main(int argc, char **args) {
 
   if (fplPlatformInit(fplInitFlags_Video, &settings)) {
     // bump allocate memory for RonaGL
-    game_state.gl = (RonaGL *)bump_alloc(&(game_state.arena_permanent), sizeof(RonaGL));
+    game_state.gl = (RonaGL *)bump_alloc(&(game_state.bump_permanent), sizeof(RonaGL));
 
     LoadGLFunctions(game_state.gl);
 
@@ -258,7 +258,7 @@ int main(int argc, char **args) {
     RONA_HOST_INFO("Window Initial size: (%d, %d)\n", window_size.width, window_size.height);
 
     // bump allocate memory for RonaInput
-    game_state.input = (RonaInput *)bump_alloc(&(game_state.arena_permanent), sizeof(RonaInput));
+    game_state.input = (RonaInput *)bump_alloc(&(game_state.bump_permanent), sizeof(RonaInput));
     game_state.input->active = true;
     game_state.input->key_toggle_idx = 1;
     game_state.input->mouse_toggle_idx = 1;

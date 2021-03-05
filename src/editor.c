@@ -1,6 +1,6 @@
 
 void* nuklear_persistent_alloc(nk_handle h, void* mem, nk_size bytes) {
-  void* addr = rona_realloc(&(editor_state.allocator_permanent), mem, bytes);
+  void* addr = rona_realloc(&(editor_state.fixed_block_permanent), mem, bytes);
 #if 0
   rona_log("called persistent_alloc %p to %lu bytes -> %p", mem, bytes, addr);
 #endif
@@ -11,7 +11,7 @@ void nuklear_persistent_free(nk_handle h, void* mem) {
 #if 1
   rona_log("called persistent_free %p", mem);
 #endif
-  rona_free(&(editor_state.allocator_permanent), mem);
+  rona_free(&(editor_state.fixed_block_permanent), mem);
 }
 
 void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes) {
@@ -19,7 +19,7 @@ void* nuklear_transient_alloc(nk_handle h, void* mem, nk_size bytes) {
     rona_error("transient_free called after expected scope");
     return NULL;
   }
-  void* addr = rona_realloc(&(editor_state.allocator_transient), mem, bytes);
+  void* addr = rona_realloc(&(editor_state.fixed_block_transient), mem, bytes);
 #if 0
   rona_log("called transient_alloc %p to %lu bytes -> %p", mem, bytes, addr);
 #endif
@@ -34,7 +34,7 @@ void nuklear_transient_free(nk_handle h, void* mem) {
 #if 0
   rona_log("called transient_free %p", mem);
 #endif
-  rona_free(&(editor_state.allocator_transient), mem);
+  rona_free(&(editor_state.fixed_block_transient), mem);
 }
 
 char* rona_sprintf(BumpAllocator* transient, char* fmt, ...) {
@@ -51,7 +51,7 @@ char* rona_sprintf(BumpAllocator* transient, char* fmt, ...) {
 }
 
 void declare_stage_info(EditorState* editor_state, GameState* game_state) {
-  BumpAllocator*     transient = &(game_state->arena_transient);
+  BumpAllocator*     transient = &(game_state->bump_transient);
   struct nk_context* ctx       = &(editor_state->ctx);
 
   Vec2i screen = game_state->input->mouse_pos;
@@ -297,7 +297,7 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
             // Tile* tile_old = tile_ensure_get(level, tile_pos);
             tile_area->tile_old_sb = NULL;
-            Tile* foo = sb_add(&editor_state->allocator_permanent, tile_area->tile_old_sb, num_tiles);
+            Tile* foo = sb_add(&editor_state->fixed_block_permanent, tile_area->tile_old_sb, num_tiles);
             RONA_ASSERT(foo);
 
             i32 tile_num = 0;
@@ -367,7 +367,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   bump_allocator_reset(&(editor_state->bump_permanent), nuklear_atlas_memory, nuklear_atlas_memory_size, true,
                        "Editor Permanent");
 
-  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent), false,
+  fixed_block_allocator_reset(&(editor_state->fixed_block_permanent), &(editor_state->bump_permanent), false,
                               NULL);
 
   // allocating from transient memory as we're only expecting transient allocations to occur during
@@ -379,14 +379,14 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_transient.base = nuklear_atlas_transient_memory;
   editor_state->bump_transient.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient), false,
+  fixed_block_allocator_reset(&(editor_state->fixed_block_transient), &(editor_state->bump_transient), false,
                               NULL);
 
-  struct nk_allocator nk_allocator_permanent;
-  nk_allocator_permanent.alloc = &nuklear_persistent_alloc;
-  nk_allocator_permanent.free  = &nuklear_persistent_free;
+  struct nk_allocator nk_fixed_block_permanent;
+  nk_fixed_block_permanent.alloc = &nuklear_persistent_alloc;
+  nk_fixed_block_permanent.free  = &nuklear_persistent_free;
 
-  nk_buffer_init(&editor_state->cmds, &nk_allocator_permanent, NK_BUFFER_DEFAULT_INITIAL_SIZE);
+  nk_buffer_init(&editor_state->cmds, &nk_fixed_block_permanent, NK_BUFFER_DEFAULT_INITIAL_SIZE);
 
   editor_state->stage_in_nuklear_texture_id = create_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
   editor_state->depth_texture_id            = create_depth_texture(gl, STAGE_WIDTH, STAGE_HEIGHT);
@@ -403,9 +403,9 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   // false
   editor_state->transient_allocation_calls_expected = true;
 
-  struct nk_allocator nk_allocator_transient;
-  nk_allocator_transient.alloc = &nuklear_transient_alloc;
-  nk_allocator_transient.free  = &nuklear_transient_free;
+  struct nk_allocator nk_fixed_block_transient;
+  nk_fixed_block_transient.alloc = &nuklear_transient_alloc;
+  nk_fixed_block_transient.free  = &nuklear_transient_free;
 
   const void*           image;
   int                   w, h;
@@ -419,7 +419,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   struct nk_font_atlas* atlas = &(editor_state->atlas);
 
   // call nk_font_atlas_init_custom instead
-  nk_font_atlas_init_custom(atlas, &nk_allocator_permanent, &nk_allocator_transient);
+  nk_font_atlas_init_custom(atlas, &nk_fixed_block_permanent, &nk_fixed_block_transient);
   nk_font_atlas_begin(atlas);
 
   editor_state->default_font = nk_font_atlas_add_default(atlas, 14.0f, &cfg);

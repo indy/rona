@@ -57,11 +57,11 @@ typedef struct {
   //
   // memory management variables for font atlas functionality
   //
-  BumpAllocator       bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from arena_permanent
-  FixedBlockAllocator allocator_permanent;
+  BumpAllocator       bump_permanent; // reserves MEMORY_ALLOCATION_NUKLEAR_ATLAS from bump_permanent
+  FixedBlockAllocator fixed_block_permanent;
 
   BumpAllocator       bump_transient; // reserves transient memory, so should be used with caution
-  FixedBlockAllocator allocator_transient;
+  FixedBlockAllocator fixed_block_transient;
 
   bool transient_allocation_calls_expected;
   // -----------------------------------------------------------------------------
