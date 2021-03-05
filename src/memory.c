@@ -34,7 +34,7 @@ void* bump_alloc(BumpAllocator* ba, usize bytes) {
   ba->used += bytes;
 
   if (ba->logging) {
-    rona_log("bump_alloc %llu bytes", bytes);
+    rona_log("%s allocating %llu bytes", ba->logging_name, bytes);
   }
 
   return res;
@@ -52,14 +52,20 @@ void* memory_block(BumpAllocator* bump, usize bytes_to_allocate, usize bytes_req
   return block;
 }
 
-void bump_allocator_reset(BumpAllocator* ba, void* base, u64 size) {
-  ba->base    = base;
-  ba->size    = size;
-  ba->used    = 0;
-  ba->logging = false;
+void bump_allocator_reset(BumpAllocator* ba, void* base, u64 size, bool logging, const char* name) {
+  ba->logging      = logging;
+  ba->logging_name = name;
+
+  ba->base = base;
+  ba->size = size;
+  ba->used = 0;
 }
 
-void fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) {
+void fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump, bool logging,
+                                 const char* name) {
+  fba->logging      = logging;
+  fba->logging_name = name;
+
   fba->bump                   = bump;
   fba->available_one_kilobyte = NULL;
   fba->available_150_kilobyte = NULL;
@@ -68,6 +74,9 @@ void fixed_block_allocator_reset(FixedBlockAllocator* fba, BumpAllocator* bump) 
 }
 
 void* rona_malloc(FixedBlockAllocator* fba, usize bytes) {
+  if (fba->logging) {
+    rona_log("%s rona_malloc %d bytes", fba->logging_name, bytes);
+  }
   MemoryBlock* block;
 
   usize bytes_to_use = bytes + sizeof(MemoryBlock);
@@ -115,6 +124,9 @@ void* rona_malloc(FixedBlockAllocator* fba, usize bytes) {
 }
 
 void* rona_realloc(FixedBlockAllocator* fba, void* mem, usize bytes) {
+  if (fba->logging) {
+    rona_log("%s rona_realloc %p %d bytes", fba->logging_name, mem, bytes);
+  }
   if (!mem) {
     return rona_malloc(fba, bytes);
   }
@@ -138,6 +150,9 @@ void* rona_realloc(FixedBlockAllocator* fba, void* mem, usize bytes) {
 }
 
 void rona_free(FixedBlockAllocator* fba, void* mem) {
+  if (fba->logging) {
+    rona_log("%s rona_free %p", fba->logging_name, mem);
+  }
   if (!mem) {
     return;
   }

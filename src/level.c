@@ -133,8 +133,8 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
     command->type   = CommandType_EntityMove;
     command->entity = block;
 
-    CommandParamsEntityMove* old_params = &command->params.entity_move.old_params;
-    CommandParamsEntityMove* new_params = &command->params.entity_move.new_params;
+    EntityMoveParams* old_params = &command->params.entity_move.old_params;
+    EntityMoveParams* new_params = &command->params.entity_move.new_params;
 
     old_params->board_pos = block->board_pos;
     new_params->board_pos = new_pos;
@@ -201,8 +201,8 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
     command->type   = CommandType_EntityMove;
     command->entity = hero;
 
-    CommandParamsEntityMove* old_params = &command->params.entity_move.old_params;
-    CommandParamsEntityMove* new_params = &command->params.entity_move.new_params;
+    EntityMoveParams* old_params = &command->params.entity_move.old_params;
+    EntityMoveParams* new_params = &command->params.entity_move.new_params;
 
     old_params->board_pos = hero->board_pos;
     new_params->board_pos = new_pos;

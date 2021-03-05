@@ -232,9 +232,6 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
 
       // a mouse drag and release operation has been performed
       //
-      VEC2I_LOG(editor_state->mouse_down_in_stage_coords);
-      VEC2I_LOG(editor_state->mouse_up_in_stage_coords);
-
       if (vec2i_eq(editor_state->mouse_down_in_stage_coords, editor_state->mouse_up_in_stage_coords)) {
         // a single tile is being added
         //
@@ -367,10 +364,11 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   // editor_state->bump_permanent.size = nuklear_atlas_memory_size;
   // editor_state->bump_permanent.base = nuklear_atlas_memory;
   // editor_state->bump_permanent.used = 0;
-  bump_allocator_reset(&(editor_state->bump_permanent), nuklear_atlas_memory, nuklear_atlas_memory_size);
-  editor_state->bump_permanent.logging = true;
+  bump_allocator_reset(&(editor_state->bump_permanent), nuklear_atlas_memory, nuklear_atlas_memory_size, true,
+                       "Editor Permanent");
 
-  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent));
+  fixed_block_allocator_reset(&(editor_state->allocator_permanent), &(editor_state->bump_permanent), false,
+                              NULL);
 
   // allocating from transient memory as we're only expecting transient allocations to occur during
   // this function
@@ -381,7 +379,8 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
   editor_state->bump_transient.base = nuklear_atlas_transient_memory;
   editor_state->bump_transient.used = 0;
 
-  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient));
+  fixed_block_allocator_reset(&(editor_state->allocator_transient), &(editor_state->bump_transient), false,
+                              NULL);
 
   struct nk_allocator nk_allocator_permanent;
   nk_allocator_permanent.alloc = &nuklear_persistent_alloc;

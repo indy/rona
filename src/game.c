@@ -28,9 +28,9 @@ void game_startup(GameState* game_state) {
   // level->bump_allocator.size = level_memory_arena_size - sizeof(Level);
   // level->bump_allocator.used = 0;
   bump_allocator_reset(&(level->bump_allocator), level + sizeof(Level),
-                       level_memory_arena_size - sizeof(Level));
+                       level_memory_arena_size - sizeof(Level), false, NULL);
 
-  fixed_block_allocator_reset(&level->fixed_block_allocator, &level->bump_allocator);
+  fixed_block_allocator_reset(&level->fixed_block_allocator, &level->bump_allocator, false, NULL);
 
   // work out how many tiles are required to cover the stage along each dimension
   //

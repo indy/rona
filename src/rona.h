@@ -74,6 +74,8 @@ typedef unsigned int  usize;
 
 #include "rona_gl.h"
 
+struct Level;
+
 typedef struct {
   union {
     struct {
@@ -329,7 +331,9 @@ typedef enum { FOREACH_ANIMATED_CHARACTER_SPRITE(GENERATE_ACS_ENUM) } AnimatedCh
 */
 
 typedef struct {
-  bool  logging;
+  bool        logging;
+  const char* logging_name;
+
   void* base;
   u64   size;
   u64   used;
@@ -348,6 +352,9 @@ typedef struct MemoryBlock {
 // rona_malloc, rona_realloc, rona_free functions
 //
 typedef struct {
+  bool        logging;
+  const char* logging_name;
+
   BumpAllocator* bump;
 
   MemoryBlock* available_one_kilobyte;
@@ -508,11 +515,13 @@ typedef struct {
   Vec3        world_pos;
   Vec3        world_target;
   EntityState entity_state;
+} EntityMoveParams;
+
+typedef struct {
+  EntityMoveParams old_params;
+  EntityMoveParams new_params;
 } CommandParamsEntityMove;
 
-struct Level;
-
-// todo: don't add this if all of the old tiles are the same as the new tile
 typedef struct {
   Vec2i tile_world_pos_top_left;
   Vec2i tile_world_pos_bottom_right;
@@ -527,24 +536,19 @@ typedef struct {
 } CommandParamsTileChange;
 
 typedef struct {
+  CommandParamsTileChange* changes_sb;
+} CommandParamsWallsBuild;
+
+typedef struct {
   CommandType type;
   bool        is_last_in_transaction;
 
   Entity* entity;
 
   union {
-    struct {
-      CommandParamsEntityMove old_params;
-      CommandParamsEntityMove new_params;
-    } entity_move;
-    struct {
-      i32 some_i;
-    } entity_rotate;
+    CommandParamsEntityMove entity_move;
 #ifdef RONA_EDITOR
-    struct {
-      struct Level*            level;
-      CommandParamsTileChange* changes;
-    } editor_walls_build;
+    CommandParamsWallsBuild walls_build;
     CommandParamsTileArea   tile_area;
     CommandParamsTileChange tile_change;
 #endif

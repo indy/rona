@@ -35,7 +35,7 @@ static MunitResult test_rona_memory(const MunitParameter params[], void* user_da
   arena.used = 0;
 
   FixedBlockAllocator ma;
-  fixed_block_allocator_reset(&ma, &arena);
+  fixed_block_allocator_reset(&ma, &arena, false, NULL);
 
   void* ptr = rona_malloc(&ma, 500);
   munit_assert(ma.available_one_kilobyte == NULL);
@@ -61,7 +61,7 @@ static MunitResult test_rona_stretchy(const MunitParameter params[], void* user_
   arena.used = 0;
 
   FixedBlockAllocator ma;
-  fixed_block_allocator_reset(&ma, &arena);
+  fixed_block_allocator_reset(&ma, &arena, false, NULL);
 
   // push existing values onto stretchy buffer
   {
