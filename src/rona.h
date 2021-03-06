@@ -411,7 +411,13 @@ typedef struct {
   u32  mesh_size_bytes;           // memory used for mesh
 } Graphic;
 
-typedef enum { EntityRole_Hero, EntityRole_Block, EntityRole_Pit } EntityRole;
+typedef enum {
+  EntityRole_Hero,
+  EntityRole_Enemy,
+  EntityRole_Block,
+  EntityRole_Pit,
+  EntityRole_FilledPit
+} EntityRole;
 
 typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
 
@@ -434,8 +440,17 @@ typedef enum {
 
 typedef struct Entity {
   // when looping through entities in a level stop at the first one that doesn't exist
-  // there will be no more entities where exists == true
-  bool exists;
+  // there will be no more entities where no_further_entities == false
+  bool no_further_entities;
+
+  // an early test, if ignore == true don't process or render this entity
+  // used when a block is on a pit, the block will be set as ignore == true
+  // the pit will have it's role changed to EntityRole_FilledPit
+  //
+  bool ignore;
+
+  // bool can_push;
+  // bool can_walk_on;
 
   EntityRole  entity_role;
   EntityState entity_state;

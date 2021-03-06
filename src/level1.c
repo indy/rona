@@ -24,7 +24,7 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-  // clang-format off
+// clang-format off
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 11
@@ -33,9 +33,9 @@ void level1_startup(Level* level, GameState* game_state) {
     "    4 . . U . s 6 ",
     "    4 . B z 8 8 9 ",
     "    4 . . 6       ",
-    "1 2 w . . x 2 2 3 ",
+    "1 2 w . B x 2 2 3 ",
     "4 H . . . U . s 6 ",
-    "7 8 y . . z 8 8 9 ",
+    "7 8 y . U z 8 8 9 ",
     "    4 . . 6       ",
     "    4 . . x 2 2 3 ",
     "    4 . . U . s 6 ",

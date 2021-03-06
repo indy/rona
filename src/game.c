@@ -15,8 +15,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
-
 void game_startup(GameState* game_state) {
   BumpAllocator* permanent = &(game_state->bump_permanent);
 
@@ -66,11 +64,6 @@ void game_shutdown(GameState* game_state) {
   level1_shutdown(game_state->level);
   level_shutdown(game_state->level);
   renderer_shutdown(game_state->gl);
-}
-
-Vec2 stage_from_window(GameState* game_state, f32 x, f32 y) {
-  return vec2_mul(vec2_add(vec2(x, y), game_state->stage_from_window_delta),
-                  game_state->stage_from_window_factor);
 }
 
 void stage_from_window_calc(GameState* game_state) {
@@ -169,8 +162,8 @@ Entity* get_hero(Level* level) {
   RONA_ASSERT(level);
 
   Entity* e = level->entities;
-  while (e->exists) {
-    if (e->entity_role == EntityRole_Hero) {
+  while (e->no_further_entities == false) {
+    if (e->entity_role == EntityRole_Hero && !e->ignore) {
       return e;
     }
   }
@@ -198,8 +191,10 @@ void game_step(GameState* game_state) {
 
   text_render_reset(render_struct);
 
-  Vec2 mouse_on_stage =
-      stage_from_window(game_state, (f32)game_state->input->mouse_pos.x, (f32)game_state->input->mouse_pos.y);
+  Vec2 mouse_pos      = vec2((f32)game_state->input->mouse_pos.x, (f32)game_state->input->mouse_pos.y);
+  Vec2 mouse_on_stage = vec2_mul(vec2_add(mouse_pos, game_state->stage_from_window_delta),
+                                 game_state->stage_from_window_factor);
+
   TextParams* text_params = &(game_state->text_params_debug);
   text_params->pos        = vec2(0.0f, 0.0f);
   text_printf(text_params, "%s (%.2f, %.2f) %.0ffps", game_state->mode == GameMode_Edit ? "Edit" : "Play",
@@ -287,8 +282,11 @@ void game_step(GameState* game_state) {
   for (i32 i = 0; i < level->max_num_entities; i++) {
     Entity* e = &(level->entities[i]);
 
-    if (e->exists == false) {
+    if (e->no_further_entities) {
       break;
+    }
+    if (e->ignore) {
+      continue;
     }
 
     // axis aligned distance, not the best but it will do for this simple game
@@ -325,164 +323,9 @@ void game_step(GameState* game_state) {
     }
   }
 
-  entities_regenerate_geometry(level, gl, render_struct);
+  graphic_entities_regenerate_geometry(level, gl, render_struct);
 
   text_send_to_gpu(render_struct, gl);
 
   renderer_render(game_state);
-}
-
-void sprite_uv_and_offset(Vec2* uv, Vec2* offset, RenderStruct* render_struct, Sprite sprite) {
-  Tileset*    tileset     = &(render_struct->tileset);
-  SpriteInfo* sprite_info = render_struct->sprite_info;
-
-  Vec2 sprite_uv     = tileset_get_uv(tileset, sprite_info, sprite);
-  Vec2 sprite_offset = sprite_info[sprite].stage_offset;
-
-  uv->x = sprite_uv.x;
-  uv->y = sprite_uv.y;
-
-  offset->x = sprite_offset.x;
-  offset->y = sprite_offset.y;
-}
-
-void animated_character_sprite_uv_and_offset(Vec2* uv, Vec2* offset, RenderStruct* render_struct,
-                                             Entity* entity) {
-  Tileset*                     tileset = &(render_struct->tileset);
-  AnimatedCharacterSprite      acs     = entity->animated_character_sprite;
-  AnimatedCharacterSpriteInfo* acsi    = &(render_struct->animated_character_sprite_info[acs]);
-
-  offset->x = acsi->stage_offset.x;
-  offset->y = acsi->stage_offset.y;
-
-  SpriteAnimation* sprite_animation;
-  switch (entity->entity_animation) {
-  case EntityAnimation_Idle:
-    sprite_animation = &(acsi->idle);
-    break;
-  case EntityAnimation_Walk:
-    sprite_animation = &(acsi->walk);
-    break;
-  case EntityAnimation_Attack:
-    sprite_animation = &(acsi->attack);
-    break;
-  case EntityAnimation_Hit:
-    sprite_animation = &(acsi->hit);
-    break;
-  case EntityAnimation_Death:
-    sprite_animation = &(acsi->death);
-    break;
-  case EntityAnimation_Special:
-    sprite_animation = &(acsi->special);
-    break;
-  };
-
-  entity->animation_frame_counter++;
-  if (entity->animation_frame_counter == ANIMATION_FRAME_COUNTER_LIMIT) {
-    entity->animation_frame_counter = 0;
-    entity->animation_frame++;
-    entity->animation_frame = entity->animation_frame % 4;
-  }
-
-  Dim2 sprite_location_fr0 = sprite_animation->location; // frame 0
-  Vec2 sprite_uv;
-  sprite_uv.x = (sprite_location_fr0.col + entity->animation_frame) * tileset->uv_unit.u;
-  sprite_uv.y = sprite_location_fr0.row * tileset->uv_unit.v;
-
-  uv->x = sprite_uv.x;
-  uv->y = sprite_uv.y;
-}
-
-void entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct) {
-  Tileset* tileset = &(render_struct->tileset);
-
-  Graphic* graphic      = &(level->entities_graphic);
-  graphic->num_elements = 0;
-  graphic->shader_type  = ShaderType_Tile;
-
-  f32* buffer      = graphic->mesh;
-  u32  buffer_size = 0;
-
-  u32 num_tiles = 0;
-
-  Vec2 centre_sprite = vec2(-(f32)TILE_WIDTH / 2.0, -(f32)TILE_HEIGHT / 2.0);
-
-  for (i32 z = 0; z < ENTITY_NUM_Z_LEVELS; z++) {
-    for (i32 i = 0; i < level->max_num_entities; i++) {
-      Entity* e = &(level->entities[i]);
-
-      if (e->exists == false) {
-        // when looping through entities in a level stop at the first one that doesn't exist
-        // there will be no more entities where exists == true
-        break;
-      }
-
-      if (e->z_order != z) {
-        // render from lowest z_order to largest
-        continue;
-      }
-
-      Vec2 sprite_uv;
-      Vec2 offset;
-
-      switch (e->entity_role) {
-      case EntityRole_Hero:
-        animated_character_sprite_uv_and_offset(&sprite_uv, &offset, render_struct, e);
-        break;
-      case EntityRole_Block:
-        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_Block);
-        break;
-      case EntityRole_Pit:
-        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
-        break;
-      default:
-        rona_error("unknown entity_type in entities_regenerate_geometry");
-        return;
-        break;
-      }
-
-      f32 u  = sprite_uv.u;
-      f32 v  = sprite_uv.v;
-      f32 ud = tileset->uv_unit.u;
-      f32 vd = tileset->uv_unit.v;
-
-      f32 tile_origin_x = e->world_pos.x + centre_sprite.x + offset.x;
-      f32 tile_origin_y = e->world_pos.y + centre_sprite.y + offset.y;
-
-      // clang-format off
-      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
-      *buffer++ = tile_origin_y;
-      *buffer++ = u;
-      *buffer++ = v;
-
-      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x + TILE_WIDTH : tile_origin_x;
-      *buffer++ = tile_origin_y + TILE_HEIGHT;;
-      *buffer++ = u;
-      *buffer++ = v + vd;
-
-      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
-      *buffer++ = tile_origin_y + TILE_HEIGHT;
-      *buffer++ = u + ud;
-      *buffer++ = v + vd;
-
-      *buffer++ = e->entity_facing == EntityFacing_Left ? tile_origin_x : tile_origin_x + TILE_WIDTH;
-      *buffer++ = tile_origin_y;
-      *buffer++ = u + ud;
-      *buffer++ = v;
-      // clang-format on
-
-      num_tiles++;
-      buffer_size += TILED_QUAD_NUM_FLOATS;
-      graphic->num_elements += TILED_QUAD_NUM_INDICES;
-    }
-  }
-
-  graphic->mesh_size_bytes = buffer_size * sizeof(f32);
-
-  // upload the geometry to the GPU
-  //
-  RONA_ASSERT(graphic->sizeof_vbo >= graphic->mesh_size_bytes);
-  gl->bindVertexArray(graphic->vao);
-  gl->bindBuffer(GL_ARRAY_BUFFER, graphic->vbo);
-  gl->bufferSubData(GL_ARRAY_BUFFER, 0, graphic->mesh_size_bytes, graphic->mesh);
 }

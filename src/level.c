@@ -38,7 +38,7 @@ void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, RenderSt
   graphic_setup_for_quads(&level->entities_graphic, gl, transient, LEVEL_RESERVE_MAX_ENTITIES_TO_RENDER);
 
   graphic_setup_for_quads(&level->chunks_graphic, gl, transient, max_number_of_renderable_tiles(level));
-  tile_regenerate_geometry(level, gl, render_struct);
+  graphic_tile_regenerate_geometry(level, gl, render_struct);
 }
 
 void level_lib_unload(Level* level, RonaGL* gl) {
@@ -51,8 +51,12 @@ void level_lib_unload(Level* level, RonaGL* gl) {
 i32 enitites_at_board_position(Entity** occupants, i32 max_allowed, Level* level, Vec2i* pos) {
   i32 num_occupants = 0;
   for (i32 i = 0; i < level->max_num_entities; i++) {
-    if (level->entities[i].exists == false) {
+    if (level->entities[i].no_further_entities == true) {
       return num_occupants;
+    }
+
+    if (level->entities[i].ignore) {
+      continue;
     }
 
     Entity* e = &(level->entities[i]);
@@ -259,7 +263,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   level->max_num_entities = 10;
   level->entities = (Entity*)BUMP_ALLOC(&(level->bump_allocator), sizeof(Entity) * level->max_num_entities);
   for (i32 i = 0; i < level->max_num_entities; i++) {
-    level->entities[i].exists = false;
+    level->entities[i].no_further_entities = true;
   }
 
   bool have_hero                  = false;
@@ -334,7 +338,8 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           hero = &(level->entities[0]);
 
           have_hero                       = true;
-          hero->exists                    = true;
+          hero->no_further_entities       = false;
+          hero->ignore                    = false;
           hero->z_order                   = 3;
           hero->entity_role               = EntityRole_Hero;
           hero->entity_state              = EntityState_Standing;
@@ -345,8 +350,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
           hero->animation_speed           = 1.0f;
           hero->animation_frame           = 0;
           hero->animation_frame_counter   = 0;
-          // hero->graphic = &(game_state->graphic_hero);
-          hero->world_max_speed = max_speed;
+          hero->world_max_speed           = max_speed;
           entity_place(level, hero, tile_x, tile_y, 0.0f);
           break;
         case 'B':
@@ -354,14 +358,14 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           block = &(level->entities[next_non_hero_entity_index++]);
 
-          block->exists        = true;
-          block->z_order       = 2;
-          block->entity_role   = EntityRole_Block;
-          block->entity_state  = EntityState_Standing;
-          block->entity_facing = EntityFacing_Right;
-          block->is_animated   = false;
-          // block->graphic = &(game_state->graphic_block);
-          block->world_max_speed = max_speed;
+          block->no_further_entities = false;
+          block->ignore              = false;
+          block->z_order             = 2;
+          block->entity_role         = EntityRole_Block;
+          block->entity_state        = EntityState_Standing;
+          block->entity_facing       = EntityFacing_Right;
+          block->is_animated         = false;
+          block->world_max_speed     = max_speed;
           entity_place(level, block, tile_x, tile_y, 0.5f);
           break;
         case 'U':
@@ -369,14 +373,14 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           pit = &(level->entities[next_non_hero_entity_index++]);
 
-          pit->exists        = true;
-          pit->z_order       = 1;
-          pit->entity_role   = EntityRole_Pit;
-          pit->entity_state  = EntityState_Standing;
-          pit->is_animated   = false;
-          pit->entity_facing = EntityFacing_Right;
-          // pit->graphic = &(game_state->graphic_pit);
-          pit->world_max_speed = max_speed;
+          pit->no_further_entities = false;
+          pit->ignore              = false;
+          pit->z_order             = 1;
+          pit->entity_role         = EntityRole_Pit;
+          pit->entity_state        = EntityState_Standing;
+          pit->is_animated         = false;
+          pit->entity_facing       = EntityFacing_Right;
+          pit->world_max_speed     = max_speed;
           entity_place(level, pit, tile_x, tile_y, 1.0f);
           break;
         }

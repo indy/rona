@@ -20,8 +20,6 @@
 
 i32 max_number_of_renderable_tiles(Level* level);
 
-void tile_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
-
 void tile_pos_log(char* msg, TilePos cp);
 #define TILEPOS_LOG(x) tile_pos_log(#x, x)
 TilePos tile_pos_from_stage_coords(Vec2i stage_coords, Vec2i viewport);
@@ -33,5 +31,7 @@ Tile* tile_ensure_get(Level* level, TilePos tilepos);
 Tile* tile_from_world_tile_space(Level* level, Vec2i pos_in_world_tile_space);
 
 bool tile_eq(Tile t1, Tile t2);
+
+Chunk* chunk_ensure_get(Level* level, Vec2i tile_pos);
 
 #endif // TILE_H

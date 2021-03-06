@@ -25,4 +25,7 @@ void graphic_setup_screen(Graphic* graphic, RonaGL* gl, f32 stage_width, f32 sta
 
 void graphic_teardown(Graphic* graphic, RonaGL* gl);
 
+void graphic_entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
+void graphic_tile_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct* render_struct);
+
 #endif /* GRAPHIC_H */

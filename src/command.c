@@ -86,7 +86,7 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       // update the level's chunk geometry now that it's been changed
       RonaGL*       gl            = game_state->gl;
       RenderStruct* render_struct = &(game_state->render_struct);
-      tile_regenerate_geometry(level, gl, render_struct);
+      graphic_tile_regenerate_geometry(level, gl, render_struct);
     }
   } break;
   case CommandType_Editor_TileArea: {
@@ -138,7 +138,7 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       // update the level's chunk geometry now that it's been changed
       RonaGL*       gl            = game_state->gl;
       RenderStruct* render_struct = &(game_state->render_struct);
-      tile_regenerate_geometry(level, gl, render_struct);
+      graphic_tile_regenerate_geometry(level, gl, render_struct);
     }
   } break;
 #endif // RONA_EDITOR
