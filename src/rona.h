@@ -419,7 +419,7 @@ typedef enum {
   EntityRole_FilledPit
 } EntityRole;
 
-typedef enum { EntityState_Standing, EntityState_Moving } EntityState;
+typedef enum { EntityState_Standing, EntityState_Moving, EntityState_MovingThenGone } EntityState;
 
 typedef enum { EntityFacing_Left, EntityFacing_Right } EntityFacing;
 
@@ -450,7 +450,10 @@ typedef struct Entity {
   bool ignore;
 
   // bool can_push;
-  // bool can_walk_on;
+  // bool can_traverse_across;
+
+  struct Entity* swallowed_by;       // e.g. a pit
+  EntityRole     swallower_new_role; // e.g. EntityRole_FilledPit
 
   EntityRole  entity_role;
   EntityState entity_state;
@@ -517,6 +520,7 @@ typedef struct {
 typedef enum {
   CommandType_Delimiter = 0,
   CommandType_EntityMove,
+  CommandType_EntityMoveThenSwallow,
 #ifdef RONA_EDITOR
   CommandType_Editor_TileArea,
   CommandType_Editor_TileChange,
@@ -537,6 +541,14 @@ typedef struct {
   EntityMoveParams old_params;
   EntityMoveParams new_params;
 } CommandParamsEntityMove;
+
+typedef struct {
+  EntityMoveParams old_params;
+  EntityMoveParams new_params;
+  Entity*          swallower;
+  EntityRole       swallower_old_role;
+  EntityRole       swallower_new_role;
+} CommandParamsEntityMoveThenSwallow;
 
 typedef struct {
   Vec2i tile_world_pos_top_left;
@@ -562,7 +574,8 @@ typedef struct {
   Entity* entity;
 
   union {
-    CommandParamsEntityMove entity_move;
+    CommandParamsEntityMove            entity_move;
+    CommandParamsEntityMoveThenSwallow entity_move_then_swallow;
 #ifdef RONA_EDITOR
     CommandParamsWallsBuild walls_build;
     CommandParamsTileArea   tile_area;

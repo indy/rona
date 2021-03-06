@@ -13,6 +13,20 @@
   entity properties
 
 
+* ui
+  https://rxi.github.io/microui_v2_an_implementation_overview.html
+  https://github.com/rxi/microui
+
+* shaders
+  crt:  https://www.shadertoy.com/view/4sf3Dr
+  cathode: https://www.shadertoy.com/view/4lXcDH
+  Atari Puzzle Game (Sokoban): https://www.shadertoy.com/view/4djyRD
+  Simple CRT : https://www.shadertoy.com/view/MtdXWl
+
+  1990-esque: https://www.shadertoy.com/view/MdyyWt
+  really detailed, based on [[www.gamasutra.com/blogs/KylePittman/20150420/241442/CRT_Simulation_in_Super_Win_the_Game.php][Super Win The Game]]
+
+
 * todo details
 ** DONE <<undo/redo in editor should clarify which bump allocator is being used>>
    <2020-08-07 Fri>

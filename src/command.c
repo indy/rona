@@ -22,36 +22,73 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 
   switch (command->type) {
 
-    /*
-     * Entity Move
-     */
-  case CommandType_EntityMove:
+  case CommandType_EntityMove: {
+    CommandParamsEntityMove* params = &(command->params.entity_move);
     switch (execute_type) {
     case CommandExecute_Play:
-      vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
+      vec2i_copy(&e->board_pos, &params->new_params.board_pos);
       // world_pos will smoothly transition to world_target
-      vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
-      e->entity_facing = command->params.entity_move.new_params.entity_facing;
-      e->entity_state  = command->params.entity_move.new_params.entity_state;
+      vec3_copy(&e->world_target, &params->new_params.world_target);
+      e->entity_facing = params->new_params.entity_facing;
+      e->entity_state  = params->new_params.entity_state;
       break;
     case CommandExecute_Undo:
-      vec2i_copy(&e->board_pos, &command->params.entity_move.old_params.board_pos);
-      vec3_copy(&e->world_pos, &command->params.entity_move.old_params.world_pos);
-      vec3_copy(&e->world_target, &command->params.entity_move.old_params.world_target);
-      e->entity_facing = command->params.entity_move.old_params.entity_facing;
-      e->entity_state  = command->params.entity_move.old_params.entity_state;
+      vec2i_copy(&e->board_pos, &params->old_params.board_pos);
+      vec3_copy(&e->world_pos, &params->old_params.world_pos);
+      vec3_copy(&e->world_target, &params->old_params.world_target);
+      e->entity_facing = params->old_params.entity_facing;
+      e->entity_state  = params->old_params.entity_state;
       break;
     case CommandExecute_Redo:
-      vec2i_copy(&e->board_pos, &command->params.entity_move.new_params.board_pos);
-      vec3_copy(&e->world_pos, &command->params.entity_move.new_params.world_pos);
-      vec3_copy(&e->world_target, &command->params.entity_move.new_params.world_target);
-      e->entity_facing = command->params.entity_move.new_params.entity_facing;
-      e->entity_state  = command->params.entity_move.new_params.entity_state;
+      vec2i_copy(&e->board_pos, &params->new_params.board_pos);
+      vec3_copy(&e->world_pos, &params->new_params.world_pos);
+      vec3_copy(&e->world_target, &params->new_params.world_target);
+      e->entity_facing = params->new_params.entity_facing;
+      e->entity_state  = params->new_params.entity_state;
       break;
     case CommandExecute_Kill:
       break;
     }
-    break;
+  } break;
+
+  case CommandType_EntityMoveThenSwallow: {
+    CommandParamsEntityMoveThenSwallow* params = &(command->params.entity_move_then_swallow);
+    switch (execute_type) {
+    case CommandExecute_Play:
+      vec2i_copy(&e->board_pos, &params->new_params.board_pos);
+      // world_pos will smoothly transition to world_target
+      vec3_copy(&e->world_target, &params->new_params.world_target);
+      e->entity_facing      = params->new_params.entity_facing;
+      e->entity_state       = params->new_params.entity_state;
+      e->swallowed_by       = params->swallower;
+      e->swallower_new_role = params->swallower_new_role;
+      break;
+    case CommandExecute_Undo:
+      vec2i_copy(&e->board_pos, &params->old_params.board_pos);
+      vec3_copy(&e->world_pos, &params->old_params.world_pos);
+      vec3_copy(&e->world_target, &params->old_params.world_target);
+      e->entity_facing = params->old_params.entity_facing;
+      e->entity_state  = params->old_params.entity_state;
+
+      // command results in pit becoming FilledPit and the block being ignored
+      // so undo all that
+      params->swallower->entity_role = params->swallower_old_role;
+      e->ignore                      = false;
+      e->swallowed_by                = NULL;
+      break;
+    case CommandExecute_Redo:
+      vec2i_copy(&e->board_pos, &params->new_params.board_pos);
+      vec3_copy(&e->world_pos, &params->new_params.world_pos);
+      vec3_copy(&e->world_target, &params->new_params.world_target);
+      e->entity_facing      = params->new_params.entity_facing;
+      e->entity_state       = params->new_params.entity_state;
+      e->swallowed_by       = params->swallower;
+      e->swallower_new_role = params->swallower_new_role;
+      break;
+    case CommandExecute_Kill:
+      break;
+    }
+  } break;
 
 #ifdef RONA_EDITOR
     // not expecting to offer a playback mode for editor commands (why would there be a demo mode

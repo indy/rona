@@ -24,7 +24,12 @@
   |   U    | Pit         |
 */
 void level1_startup(Level* level, GameState* game_state) {
-// clang-format off
+
+  // this bullshit comment is here to stop clang-format from repeatedly indenting/unindeting the next comment
+  // clang-format off
+// this bullshit comment is here to stop clang-format from repeatedly indenting/unindeting the previous comment
+
+
   // declare as: layout[height][width*2]
   #define L1_WIDTH 9
   #define L1_HEIGHT 11

@@ -270,6 +270,9 @@ void graphic_entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct
       case EntityRole_Pit:
         sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHole);
         break;
+      case EntityRole_FilledPit:
+        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHoleFilled);
+        break;
       default:
         rona_error("unknown entity_type in entities_regenerate_geometry");
         return;
