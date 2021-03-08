@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+Handle g_entity_handle;
+void   entity_defaults(Entity* entity, EntityRole entity_role);
+
 void level_startup(Level* level, GameState* game_state) {
   BumpAllocator* bump_allocator = &(level->bump_allocator);
 
@@ -79,12 +82,12 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
     level->entities[i].no_further_entities = true;
   }
 
+  g_entity_handle = 0;
+
   bool have_hero                  = false;
   i32  next_non_hero_entity_index = 1;
 
   i32 sprite_count = 0;
-
-  const f32 max_speed = 9.0f;
 
   for (i32 j = 0; j < height; j++) {
 
@@ -107,7 +110,7 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         tile->type   = TileType_Floor;
         tile->sprite = floor_sprite(sprite_count);
 
-        Entity *hero, *block, *pit;
+        Entity* entity;
 
         switch (plan_line[i]) {
           // clang-format off
@@ -148,53 +151,25 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
         // clang-format on
         case 'H':
-          hero = &(level->entities[0]);
+          have_hero = true;
 
-          have_hero                       = true;
-          hero->no_further_entities       = false;
-          hero->ignore                    = false;
-          hero->z_order                   = 3;
-          hero->entity_role               = EntityRole_Hero;
-          hero->entity_state              = EntityState_Standing;
-          hero->is_animated               = true;
-          hero->entity_facing             = EntityFacing_Right;
-          hero->animated_character_sprite = ACS_BlueKnight;
-          hero->entity_animation          = EntityAnimation_Idle;
-          hero->animation_speed           = 1.0f;
-          hero->animation_frame           = 0;
-          hero->animation_frame_counter   = 0;
-          hero->world_max_speed           = max_speed;
-          entity_place(level, hero, tile_x, tile_y, 0.0f);
+          entity = &(level->entities[0]);
+          entity_defaults(entity, EntityRole_Hero);
+          entity_place(level, entity, tile_x, tile_y, 0.0f);
           break;
         case 'B':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          block = &(level->entities[next_non_hero_entity_index++]);
-
-          block->no_further_entities = false;
-          block->ignore              = false;
-          block->z_order             = 2;
-          block->entity_role         = EntityRole_Block;
-          block->entity_state        = EntityState_Standing;
-          block->entity_facing       = EntityFacing_Right;
-          block->is_animated         = false;
-          block->world_max_speed     = max_speed;
-          entity_place(level, block, tile_x, tile_y, 0.5f);
+          entity = &(level->entities[next_non_hero_entity_index++]);
+          entity_defaults(entity, EntityRole_Block);
+          entity_place(level, entity, tile_x, tile_y, 0.5f);
           break;
         case 'U':
           RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
 
-          pit = &(level->entities[next_non_hero_entity_index++]);
-
-          pit->no_further_entities = false;
-          pit->ignore              = false;
-          pit->z_order             = 1;
-          pit->entity_role         = EntityRole_Pit;
-          pit->entity_state        = EntityState_Standing;
-          pit->is_animated         = false;
-          pit->entity_facing       = EntityFacing_Right;
-          pit->world_max_speed     = max_speed;
-          entity_place(level, pit, tile_x, tile_y, 1.0f);
+          entity = &(level->entities[next_non_hero_entity_index++]);
+          entity_defaults(entity, EntityRole_Pit);
+          entity_place(level, entity, tile_x, tile_y, 1.0f);
           break;
         }
 
@@ -208,4 +183,51 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
   if (!have_hero) {
     rona_error("There's no hero on the level");
   }
+}
+
+void entity_defaults(Entity* entity, EntityRole entity_role) {
+  const f32 max_speed = 9.0f;
+
+  entity->handle                  = g_entity_handle++;
+  entity->entity_role             = entity_role;
+  entity->no_further_entities     = false;
+  entity->ignore                  = false;
+  entity->entity_state            = EntityState_Standing;
+  entity->is_animated             = true;
+  entity->entity_facing           = EntityFacing_Right;
+  entity->entity_animation        = EntityAnimation_Idle;
+  entity->animation_speed         = 1.0f;
+  entity->animation_frame         = 0;
+  entity->animation_frame_counter = 0;
+  entity->world_max_speed         = max_speed;
+
+  switch (entity_role) {
+  case EntityRole_Hero:
+    entity->z_order                   = 3;
+    entity->animated_character_sprite = ACS_BlueKnight;
+    break;
+  case EntityRole_Enemy:
+    break;
+  case EntityRole_Block:
+    entity->z_order     = 2;
+    entity->is_animated = false;
+    break;
+  case EntityRole_Pit:
+    entity->z_order     = 1;
+    entity->is_animated = false;
+    break;
+  case EntityRole_FilledPit:
+    entity->z_order     = 1;
+    entity->is_animated = false;
+    break;
+  };
+}
+
+Entity* entity_from_handle(Level* level, Handle handle) {
+  for (i32 i = 0; i < level->max_num_entities; i++) {
+    if (level->entities[i].handle == handle) {
+      return &(level->entities[i]);
+    }
+  }
+  return NULL;
 }

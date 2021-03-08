@@ -324,14 +324,8 @@ void game_step(GameState* game_state) {
     }
 
     if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
-      if (e->entity_state == EntityState_MovingThenGone) {
-        // this is a block,
-        RONA_ASSERT(e->entity_role == EntityRole_Block); // may not always be true
-        RONA_ASSERT(e->swallowed_by);
-        RONA_ASSERT(e->swallowed_by->entity_role == EntityRole_Pit);
-
-        e->ignore                    = true; // the fallen entity is no longer going to be shown
-        e->swallowed_by->entity_role = e->swallower_new_role;
+      if (e->command) {
+        command_execute(e->command, CommandExecute_Play_TurnEnd, game_state);
       }
       e->entity_state = EntityState_Standing;
     }
@@ -406,6 +400,8 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   {
     Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
 
+    hero->command = command;
+
     command->type   = CommandType_EntityMove;
     command->entity = hero;
 
@@ -433,7 +429,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
     old_params->entity_state = hero->entity_state;
     new_params->entity_state = EntityState_Moving;
 
-    command_execute(command, CommandExecute_Play, game_state);
+    command_execute(command, CommandExecute_Play_TurnBegin, game_state);
   }
 
   return true;
@@ -474,13 +470,15 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
       //
       Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
 
+      block->command = command;
+
       command->type   = CommandType_EntityMoveThenSwallow;
       command->entity = block;
 
       EntityMoveParams* old_params = &command->params.entity_move_then_swallow.old_params;
       EntityMoveParams* new_params = &command->params.entity_move_then_swallow.new_params;
 
-      command->params.entity_move_then_swallow.swallower          = pit;
+      command->params.entity_move_then_swallow.swallower_handle   = pit->handle;
       command->params.entity_move_then_swallow.swallower_old_role = pit->entity_role;
       command->params.entity_move_then_swallow.swallower_new_role = EntityRole_FilledPit;
 
@@ -496,7 +494,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
       old_params->entity_state = block->entity_state;
       new_params->entity_state = EntityState_MovingThenGone;
 
-      command_execute(command, CommandExecute_Play, game_state);
+      command_execute(command, CommandExecute_Play_TurnBegin, game_state);
 
       return true;
     } else if (is_occupier_block) {
@@ -507,6 +505,8 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
 
   // happy path - move onto updating the block position
   Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
+
+  block->command = command;
 
   command->type   = CommandType_EntityMove;
   command->entity = block;
@@ -526,7 +526,7 @@ bool try_moving_block(Level* level, Entity* block, Direction direction, GameStat
   old_params->entity_state = block->entity_state;
   new_params->entity_state = EntityState_Moving;
 
-  command_execute(command, CommandExecute_Play, game_state);
+  command_execute(command, CommandExecute_Play_TurnBegin, game_state);
   return true;
 }
 

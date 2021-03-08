@@ -72,8 +72,11 @@ typedef unsigned long long u64;
 typedef unsigned char byte;
 typedef unsigned int  usize;
 
+typedef usize Handle;
+
 #include "rona_gl.h"
 
+struct Command;
 struct Level;
 
 typedef struct {
@@ -439,6 +442,8 @@ typedef enum {
 #define ENTITY_NUM_Z_LEVELS 4
 
 typedef struct Entity {
+  Handle handle;
+
   // when looping through entities in a level stop at the first one that doesn't exist
   // there will be no more entities where no_further_entities == false
   bool no_further_entities;
@@ -452,8 +457,8 @@ typedef struct Entity {
   // bool can_push;
   // bool can_traverse_across;
 
-  struct Entity* swallowed_by;       // e.g. a pit
-  EntityRole     swallower_new_role; // e.g. EntityRole_FilledPit
+  // the current command that is controlling this entity
+  struct Command* command;
 
   EntityRole  entity_role;
   EntityState entity_state;
@@ -545,7 +550,7 @@ typedef struct {
 typedef struct {
   EntityMoveParams old_params;
   EntityMoveParams new_params;
-  Entity*          swallower;
+  Handle           swallower_handle;
   EntityRole       swallower_old_role;
   EntityRole       swallower_new_role;
 } CommandParamsEntityMoveThenSwallow;
@@ -555,31 +560,33 @@ typedef struct {
   Vec2i tile_world_pos_bottom_right;
   Tile* tile_old_sb; // stretchy buffer of existing tiles
   Tile  tile_new;    // the new type of tile
-} CommandParamsTileArea;
+} EditorCommandParamsTileArea;
 
 typedef struct {
   TilePos tile_pos;
   Tile    tile_old;
   Tile    tile_new;
-} CommandParamsTileChange;
+} EditorCommandParamsTileChange;
 
 typedef struct {
-  CommandParamsTileChange* changes_sb;
-} CommandParamsWallsBuild;
+  EditorCommandParamsTileChange* changes_sb;
+} EditorCommandParamsWallsBuild;
 
-typedef struct {
+typedef struct Command {
   CommandType type;
   bool        is_last_in_transaction;
 
   Entity* entity;
 
   union {
+    // CommandParams shouldn't contain pointers because they'll need to be saved to disk
     CommandParamsEntityMove            entity_move;
     CommandParamsEntityMoveThenSwallow entity_move_then_swallow;
 #ifdef RONA_EDITOR
-    CommandParamsWallsBuild walls_build;
-    CommandParamsTileArea   tile_area;
-    CommandParamsTileChange tile_change;
+    // EditorCommandParams are allowed to have pointers
+    EditorCommandParamsWallsBuild walls_build;
+    EditorCommandParamsTileArea   tile_area;
+    EditorCommandParamsTileChange tile_change;
 #endif
   } params;
 } Command;

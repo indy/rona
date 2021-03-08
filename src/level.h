@@ -29,4 +29,6 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
 void world_from_board(Vec3* dst, i32 x, i32 y, f32 z);
 
+Entity* entity_from_handle(Level* level, Handle handle);
+
 #endif /* LEVEL_H */

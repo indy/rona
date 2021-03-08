@@ -25,12 +25,14 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
   case CommandType_EntityMove: {
     CommandParamsEntityMove* params = &(command->params.entity_move);
     switch (execute_type) {
-    case CommandExecute_Play:
+    case CommandExecute_Play_TurnBegin:
       vec2i_copy(&e->board_pos, &params->new_params.board_pos);
       // world_pos will smoothly transition to world_target
       vec3_copy(&e->world_target, &params->new_params.world_target);
       e->entity_facing = params->new_params.entity_facing;
       e->entity_state  = params->new_params.entity_state;
+      break;
+    case CommandExecute_Play_TurnEnd:
       break;
     case CommandExecute_Undo:
       vec2i_copy(&e->board_pos, &params->old_params.board_pos);
@@ -53,37 +55,38 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
 
   case CommandType_EntityMoveThenSwallow: {
     CommandParamsEntityMoveThenSwallow* params = &(command->params.entity_move_then_swallow);
+    Entity* swallower = entity_from_handle(game_state->level, params->swallower_handle);
+    RONA_ASSERT(swallower);
+
     switch (execute_type) {
-    case CommandExecute_Play:
+    case CommandExecute_Play_TurnBegin:
       vec2i_copy(&e->board_pos, &params->new_params.board_pos);
       // world_pos will smoothly transition to world_target
       vec3_copy(&e->world_target, &params->new_params.world_target);
-      e->entity_facing      = params->new_params.entity_facing;
-      e->entity_state       = params->new_params.entity_state;
-      e->swallowed_by       = params->swallower;
-      e->swallower_new_role = params->swallower_new_role;
+      e->entity_facing = params->new_params.entity_facing;
+      e->entity_state  = params->new_params.entity_state;
+      break;
+    case CommandExecute_Play_TurnEnd:
+      e->ignore              = true; // the fallen entity is no longer going to be shown
+      swallower->entity_role = params->swallower_new_role;
       break;
     case CommandExecute_Undo:
       vec2i_copy(&e->board_pos, &params->old_params.board_pos);
       vec3_copy(&e->world_pos, &params->old_params.world_pos);
       vec3_copy(&e->world_target, &params->old_params.world_target);
-      e->entity_facing = params->old_params.entity_facing;
-      e->entity_state  = params->old_params.entity_state;
-
-      // command results in pit becoming FilledPit and the block being ignored
-      // so undo all that
-      params->swallower->entity_role = params->swallower_old_role;
-      e->ignore                      = false;
-      e->swallowed_by                = NULL;
+      e->entity_facing       = params->old_params.entity_facing;
+      e->entity_state        = params->old_params.entity_state;
+      e->ignore              = false;
+      swallower->entity_role = params->swallower_old_role;
       break;
     case CommandExecute_Redo:
       vec2i_copy(&e->board_pos, &params->new_params.board_pos);
       vec3_copy(&e->world_pos, &params->new_params.world_pos);
       vec3_copy(&e->world_target, &params->new_params.world_target);
-      e->entity_facing      = params->new_params.entity_facing;
-      e->entity_state       = params->new_params.entity_state;
-      e->swallowed_by       = params->swallower;
-      e->swallower_new_role = params->swallower_new_role;
+      e->entity_facing       = params->new_params.entity_facing;
+      e->entity_state        = params->new_params.entity_state;
+      e->ignore              = true; // the fallen entity is no longer going to be shown
+      swallower->entity_role = params->swallower_new_role;
       break;
     case CommandExecute_Kill:
       break;
@@ -97,15 +100,13 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
      * Editor TileChange
      */
   case CommandType_Editor_TileChange: {
-    Level*                   level       = game_state->level;
-    CommandParamsTileChange* tile_change = &(command->params.tile_change);
+    Level*                         level       = game_state->level;
+    EditorCommandParamsTileChange* tile_change = &(command->params.tile_change);
 
     bool  requires_regen = false;
     Tile* tile           = tile_ensure_get(level, tile_change->tile_pos);
 
     switch (execute_type) {
-    case CommandExecute_Play:
-      return; // early return, no need to do anything here
     case CommandExecute_Undo:
       requires_regen = true;
       *tile          = tile_change->tile_old;
@@ -117,6 +118,8 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
     case CommandExecute_Kill:
       rona_log("CommandType_Editor_TileChange :: CommandExecute_Kill");
       break;
+    default:
+      break;
     }
 
     if (requires_regen) {
@@ -127,16 +130,14 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
     }
   } break;
   case CommandType_Editor_TileArea: {
-    Level*                 level     = game_state->level;
-    CommandParamsTileArea* tile_area = &(command->params.tile_area);
-    Vec2i                  world_tl  = tile_area->tile_world_pos_top_left;
-    Vec2i                  world_br  = tile_area->tile_world_pos_bottom_right;
+    Level*                       level     = game_state->level;
+    EditorCommandParamsTileArea* tile_area = &(command->params.tile_area);
+    Vec2i                        world_tl  = tile_area->tile_world_pos_top_left;
+    Vec2i                        world_br  = tile_area->tile_world_pos_bottom_right;
 
     bool requires_regen = false;
 
     switch (execute_type) {
-    case CommandExecute_Play:
-      return; // early return, no need to do anything here
     case CommandExecute_Undo:
       requires_regen = true;
       // set all of the tiles to the old values
@@ -169,6 +170,8 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
       rona_log("CommandType_Editor_TileArea :: CommandExecute_Kill");
       sb_free(&(editor_state.fixed_block_permanent), tile_area->tile_old_sb);
       break;
+    default:
+      break;
     }
 
     if (requires_regen) {
@@ -183,6 +186,11 @@ void command_execute(Command* command, CommandExecute execute_type, GameState* g
   default:
     rona_error("command_execute: unknown command type %d", command->type);
     break;
+  }
+
+  if (e && execute_type == CommandExecute_Play_TurnEnd) {
+    // at the end of a turn, don't let the Entity hold onto the Command's pointer
+    e->command = NULL;
   }
 }
 

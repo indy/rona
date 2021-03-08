@@ -34,12 +34,19 @@ Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_alloc
 bool command_undo(UndoRedo* undo_redo, GameState* game_state);
 bool command_redo(UndoRedo* undo_redo, GameState* game_state);
 
-// Play is here to enable autoplay demo mode in the future
+// Play_TurnBegin is called at the start of a turn, will enable smooth transitions
+// Play_TurnEnd is called at the end of a Play command
+// Redo is a way of snapping to the results of a Play_TurnBegin, ..animations.., Play_TurnEnd
+// Undo: restore the previous state, opposite of redo
 // Kill: after some undos a new command is added so the old commands will need an opportunity to
 // deallocate memory
 //
+// note: should be able to call Undo/Redo repeatedly
+// note: Redo should be equivalent to calling Play_TurnBegin + Play_TurnEnd
+//
 typedef enum {
-  CommandExecute_Play,
+  CommandExecute_Play_TurnBegin,
+  CommandExecute_Play_TurnEnd,
   CommandExecute_Undo,
   CommandExecute_Redo,
   CommandExecute_Kill

@@ -289,8 +289,8 @@ void editor_step(EditorState* editor_state, GameState* game_state) {
             Command* command =
                 command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
 
-            command->type                    = CommandType_Editor_TileArea;
-            CommandParamsTileArea* tile_area = &(command->params.tile_area);
+            command->type                          = CommandType_Editor_TileArea;
+            EditorCommandParamsTileArea* tile_area = &(command->params.tile_area);
 
             tile_area->tile_world_pos_top_left     = world_tl;
             tile_area->tile_world_pos_bottom_right = world_br;
