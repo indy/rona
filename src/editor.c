@@ -57,57 +57,66 @@ void declare_stage_info(EditorState* editor_state, GameState* game_state) {
   Vec2i screen = game_state->input->mouse_pos;
   Vec2i stage  = editor_state->cursor_in_stage_coords;
 
-  if (nk_begin(ctx, "Stage Info", nk_rect(50, 50, 220, 220),
-               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
+  if (nk_begin(ctx, "Stage Info", nk_rect(50, 50, 280, 520),
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
     /* fixed widget pixel width */
-    nk_layout_row_static(ctx, 30, 120, 1);
-    if (nk_button_label(ctx, "Build Walls")) {
-      Level* level = game_state->level;
-      command_transaction_begin(&editor_state->undo_redo);
-      {
-        Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+    nk_layout_row_dynamic(ctx, 0, 2);
 
-        command->type = CommandType_Editor_WallsBuild;
-        // command->params.tile_change.level = level;
-        // command->params.tile_change.tile_pos = tile_pos;
-
-        // Tile* tile_old = tile_ensure_get(level, tile_pos);
-        // Tile  tile_new;
-
-        // if (editor_state->active_tile_type == 0) {
-        //   tile_new.type = TileType_Void;
-        //   tile_new.sprite = S_DebugBlank;
-        // } else {
-        //   tile_new.type = TileType_Floor;
-        //   tile_new.sprite = S_Debug4Corners;
-        // }
-
-        // command->params.tile_change.tile_old = *tile_old;
-        // command->params.tile_change.tile_new = tile_new;
+    {
+      if (nk_button_label(ctx, "undo")) {
+        command_undo(&editor_state->undo_redo, game_state);
       }
-      command_transaction_end(&editor_state->undo_redo);
+      if (nk_button_label(ctx, "redo")) {
+        command_redo(&editor_state->undo_redo, game_state);
+      }
     }
+
+    // divider
+    nk_layout_row_begin(ctx, NK_STATIC, 30, 2);
+    nk_layout_row_end(ctx);
+
 
     nk_layout_row_begin(ctx, NK_DYNAMIC, 30, 2);
     {
       nk_layout_row_push(ctx, 0.5f);
       nk_label(ctx, "Screen Coords:", NK_TEXT_RIGHT);
-      nk_layout_row_push(ctx, 0.5f);
 
       char* b = rona_sprintf(transient, "%d, %d", screen.x, screen.y);
+      nk_layout_row_push(ctx, 0.5f);
       nk_text(ctx, b, strlen(b), NK_TEXT_LEFT);
     }
     nk_layout_row_end(ctx);
+
+
 
     nk_layout_row_begin(ctx, NK_DYNAMIC, 30, 2);
     {
       nk_layout_row_push(ctx, 0.5f);
       nk_label(ctx, "Stage Coords:", NK_TEXT_RIGHT);
-      nk_layout_row_push(ctx, 0.5f);
+
       char* b = rona_sprintf(transient, "%d, %d", stage.x, stage.y);
+      nk_layout_row_push(ctx, 0.5f);
       nk_text(ctx, b, strlen(b), NK_TEXT_LEFT);
     }
     nk_layout_row_end(ctx);
+
+
+    // divider
+    nk_layout_row_begin(ctx, NK_STATIC, 30, 2);
+    nk_layout_row_end(ctx);
+
+    nk_layout_row_dynamic(ctx, 0, 2);
+    if (nk_button_label(ctx, "Edit Tiles")) {
+      rona_log("editor_state->editor_mode = EditorMode_EditTiles");
+      editor_state->editor_mode = EditorMode_EditTiles;
+    }
+    if (nk_button_label(ctx, "Edit Entities")) {
+      rona_log("editor_state->editor_mode = EditorMode_EditEntities");
+      editor_state->editor_mode = EditorMode_EditEntities;
+    }
+
+
+
   }
   nk_end(ctx);
 }
@@ -146,25 +155,74 @@ void declare_stage_preview(EditorState* editor_state, GameState* game_state) {
   nk_end(ctx);
 }
 
+const char* editor_mode_label(EditorState* editor_state) {
+  switch(editor_state->editor_mode) {
+  case EditorMode_EditTiles:
+    return "Editing Tiles";
+    break;
+  case EditorMode_EditEntities:
+    return "Editing Entities";
+    break;
+  }
+}
+
 void declare_stage_toolbar(EditorState* editor_state, GameState* game_state) {
   struct nk_context* ctx = &(editor_state->ctx);
 
-  if (nk_begin(ctx, "Stage Toolbar", nk_rect(350, 50, 220, 220),
-               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_CLOSABLE)) {
-    /* fixed widget pixel width */
-    nk_layout_row_dynamic(ctx, 30, 2);
-    if (nk_button_label(ctx, "undo")) {
-      command_undo(&editor_state->undo_redo, game_state);
-    }
-    if (nk_button_label(ctx, "redo")) {
-      command_redo(&editor_state->undo_redo, game_state);
+  const char* label = editor_mode_label(editor_state);
+
+  if (nk_begin(ctx, label, nk_rect(350, 50, 220, 220),
+               NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_TITLE)) {
+
+    if (editor_state->editor_mode == EditorMode_EditTiles) {
+      /* fixed widget pixel width */
+      nk_layout_row_dynamic(ctx, 30, 2);
+      // clang-format off
+      if (nk_option_label(ctx, "void",  editor_state->active_tile_type == 0)) editor_state->active_tile_type = 0;
+      if (nk_option_label(ctx, "floor", editor_state->active_tile_type == 1)) editor_state->active_tile_type = 1;
+      // clang-format on
+
+      // divider
+      nk_layout_row_begin(ctx, NK_STATIC, 30, 2);
+      nk_layout_row_end(ctx);
+
+      nk_layout_row_dynamic(ctx, 0, 1);
+      if (nk_button_label(ctx, "Build Walls")) {
+        Level* level = game_state->level;
+        command_transaction_begin(&editor_state->undo_redo);
+        {
+          Command* command = command_add(&editor_state->undo_redo, &level->fixed_block_allocator, game_state);
+
+          command->type = CommandType_Editor_WallsBuild;
+          // command->params.tile_change.level = level;
+          // command->params.tile_change.tile_pos = tile_pos;
+
+          // Tile* tile_old = tile_ensure_get(level, tile_pos);
+          // Tile  tile_new;
+
+          // if (editor_state->active_tile_type == 0) {
+          //   tile_new.type = TileType_Void;
+          //   tile_new.sprite = S_DebugBlank;
+          // } else {
+          //   tile_new.type = TileType_Floor;
+          //   tile_new.sprite = S_Debug4Corners;
+          // }
+
+          // command->params.tile_change.tile_old = *tile_old;
+          // command->params.tile_change.tile_new = tile_new;
+        }
+        command_transaction_end(&editor_state->undo_redo);
+      }
+
+    } else if (editor_state->editor_mode == EditorMode_EditEntities) {
+      /* fixed widget pixel width */
+      nk_layout_row_dynamic(ctx, 30, 2);
+      // clang-format off
+      if (nk_option_label(ctx, "fuck",  editor_state->active_tile_type == 0)) editor_state->active_tile_type = 0;
+      if (nk_option_label(ctx, "you", editor_state->active_tile_type == 1)) editor_state->active_tile_type = 1;
+      // clang-format on
     }
 
-    nk_layout_row_dynamic(ctx, 30, 1);
-    // clang-format off
-    if (nk_option_label(ctx, "void",  editor_state->active_tile_type == 0)) editor_state->active_tile_type = 0;
-    if (nk_option_label(ctx, "floor", editor_state->active_tile_type == 1)) editor_state->active_tile_type = 1;
-    // clang-format on
   }
   nk_end(ctx);
 }
@@ -436,6 +494,7 @@ void editor_startup(RonaGL* gl, EditorState* editor_state, BumpAllocator* perman
                 &(editor_state->default_font->handle));
 
   editor_state->stage_scalar = 2;
+  editor_state->editor_mode = EditorMode_EditTiles;
 }
 
 void editor_shutdown(RonaGL* gl, EditorState* dev) {
@@ -490,7 +549,7 @@ void editor_changed_level(EditorState* editor_state, Level* level) {
   // use the level's bump allocator to store undo/redo information
   if (!command_system_startup(&(editor_state->undo_redo), &(level->fixed_block_allocator),
                               RESERVE_NUM_COMMANDS_IN_UNDO_BUFFER)) {
-    rona_error("editor_startup: command_system_startup failed");
+    rona_error("command_system_startup failed");
   }
 }
 

@@ -419,7 +419,8 @@ typedef enum {
   EntityRole_Enemy,
   EntityRole_Block,
   EntityRole_Pit,
-  EntityRole_FilledPit
+  EntityRole_FilledPit,
+  EntityRole_LevelExit
 } EntityRole;
 
 typedef enum { EntityState_Standing, EntityState_Moving, EntityState_MovingThenGone } EntityState;
@@ -708,8 +709,6 @@ typedef struct {
 
 } RenderStruct;
 
-typedef enum { GameMode_Edit, GameMode_Play } GameMode;
-
 typedef struct {
   BumpAllocator* bump;
   RenderStruct*  render_struct;
@@ -794,8 +793,10 @@ typedef struct {
   f32             mouse_wheel_delta;
 } RonaInput;
 
+typedef enum { GameMode_LevelEdit, GameMode_LevelPlay } GameMode;
+
 typedef struct {
-  GameMode mode;
+  GameMode game_mode;
   bool     game_initialised;
   bool     quit_game;
 

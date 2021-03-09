@@ -26,10 +26,11 @@ bool command_transaction_begin(UndoRedo* undo_redo);
 bool command_transaction_end(UndoRedo* undo_redo);
 
 // returns Command for caller to fill out, call within a transaction
-// note: the GameState is only for passing through to command_execute during a CommandExecute_Kill.
-// If no CommandExecute_Kill requires access to GameState this argument can be removed and I'll just
-// pass in NULL to command_execute
 Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator, GameState* game_state);
+
+// these are helper functions that will call command_add
+//
+Command* command_add_ingame(GameState* game_state, CommandType command_type, Entity* entity);
 
 bool command_undo(UndoRedo* undo_redo, GameState* game_state);
 bool command_redo(UndoRedo* undo_redo, GameState* game_state);

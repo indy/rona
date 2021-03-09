@@ -260,6 +260,7 @@ void graphic_entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct
       Vec2 sprite_uv;
       Vec2 offset;
 
+      // this is just a temporary hack, a role may have many visual representations (e.g. EntityRole_Enemy)
       switch (e->entity_role) {
       case EntityRole_Hero:
         animated_character_sprite_uv_and_offset(&sprite_uv, &offset, render_struct, e);
@@ -272,6 +273,9 @@ void graphic_entities_regenerate_geometry(Level* level, RonaGL* gl, RenderStruct
         break;
       case EntityRole_FilledPit:
         sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_BlockableHoleFilled);
+        break;
+      case EntityRole_LevelExit:
+        sprite_uv_and_offset(&sprite_uv, &offset, render_struct, S_LevelExit);
         break;
       default:
         rona_error("unknown entity_type in entities_regenerate_geometry");

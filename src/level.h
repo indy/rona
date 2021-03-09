@@ -24,7 +24,6 @@ void level_shutdown(Level* level);
 void level_lib_load(Level* level, RonaGL* gl, BumpAllocator* transient, RenderStruct* render_struct);
 void level_lib_unload(Level* level, RonaGL* gl);
 
-bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state);
 void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height, char layout[][dbl_width]);
 
 void world_from_board(Vec3* dst, i32 x, i32 y, f32 z);

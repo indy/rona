@@ -27,6 +27,11 @@
 #define NK_SHADER_VERSION "#version 300 es\n"
 #endif
 
+typedef enum {
+  EditorMode_EditTiles,
+  EditorMode_EditEntities,
+} EditorMode;
+
 typedef struct {
   // use the level's allocator for undo/redo
   UndoRedo undo_redo;
@@ -42,6 +47,16 @@ typedef struct {
   Vec2i mouse_up_in_stage_coords;
   // how much should the stage be magnified
   i32 stage_scalar;
+
+  // -----------------------------------
+
+
+  EditorMode editor_mode;
+
+
+
+
+
 
   // -----------------------------------
 

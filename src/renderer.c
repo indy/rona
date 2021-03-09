@@ -88,10 +88,10 @@ void renderer_render(GameState* game_state) {
 
   // --------------------------------------------------------------------------------
 
-  // if RONA_EDITOR isn't defined just render as if GameMode_Play was selected
+  // if RONA_EDITOR isn't defined just render as if GameMode_LevelPlay was selected
 
 #ifdef RONA_EDITOR
-  if (game_state->mode == GameMode_Play) {
+  if (game_state->game_mode == GameMode_LevelPlay) {
 #endif
 
     // render stage as large as possible onto screen
@@ -129,7 +129,7 @@ void renderer_render(GameState* game_state) {
 
 #ifdef RONA_EDITOR
   } else {
-    // GameMode_Edit
+    // GameMode_LevelEdit
 
     // render the stage onto another texture using the shader_screen
     // this will perform sRGB colour conversion (and any other post processing effects)

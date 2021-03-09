@@ -147,8 +147,6 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
         case 'y': tile->type = TileType_Void; tile->sprite = S_CornerB_BL; break;
         case 'z': tile->type = TileType_Void; tile->sprite = S_CornerB_BR; break;
 
-        case 's': tile->type = TileType_Void; tile->sprite = S_LevelExit; break;
-
         // clang-format on
         case 'H':
           have_hero = true;
@@ -169,6 +167,13 @@ void level_build(GameState* game_state, Level* level, i32 dbl_width, i32 height,
 
           entity = &(level->entities[next_non_hero_entity_index++]);
           entity_defaults(entity, EntityRole_Pit);
+          entity_place(level, entity, tile_x, tile_y, 1.0f);
+          break;
+        case 's':
+          RONA_ASSERT(next_non_hero_entity_index < level->max_num_entities);
+
+          entity = &(level->entities[next_non_hero_entity_index++]);
+          entity_defaults(entity, EntityRole_LevelExit);
           entity_place(level, entity, tile_x, tile_y, 1.0f);
           break;
         }
@@ -217,6 +222,10 @@ void entity_defaults(Entity* entity, EntityRole entity_role) {
     entity->is_animated = false;
     break;
   case EntityRole_FilledPit:
+    entity->z_order     = 1;
+    entity->is_animated = false;
+    break;
+  case EntityRole_LevelExit:
     entity->z_order     = 1;
     entity->is_animated = false;
     break;

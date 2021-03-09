@@ -17,8 +17,9 @@
 
 #define MAX_OCCUPANTS_ALLOWED 10
 
-bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state);
-bool try_moving_block(Level* level, Entity* block, Direction direction, GameState* game_state);
+bool hero_try_moving(Level* level, Entity* hero, Direction direction, GameState* game_state);
+void hero_finished_turn(Level* level, Entity* hero, GameState* game_state);
+bool block_try_moving(Level* level, Entity* block, Direction direction, GameState* game_state);
 i32  entities_at_board_position(Entity** occupants, i32 max_allowed, Level* level, Vec2i* pos);
 
 void game_startup(GameState* game_state) {
@@ -203,8 +204,9 @@ void game_step(GameState* game_state) {
 
   TextParams* text_params = &(game_state->text_params_debug);
   text_params->pos        = vec2(0.0f, 0.0f);
-  text_printf(text_params, "%s (%.2f, %.2f) %.0ffps", game_state->mode == GameMode_Edit ? "Edit" : "Play",
-              mouse_on_stage.x, mouse_on_stage.y, fps);
+  text_printf(text_params, "%s (%.2f, %.2f) %.0ffps",
+              game_state->game_mode == GameMode_LevelEdit ? "Edit" : "Play", mouse_on_stage.x,
+              mouse_on_stage.y, fps);
 
   if (!game_state->input->active) {
     text_params->pos = vec2(0.0f, text_params->pos.y + TILE_HEIGHT);
@@ -215,12 +217,14 @@ void game_step(GameState* game_state) {
     game_state->quit_game = true;
     return;
   }
-  if (key_pressed(game_state->input, Key_M)) {
-    game_state->mode = game_state->mode == GameMode_Edit ? GameMode_Play : GameMode_Edit;
-  }
 
 #ifdef RONA_EDITOR
-  if (game_state->mode == GameMode_Edit) {
+  if (key_pressed(game_state->input, Key_M)) {
+    game_state->game_mode =
+        game_state->game_mode == GameMode_LevelEdit ? GameMode_LevelPlay : GameMode_LevelEdit;
+  }
+
+  if (game_state->game_mode == GameMode_LevelEdit) {
     struct nk_context* ctx = &editor_state.ctx;
     nk_input_begin(ctx);
     {
@@ -242,7 +246,6 @@ void game_step(GameState* game_state) {
   Level*    level = game_state->level;
   Entity*   hero  = get_hero(level);
   Direction direction;
-  bool      moved = false;
 
   /*
    * NOTE: The window event: LostFocus isn't always quick or reliable,
@@ -265,23 +268,32 @@ void game_step(GameState* game_state) {
 #endif
 
   if (hero->entity_state == EntityState_Standing) {
+    bool movement_key_pressed = true;
+
     if (key_pressed(game_state->input, Key_Up)) {
       direction = Direction_North;
-      moved     = true;
     } else if (key_pressed(game_state->input, Key_Down)) {
       direction = Direction_South;
-      moved     = true;
     } else if (key_pressed(game_state->input, Key_Left)) {
       direction = Direction_West;
-      moved     = true;
     } else if (key_pressed(game_state->input, Key_Right)) {
       direction = Direction_East;
-      moved     = true;
+    } else {
+      movement_key_pressed = false;
     }
-    if (moved) {
+    if (movement_key_pressed) {
       command_transaction_begin(&level->undo_redo);
-      try_moving_hero(level, hero, direction, game_state);
+      bool hero_has_moved = hero_try_moving(level, hero, direction, game_state);
       command_transaction_end(&level->undo_redo);
+
+      // hero couldn't be moved but at least try to make him face in the desired direction
+      if (!hero_has_moved) {
+        if (direction == Direction_West) {
+          hero->entity_facing = EntityFacing_Left;
+        } else if (direction == Direction_East) {
+          hero->entity_facing = EntityFacing_Right;
+        }
+      }
     }
   }
 
@@ -292,6 +304,9 @@ void game_step(GameState* game_state) {
       break;
     }
     if (e->ignore) {
+      continue;
+    }
+    if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
       continue;
     }
 
@@ -326,6 +341,11 @@ void game_step(GameState* game_state) {
     if (e->world_pos.x == e->world_target.x && e->world_pos.y == e->world_target.y) {
       if (e->command) {
         command_execute(e->command, CommandExecute_Play_TurnEnd, game_state);
+
+        if (e->entity_role == EntityRole_Hero) {
+          // end of turn
+          hero_finished_turn(level, e, game_state);
+        }
       }
       e->entity_state = EntityState_Standing;
     }
@@ -358,7 +378,86 @@ Vec2i vec2i_add_direction(Vec2i* pos, Direction direction) {
   return res;
 }
 
-bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState* game_state) {
+bool block_try_moving(Level* level, Entity* block, Direction direction, GameState* game_state) {
+  Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
+
+  Tile* tile = tile_from_world_tile_space(level, new_pos);
+  if (tile->type == TileType_Void) {
+    return false;
+  }
+
+  // check if this will push any other entities
+  bool    is_occupier_block = false;
+  Entity* occupants[MAX_OCCUPANTS_ALLOWED];
+  i32     num_occupants = entities_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
+  if (num_occupants > 0) {
+    Entity* pit = NULL;
+
+    for (i32 i = 0; i < num_occupants; i++) {
+      if (occupants[i]->entity_role == EntityRole_Block) {
+        is_occupier_block = true;
+      }
+      if (occupants[i]->entity_role == EntityRole_Pit) {
+        pit = occupants[i];
+      }
+    }
+
+    if (pit) {
+      // move the block over the pit, then transition to a filled pit
+      //
+      Command* command = command_add_ingame(game_state, CommandType_EntityMoveThenSwallow, block);
+
+      EntityMoveParams* old_params = &command->params.entity_move_then_swallow.old_params;
+      EntityMoveParams* new_params = &command->params.entity_move_then_swallow.new_params;
+
+      command->params.entity_move_then_swallow.swallower_handle   = pit->handle;
+      command->params.entity_move_then_swallow.swallower_old_role = pit->entity_role;
+      command->params.entity_move_then_swallow.swallower_new_role = EntityRole_FilledPit;
+
+      old_params->board_pos = block->board_pos;
+      new_params->board_pos = new_pos;
+
+      old_params->world_target = block->world_target;
+      world_from_board(&new_params->world_target, new_pos.x, new_pos.y, block->world_target.z);
+
+      old_params->world_pos = block->world_pos;
+      new_params->world_pos = new_params->world_target;
+
+      old_params->entity_state = block->entity_state;
+      new_params->entity_state = EntityState_MovingThenGone;
+
+      command_execute(command, CommandExecute_Play_TurnBegin, game_state);
+
+      return true;
+    } else if (is_occupier_block) {
+      // can't move the block, there's another block in the way
+      return false;
+    }
+  }
+
+  // happy path - move onto updating the block position
+  Command* command = command_add_ingame(game_state, CommandType_EntityMove, block);
+
+  EntityMoveParams* old_params = &command->params.entity_move.old_params;
+  EntityMoveParams* new_params = &command->params.entity_move.new_params;
+
+  old_params->board_pos = block->board_pos;
+  new_params->board_pos = new_pos;
+
+  old_params->world_target = block->world_target;
+  world_from_board(&new_params->world_target, new_pos.x, new_pos.y, block->world_target.z);
+
+  old_params->world_pos = block->world_pos;
+  new_params->world_pos = new_params->world_target;
+
+  old_params->entity_state = block->entity_state;
+  new_params->entity_state = EntityState_Moving;
+
+  command_execute(command, CommandExecute_Play_TurnBegin, game_state);
+  return true;
+}
+
+bool hero_try_moving(Level* level, Entity* hero, Direction direction, GameState* game_state) {
   Vec2i new_pos = vec2i_add_direction(&hero->board_pos, direction);
 
   Tile* tile = tile_from_world_tile_space(level, new_pos);
@@ -390,7 +489,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
       return false;
     } else if (is_occupier_block) {
       // check if the block can be pushed along
-      bool block_can_move = try_moving_block(level, block, direction, game_state);
+      bool block_can_move = block_try_moving(level, block, direction, game_state);
       if (!block_can_move) {
         return false;
       }
@@ -398,12 +497,7 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   }
 
   {
-    Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
-
-    hero->command = command;
-
-    command->type   = CommandType_EntityMove;
-    command->entity = hero;
+    Command* command = command_add_ingame(game_state, CommandType_EntityMove, hero);
 
     EntityMoveParams* old_params = &command->params.entity_move.old_params;
     EntityMoveParams* new_params = &command->params.entity_move.new_params;
@@ -435,99 +529,31 @@ bool try_moving_hero(Level* level, Entity* hero, Direction direction, GameState*
   return true;
 }
 
-bool try_moving_block(Level* level, Entity* block, Direction direction, GameState* game_state) {
-  Vec2i new_pos = vec2i_add_direction(&block->board_pos, direction);
+void hero_finished_turn(Level* level, Entity* hero, GameState* game_state) {
+  for (i32 i = 0; i < level->max_num_entities; i++) {
+    Entity* e = &(level->entities[i]);
 
-  Tile* tile = tile_from_world_tile_space(level, new_pos);
-  if (tile->type == TileType_Void) {
-    return false;
-  }
-
-  // check if this will push any other entities
-  bool    is_occupier_block = false;
-  bool    is_occupier_pit   = false;
-  Entity* occupants[MAX_OCCUPANTS_ALLOWED];
-  i32     num_occupants = entities_at_board_position(occupants, MAX_OCCUPANTS_ALLOWED, level, &new_pos);
-  if (num_occupants > 0) {
-
-    Entity* pit = NULL;
-
-    for (i32 i = 0; i < num_occupants; i++) {
-      if (occupants[i]->entity_role == EntityRole_Block) {
-        is_occupier_block = true;
-      }
-      if (occupants[i]->entity_role == EntityRole_Pit) {
-        pit             = occupants[i];
-        is_occupier_pit = true;
-      }
-      // if (occupants[i]->entity_role == EntityRole_FilledPit) {
-      //   just treat this as a normal floor
-      // }
+    if (e->no_further_entities) {
+      break;
+    }
+    if (e->ignore) {
+      continue;
+    }
+    if (e == hero) {
+      continue;
+    }
+    if (!vec2i_eq(e->board_pos, hero->board_pos)) {
+      continue;
     }
 
-    if (is_occupier_pit) {
-      // move the block over the pit, then transition to a filled pit
-      //
-      Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
-
-      block->command = command;
-
-      command->type   = CommandType_EntityMoveThenSwallow;
-      command->entity = block;
-
-      EntityMoveParams* old_params = &command->params.entity_move_then_swallow.old_params;
-      EntityMoveParams* new_params = &command->params.entity_move_then_swallow.new_params;
-
-      command->params.entity_move_then_swallow.swallower_handle   = pit->handle;
-      command->params.entity_move_then_swallow.swallower_old_role = pit->entity_role;
-      command->params.entity_move_then_swallow.swallower_new_role = EntityRole_FilledPit;
-
-      old_params->board_pos = block->board_pos;
-      new_params->board_pos = new_pos;
-
-      old_params->world_target = block->world_target;
-      world_from_board(&new_params->world_target, new_pos.x, new_pos.y, block->world_target.z);
-
-      old_params->world_pos = block->world_pos;
-      new_params->world_pos = new_params->world_target;
-
-      old_params->entity_state = block->entity_state;
-      new_params->entity_state = EntityState_MovingThenGone;
-
-      command_execute(command, CommandExecute_Play_TurnBegin, game_state);
-
-      return true;
-    } else if (is_occupier_block) {
-      // can't move the block, there's another block in the way
-      return false;
+    switch (e->entity_role) {
+    case EntityRole_LevelExit:
+      rona_log("woohoo reached the end of the level");
+      break;
+    default:
+      break;
     }
   }
-
-  // happy path - move onto updating the block position
-  Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
-
-  block->command = command;
-
-  command->type   = CommandType_EntityMove;
-  command->entity = block;
-
-  EntityMoveParams* old_params = &command->params.entity_move.old_params;
-  EntityMoveParams* new_params = &command->params.entity_move.new_params;
-
-  old_params->board_pos = block->board_pos;
-  new_params->board_pos = new_pos;
-
-  old_params->world_target = block->world_target;
-  world_from_board(&new_params->world_target, new_pos.x, new_pos.y, block->world_target.z);
-
-  old_params->world_pos = block->world_pos;
-  new_params->world_pos = new_params->world_target;
-
-  old_params->entity_state = block->entity_state;
-  new_params->entity_state = EntityState_Moving;
-
-  command_execute(command, CommandExecute_Play_TurnBegin, game_state);
-  return true;
 }
 
 // how many entities are there on the level at the given position?

@@ -237,6 +237,24 @@ bool command_transaction_end(UndoRedo* undo_redo) {
   }
 }
 
+Command* command_add_ingame(GameState* game_state, CommandType command_type, Entity* entity) {
+  RONA_ASSERT(game_state);
+  RONA_ASSERT(entity);
+
+  Level* level = game_state->level;
+  RONA_ASSERT(level);
+
+  Command* command = command_add(&level->undo_redo, &level->fixed_block_allocator, game_state);
+  RONA_ASSERT(command);
+
+  command->type = command_type;
+
+  command->entity = entity;
+  entity->command = command;
+
+  return command;
+}
+
 // returns Command for caller to fill out, call within a transaction
 Command* command_add(UndoRedo* undo_redo, FixedBlockAllocator* fixed_block_allocator, GameState* game_state) {
   RONA_ASSERT(fixed_block_allocator);

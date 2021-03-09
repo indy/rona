@@ -176,7 +176,7 @@ int main(int argc, char **args) {
   game_state.time_game_start = fplGetTimeInMilliseconds();
   game_state.time_last_frame = game_state.time_game_start;
 
-  game_state.mode = GameMode_Play;
+  game_state.game_mode = GameMode_LevelPlay;
   game_state.game_initialised = false;
   game_state.quit_game = false;
 
